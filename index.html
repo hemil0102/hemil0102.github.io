@@ -71,14 +71,24 @@
     -webkit-backdrop-filter: blur(10px) saturate(170%);
     backdrop-filter: blur(10px) saturate(170%);
     transition:
-      left .55s cubic-bezier(.32,1.35,.36,1),
-      top .55s cubic-bezier(.32,1.35,.36,1),
-      width .55s cubic-bezier(.32,1.35,.36,1),
-      height .45s cubic-bezier(.32,1.35,.36,1),
+      left .6s cubic-bezier(.3,1.55,.36,1),
+      top .6s cubic-bezier(.3,1.55,.36,1),
+      width .6s cubic-bezier(.3,1.45,.36,1),
+      height .5s cubic-bezier(.3,1.4,.36,1),
       opacity .25s ease;
     pointer-events: none;
   }
   .glass-ind.no-anim { transition: none; }
+  @keyframes glassWobble {
+    0%   { transform: scale(1, 1); }
+    22%  { transform: scale(1.16, 0.82) skewX(-3deg); }
+    42%  { transform: scale(0.88, 1.14) skewX(2deg); }
+    60%  { transform: scale(1.09, 0.93) skewX(-1.5deg); }
+    76%  { transform: scale(0.96, 1.05); }
+    90%  { transform: scale(1.02, 0.98); }
+    100% { transform: scale(1, 1); }
+  }
+  .glass-ind.wobble { animation: glassWobble .7s ease-out; }
   .topnav {
     margin-left: auto; display: flex; gap: 2px; position: relative;
     padding: 4px; border-radius: 999px;
@@ -107,16 +117,16 @@
     box-shadow: 0 14px 28px var(--glass-shadow);
   }
   .dropdown.open { display: block; }
-  .dropdown-inner { max-width: 1100px; margin: 0 auto; padding: 22px 24px 30px; }
+  .dropdown-inner { max-width: 1100px; margin: 0 auto; padding: 22px 24px 30px; position: relative; }
   .dropdown h3 {
     font-size: 0.78rem; color: var(--muted); font-weight: 500;
     text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
   }
   .dropdown .cat-btn {
     display: block; background: none; border: none; text-align: left; cursor: pointer;
-    font-family: inherit; font-size: 1.15rem; font-weight: 700; color: var(--text); padding: 6px 0;
+    font-family: inherit; font-size: 1.15rem; font-weight: 700; color: var(--text);
+    padding: 6px 14px; border-radius: 999px; position: relative; z-index: 1;
   }
-  .dropdown .cat-btn:hover { color: var(--accent); }
   .dropdown .cat-btn .count { color: var(--muted); font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
   .overlay {
     position: fixed; inset: 0; z-index: 50;
@@ -269,6 +279,7 @@
   var activeCategory = 'All';
   var mInsightsOpen = false; // 모바일 메뉴에서 Insights 확장 여부
   var navInit = false;
+  var hasHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   var $main = document.getElementById('main');
   var $topnav = document.getElementById('topnav');
@@ -343,14 +354,21 @@
   /* ---------- 리퀴드 글래스 인디케이터 ---------- */
 
   function moveInd($ind, el, animate) {
-    if (!el) { $ind.style.opacity = '0'; return; }
+    if (!el) { $ind.style.opacity = '0'; $ind.classList.remove('wobble'); return; }
     if (!animate) $ind.classList.add('no-anim');
     $ind.style.opacity = '1';
     $ind.style.left = el.offsetLeft + 'px';
     $ind.style.top = el.offsetTop + 'px';
     $ind.style.width = el.offsetWidth + 'px';
     $ind.style.height = el.offsetHeight + 'px';
-    if (!animate) { void $ind.offsetWidth; $ind.classList.remove('no-anim'); }
+    if (!animate) {
+      void $ind.offsetWidth;
+      $ind.classList.remove('no-anim');
+    } else {
+      $ind.classList.remove('wobble');
+      void $ind.offsetWidth;
+      $ind.classList.add('wobble');
+    }
   }
 
   function routeNavKey() {
@@ -375,7 +393,15 @@
     navInit = true;
   }
 
+  function topActiveEl() {
+    var key = routeNavKey();
+    return key ? $topnav.querySelector('[data-nav="' + key + '"]') : null;
+  }
+
   Array.prototype.forEach.call($topnav.querySelectorAll('a'), function (a) {
+    if (hasHover) {
+      a.addEventListener('mouseenter', function () { moveInd($navInd, a, true); });
+    }
     if (a.getAttribute('data-nav') === 'insights') {
       a.addEventListener('mouseenter', openDropdown);
       a.addEventListener('click', function () {
@@ -388,10 +414,20 @@
     }
   });
 
+  if (hasHover) {
+    $topnav.addEventListener('mouseleave', function () {
+      if ($dropdown.classList.contains('open')) {
+        moveInd($navInd, $topnav.querySelector('[data-nav="insights"]'), true);
+      } else {
+        moveInd($navInd, topActiveEl(), true);
+      }
+    });
+  }
+
   function openDropdown() {
     var counts = categoryCounts();
     var cats = Object.keys(counts).sort();
-    var html = '<div class="dropdown-inner"><h3>Insights 카테고리</h3>';
+    var html = '<div class="dropdown-inner"><div class="glass-ind" id="dd-ind"></div><h3>Insights 카테고리</h3>';
     html += '<button class="cat-btn" data-cat="All">모두 보기<span class="count">' + posts.length + '</span></button>';
     cats.forEach(function (c) {
       html += '<button class="cat-btn" data-cat="' + escapeAttr(c) + '">' + escapeHtml(c) +
@@ -399,9 +435,16 @@
     });
     html += '</div>';
     $dropdown.innerHTML = html;
+    var $ddInd = document.getElementById('dd-ind');
     Array.prototype.forEach.call($dropdown.querySelectorAll('.cat-btn'), function (btn) {
       btn.addEventListener('click', function () { selectCategory(btn.getAttribute('data-cat')); });
+      if (hasHover) {
+        btn.addEventListener('mouseenter', function () { moveInd($ddInd, btn, true); });
+      }
     });
+    if (hasHover) {
+      $dropdown.addEventListener('mouseleave', function () { moveInd($ddInd, null, true); });
+    }
     $dropdown.classList.add('open');
     moveInd($navInd, $topnav.querySelector('[data-nav="insights"]'), true);
   }
@@ -409,10 +452,12 @@
   function closeDropdown() {
     if (!$dropdown.classList.contains('open')) return;
     $dropdown.classList.remove('open');
-    updateNav();
   }
 
-  $header.addEventListener('mouseleave', closeDropdown);
+  $header.addEventListener('mouseleave', function () {
+    closeDropdown();
+    moveInd($navInd, topActiveEl(), true);
+  });
 
   /* ---------- 모바일 오버레이 메뉴 ---------- */
 
@@ -434,6 +479,9 @@
     html += '<a href="#/book-report" class="m-link" data-nav="book">Book Report</a>';
     $overlayNav.innerHTML = html;
     Array.prototype.forEach.call($overlayNav.querySelectorAll('.m-link'), function (a) {
+      if (hasHover) {
+        a.addEventListener('mouseenter', function () { moveInd($mInd, a, true); });
+      }
       a.addEventListener('click', function (e) {
         e.preventDefault();
         if (a.getAttribute('data-nav') === 'insights') {
@@ -450,15 +498,27 @@
         setTimeout(function () {
           closeOverlay();
           location.hash = a.getAttribute('href');
-        }, 380);
+        }, hasHover ? 120 : 380);
       });
     });
     Array.prototype.forEach.call($overlayNav.querySelectorAll('.cat-btn'), function (btn) {
+      if (hasHover) {
+        btn.addEventListener('mouseenter', function () { moveInd($mInd, btn, true); });
+      }
       btn.addEventListener('click', function () {
         moveInd($mInd, btn, true);
-        setTimeout(function () { selectCategory(btn.getAttribute('data-cat')); }, 380);
+        setTimeout(function () { selectCategory(btn.getAttribute('data-cat')); }, hasHover ? 120 : 380);
       });
     });
+    if (hasHover) {
+      $overlayNav.onmouseleave = function () {
+        if (mInsightsOpen) {
+          moveInd($mInd, $overlayNav.querySelector('[data-nav="insights"]'), true);
+        } else {
+          positionMIndByRoute(true);
+        }
+      };
+    }
   }
 
   function positionMIndByRoute(animate) {
