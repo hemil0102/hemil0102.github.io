@@ -58,6 +58,12 @@
   }
   @media (max-width: 768px) { .layout { grid-template-columns: 1fr; } }
   nav.sidebar h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px; }
+  .about-link {
+    display: block; padding: 10px 12px; margin-bottom: 20px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); text-decoration: none; font-weight: 600; font-size: 0.95rem;
+  }
+  .about-link:hover { background: var(--accent-light); color: var(--accent); }
   .cat-btn {
     display: block; width: 100%; text-align: left; padding: 8px 12px; margin-bottom: 4px;
     border: none; background: transparent; color: var(--text); border-radius: 8px;
@@ -195,7 +201,8 @@
     var counts = {};
     posts.forEach(function (p) { counts[p.category] = (counts[p.category] || 0) + 1; });
     var cats = Object.keys(counts).sort();
-    var html = '<h2>카테고리</h2>';
+    var html = '<a class="about-link" href="profile.html">&#128100; About me</a>';
+    html += '<h2>카테고리</h2>';
     html += catBtn('All', posts.length);
     cats.forEach(function (c) { html += catBtn(c, counts[c]); });
     $sidebar.innerHTML = html;
