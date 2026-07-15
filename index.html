@@ -61,7 +61,7 @@
     line-height: 1.7;
   }
   header {
-    background: rgba(0, 31, 77, 0.92);
+    background: rgba(17, 19, 26, 0.92);
     -webkit-backdrop-filter: blur(18px) saturate(160%);
     backdrop-filter: blur(18px) saturate(160%);
     position: sticky; top: 0; z-index: 10;
@@ -111,7 +111,7 @@
   @media (hover: none), (pointer: coarse) {
     header {
       -webkit-backdrop-filter: none; backdrop-filter: none;
-      background: #001f4d;
+      background: #12131a;
     }
     .overlay {
       -webkit-backdrop-filter: none; backdrop-filter: none;
@@ -149,7 +149,7 @@
   }
   .topnav a {
     position: relative; z-index: 1;
-    color: #dce7fb; text-decoration: none; font-size: 0.92rem; font-weight: 600;
+    color: #ffffff; text-decoration: none; font-size: 0.92rem; font-weight: 600;
     padding: 7px 16px; border-radius: 999px; white-space: nowrap;
   }
   .topnav .glass-ind, .dropdown .glass-ind {
@@ -170,8 +170,8 @@
     .header-inner { gap: 12px; }
   }
   .dropdown {
-    display: none; border-top: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(0, 31, 77, 0.94);
+    display: none; border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(17, 19, 26, 0.95);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
     backdrop-filter: blur(20px) saturate(160%);
     box-shadow: 0 14px 28px var(--glass-shadow);
@@ -179,15 +179,15 @@
   .dropdown.open { display: block; }
   .dropdown-inner { max-width: 1100px; margin: 0 auto; padding: 22px 24px 30px; position: relative; }
   .dropdown h3 {
-    font-size: 0.78rem; color: #9db4dd; font-weight: 500;
+    font-size: 0.78rem; color: #9aa0ab; font-weight: 500;
     text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
   }
   .dropdown .cat-btn {
     display: block; background: none; border: none; text-align: left; cursor: pointer;
-    font-family: inherit; font-size: 1.15rem; font-weight: 700; color: #e9effc;
+    font-family: inherit; font-size: 1.15rem; font-weight: 700; color: #ffffff;
     padding: 6px 14px; border-radius: 999px; position: relative; z-index: 1;
   }
-  .dropdown .cat-btn .count { color: #9db4dd; font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
+  .dropdown .cat-btn .count { color: #9aa0ab; font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
   .overlay {
     position: fixed; inset: 0; z-index: 50;
     background: var(--header-glass);
@@ -207,7 +207,7 @@
   }
   #overlay-wrap { position: relative; margin-top: 20px; }
   .m-link {
-    display: block; color: var(--accent); text-decoration: none;
+    display: block; color: var(--text); text-decoration: none;
     font-size: 1.25rem; font-weight: 700; padding: 8px 16px;
     border-radius: 999px; position: relative; z-index: 1;
   }
@@ -234,6 +234,8 @@
   }
   @media (max-width: 768px) { .main-card { padding: 36px 20px; } }
   .main-card h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+  .main-card.sub { text-align: left; margin-top: 24px; }
+  .main-card.sub h2 { font-size: 1.3rem; margin-bottom: 12px; }
   .main-card .tagline { color: var(--muted); margin-bottom: 24px; }
   .main-card p { margin-bottom: 14px; }
   .main-card .links { justify-content: center; margin-top: 28px; }
@@ -673,7 +675,7 @@
       })
       .then(function (txt) {
         var doc = new DOMParser().parseFromString(txt, 'text/html');
-        var card = doc.querySelector('.main-card');
+        var card = doc.querySelector('#home-content') || doc.querySelector('.main-card');
         if (!card) throw new Error('대문 내용을 찾을 수 없습니다');
         $main.innerHTML = '';
         $main.appendChild(document.importNode(card, true));
