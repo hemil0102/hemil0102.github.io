@@ -23,6 +23,8 @@
     --glass-inner: rgba(255, 255, 255, 0.9);
     --glass-shadow: rgba(0, 0, 0, 0.14);
     --tray-fill: rgba(0, 0, 0, 0.035);
+    --glint: rgba(255, 255, 255, 0.55);
+    --rim: rgba(255, 255, 255, 0.95);
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -40,6 +42,8 @@
       --glass-inner: rgba(255, 255, 255, 0.35);
       --glass-shadow: rgba(0, 0, 0, 0.55);
       --tray-fill: rgba(255, 255, 255, 0.06);
+      --glint: rgba(255, 255, 255, 0.3);
+      --rim: rgba(255, 255, 255, 0.6);
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -71,24 +75,45 @@
     -webkit-backdrop-filter: blur(10px) saturate(170%);
     backdrop-filter: blur(10px) saturate(170%);
     transition:
-      left .6s cubic-bezier(.3,1.55,.36,1),
-      top .6s cubic-bezier(.3,1.55,.36,1),
-      width .6s cubic-bezier(.3,1.45,.36,1),
-      height .5s cubic-bezier(.3,1.4,.36,1),
+      left .7s cubic-bezier(.32,1.18,.36,1),
+      top .7s cubic-bezier(.32,1.18,.36,1),
+      width .7s cubic-bezier(.32,1.14,.36,1),
+      height .6s cubic-bezier(.32,1.12,.36,1),
       opacity .25s ease;
+    pointer-events: none;
+  }
+  .glass-ind::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit;
+    background: linear-gradient(calc(115deg + var(--tilt, 0deg)),
+      rgba(255,255,255,0) 32%, var(--glint) 47%, rgba(255,255,255,0) 62%);
+    pointer-events: none;
+  }
+  .glass-ind::after {
+    content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1.5px;
+    background: conic-gradient(from calc(var(--tilt, 0deg) - 40deg),
+      var(--rim) 0%, transparent 22%, var(--rim) 46%, transparent 68%, var(--rim) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
     pointer-events: none;
   }
   .glass-ind.no-anim { transition: none; }
   @keyframes glassWobble {
     0%   { transform: scale(1, 1); }
-    22%  { transform: scale(1.16, 0.82) skewX(-3deg); }
-    42%  { transform: scale(0.88, 1.14) skewX(2deg); }
-    60%  { transform: scale(1.09, 0.93) skewX(-1.5deg); }
-    76%  { transform: scale(0.96, 1.05); }
-    90%  { transform: scale(1.02, 0.98); }
+    35%  { transform: scale(1.06, 0.95); }
+    60%  { transform: scale(0.97, 1.04); }
+    80%  { transform: scale(1.015, 0.99); }
     100% { transform: scale(1, 1); }
   }
-  .glass-ind.wobble { animation: glassWobble .7s ease-out; }
+  .glass-ind.wobble { animation: glassWobble .85s ease-out; }
+  @keyframes glassSelect {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(1.14); }
+    70%  { transform: scale(0.97); }
+    100% { transform: scale(1); }
+  }
+  .glass-ind.select-pulse { animation: glassSelect .5s ease-out; }
   .topnav {
     margin-left: auto; display: flex; gap: 2px; position: relative;
     padding: 4px; border-radius: 999px;
@@ -353,8 +378,16 @@
 
   /* ---------- 리퀴드 글래스 인디케이터 ---------- */
 
-  function moveInd($ind, el, animate) {
-    if (!el) { $ind.style.opacity = '0'; $ind.classList.remove('wobble'); return; }
+  function moveInd($ind, el, animate, pulse) {
+    if (!el) {
+      $ind.style.opacity = '0';
+      $ind.classList.remove('wobble', 'select-pulse');
+      return;
+    }
+    var same = $ind.style.opacity === '1' &&
+      $ind.style.left === el.offsetLeft + 'px' &&
+      $ind.style.top === el.offsetTop + 'px' &&
+      $ind.style.width === el.offsetWidth + 'px';
     if (!animate) $ind.classList.add('no-anim');
     $ind.style.opacity = '1';
     $ind.style.left = el.offsetLeft + 'px';
@@ -364,11 +397,12 @@
     if (!animate) {
       void $ind.offsetWidth;
       $ind.classList.remove('no-anim');
-    } else {
-      $ind.classList.remove('wobble');
-      void $ind.offsetWidth;
-      $ind.classList.add('wobble');
+      return;
     }
+    if (same && !pulse) return;
+    $ind.classList.remove('wobble', 'select-pulse');
+    void $ind.offsetWidth;
+    $ind.classList.add(pulse ? 'select-pulse' : 'wobble');
   }
 
   function routeNavKey() {
@@ -407,10 +441,14 @@
       a.addEventListener('click', function () {
         activeCategory = 'All';
         closeDropdown();
+        moveInd($navInd, a, true, true);
         if (location.hash === '#/insights') { renderList(); updateNav(); }
       });
     } else {
       a.addEventListener('mouseenter', closeDropdown);
+      a.addEventListener('click', function () {
+        moveInd($navInd, a, true, true);
+      });
     }
   });
 
@@ -494,11 +532,11 @@
           }
           return;
         }
-        moveInd($mInd, a, true);
+        moveInd($mInd, a, true, true);
         setTimeout(function () {
           closeOverlay();
           location.hash = a.getAttribute('href');
-        }, hasHover ? 120 : 380);
+        }, hasHover ? 200 : 420);
       });
     });
     Array.prototype.forEach.call($overlayNav.querySelectorAll('.cat-btn'), function (btn) {
@@ -506,8 +544,8 @@
         btn.addEventListener('mouseenter', function () { moveInd($mInd, btn, true); });
       }
       btn.addEventListener('click', function () {
-        moveInd($mInd, btn, true);
-        setTimeout(function () { selectCategory(btn.getAttribute('data-cat')); }, hasHover ? 120 : 380);
+        moveInd($mInd, btn, true, true);
+        setTimeout(function () { selectCategory(btn.getAttribute('data-cat')); }, hasHover ? 200 : 420);
       });
     });
     if (hasHover) {
@@ -681,6 +719,37 @@
     });
   }
   function escapeAttr(s) { return escapeHtml(s); }
+
+  /* ---------- 유리 반사광 (기울기/마우스 반응) ---------- */
+
+  var tiltTarget = 0, tiltCur = 0;
+  function tiltLoop() {
+    tiltCur += (tiltTarget - tiltCur) * 0.07;
+    document.documentElement.style.setProperty('--tilt', tiltCur.toFixed(2) + 'deg');
+    requestAnimationFrame(tiltLoop);
+  }
+  requestAnimationFrame(tiltLoop);
+
+  if (hasHover) {
+    window.addEventListener('mousemove', function (e) {
+      tiltTarget = ((e.clientX / window.innerWidth) - 0.5) * 90 +
+                   ((e.clientY / window.innerHeight) - 0.5) * 30;
+    });
+  }
+  window.addEventListener('deviceorientation', function (e) {
+    if (e.gamma == null) return;
+    tiltTarget = e.gamma * 1.6 + (e.beta || 0) * 0.5;
+  });
+  function askMotionPermission() {
+    try {
+      if (typeof DeviceOrientationEvent !== 'undefined' &&
+          typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission().catch(function () {});
+      }
+    } catch (err) { /* 무시 */ }
+    document.removeEventListener('touchend', askMotionPermission);
+  }
+  document.addEventListener('touchend', askMotionPermission);
 
   window.addEventListener('hashchange', route);
 
