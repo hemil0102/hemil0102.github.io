@@ -756,6 +756,8 @@
     }
     updateNav();
     closeDropdown();
+    $header.classList.remove('hidden');
+    lastScrollY = window.scrollY;
   }
 
   function escapeHtml(s) {
