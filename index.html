@@ -7,7 +7,6 @@
 <meta name="description" content="경영, 기술, 인사이트 노트 아카이브">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Borel&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.5/purify.min.js"></script>
@@ -62,27 +61,23 @@
     line-height: 1.7;
   }
   header {
-    background: var(--header-glass);
+    background: rgba(0, 31, 77, 0.92);
     -webkit-backdrop-filter: blur(18px) saturate(160%);
     backdrop-filter: blur(18px) saturate(160%);
-    border-bottom: 1px solid var(--border);
     position: sticky; top: 0; z-index: 10;
+    transition: transform .3s ease;
   }
+  header.hidden { transform: translateY(-100%); }
   .header-inner {
     max-width: 1100px; margin: 0 auto; padding: 12px 24px;
     display: flex; align-items: center; gap: 28px;
   }
   .logo {
-    font-family: 'Borel', cursive; font-size: 1.5rem; font-weight: 700;
-    cursor: pointer; text-decoration: none; white-space: nowrap; line-height: 1.5;
-    padding-top: 6px;
-    background: linear-gradient(178deg,
-      #f8fbff 8%, #c8d3e4 36%, #8fa2c0 52%, #e3eaf6 70%, #a7b5cc 100%);
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent; color: transparent;
-    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.35)) drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+    font-size: 1.2rem; font-weight: 700;
+    cursor: pointer; text-decoration: none; white-space: nowrap;
+    color: #ffffff;
   }
-  .logo span { -webkit-text-fill-color: transparent; }
+  .logo span { color: #9dbcf5; }
   .glass-ind {
     position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; z-index: 0;
     border-radius: 999px;
@@ -116,7 +111,7 @@
   @media (hover: none), (pointer: coarse) {
     header {
       -webkit-backdrop-filter: none; backdrop-filter: none;
-      background: var(--card);
+      background: #001f4d;
     }
     .overlay {
       -webkit-backdrop-filter: none; backdrop-filter: none;
@@ -149,20 +144,24 @@
   .topnav {
     margin-left: auto; display: flex; gap: 2px; position: relative;
     padding: 4px; border-radius: 999px;
-    background: var(--tray-fill);
-    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
   }
   .topnav a {
     position: relative; z-index: 1;
-    color: var(--accent); text-decoration: none; font-size: 0.92rem; font-weight: 600;
+    color: #dce7fb; text-decoration: none; font-size: 0.92rem; font-weight: 600;
     padding: 7px 16px; border-radius: 999px; white-space: nowrap;
+  }
+  .topnav .glass-ind, .dropdown .glass-ind {
+    background: rgba(255, 255, 255, 0.13);
+    border-color: rgba(255, 255, 255, 0.28);
   }
   #menu-btn {
     display: none; width: 42px; height: 42px; border-radius: 50%;
-    background: var(--pill-fill); border: 1px solid var(--glass-border);
-    box-shadow: inset 0 1px 1px var(--glass-inner);
+    background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.25);
     align-items: center; justify-content: center;
-    cursor: pointer; color: var(--text);
+    cursor: pointer; color: #ffffff;
     font-size: 1.2rem; font-weight: 700; padding: 0 0 4px 0; line-height: 0; font-family: inherit;
   }
   @media (max-width: 768px) {
@@ -171,8 +170,8 @@
     .header-inner { gap: 12px; }
   }
   .dropdown {
-    display: none; border-top: 1px solid var(--glass-border);
-    background: var(--header-glass);
+    display: none; border-top: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(0, 31, 77, 0.94);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
     backdrop-filter: blur(20px) saturate(160%);
     box-shadow: 0 14px 28px var(--glass-shadow);
@@ -180,15 +179,15 @@
   .dropdown.open { display: block; }
   .dropdown-inner { max-width: 1100px; margin: 0 auto; padding: 22px 24px 30px; position: relative; }
   .dropdown h3 {
-    font-size: 0.78rem; color: var(--muted); font-weight: 500;
+    font-size: 0.78rem; color: #9db4dd; font-weight: 500;
     text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
   }
   .dropdown .cat-btn {
     display: block; background: none; border: none; text-align: left; cursor: pointer;
-    font-family: inherit; font-size: 1.15rem; font-weight: 700; color: var(--text);
+    font-family: inherit; font-size: 1.15rem; font-weight: 700; color: #e9effc;
     padding: 6px 14px; border-radius: 999px; position: relative; z-index: 1;
   }
-  .dropdown .cat-btn .count { color: var(--muted); font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
+  .dropdown .cat-btn .count { color: #9db4dd; font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
   .overlay {
     position: fixed; inset: 0; z-index: 50;
     background: var(--header-glass);
@@ -234,15 +233,7 @@
     padding: 56px 40px; text-align: center;
   }
   @media (max-width: 768px) { .main-card { padding: 36px 20px; } }
-  .main-card h1 {
-    font-family: 'Borel', cursive; font-weight: 700;
-    font-size: 2.6rem; line-height: 1.5; margin-bottom: 10px;
-    background: linear-gradient(178deg,
-      #f8fbff 8%, #c8d3e4 36%, #8fa2c0 52%, #e3eaf6 70%, #a7b5cc 100%);
-    -webkit-background-clip: text; background-clip: text;
-    -webkit-text-fill-color: transparent; color: transparent;
-    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.35)) drop-shadow(0 3px 4px rgba(0,0,0,0.3));
-  }
+  .main-card h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
   .main-card .tagline { color: var(--muted); margin-bottom: 24px; }
   .main-card p { margin-bottom: 14px; }
   .main-card .links { justify-content: center; margin-top: 28px; }
@@ -771,6 +762,20 @@
     });
   }
   function escapeAttr(s) { return escapeHtml(s); }
+
+  /* ---------- 스크롤 시 헤더 숨김/표시 ---------- */
+
+  var lastScrollY = window.scrollY;
+  window.addEventListener('scroll', function () {
+    var y = window.scrollY;
+    if (y > lastScrollY + 4 && y > 80) {
+      $header.classList.add('hidden');
+      closeDropdown();
+    } else if (y < lastScrollY - 4) {
+      $header.classList.remove('hidden');
+    }
+    lastScrollY = y;
+  }, { passive: true });
 
   window.addEventListener('hashchange', route);
 
