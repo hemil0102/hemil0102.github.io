@@ -167,6 +167,7 @@
   var posts = [];        // {path, title, category}
   var activeCategory = 'All';
   var searchTerm = '';
+  var insightsOpen = false; // Insights 메뉴 확장 여부 (클릭 시 토글)
 
   var $main = document.getElementById('main');
   var $sidebar = document.getElementById('sidebar');
@@ -232,7 +233,7 @@
     var h = location.hash;
     var isAbout = h === '#/about';
     var isBook = h === '#/book-report';
-    var isInsights = !isAbout && !isBook;
+    var isInsights = insightsOpen && !isAbout && !isBook;
     var html = '<div class="nav-links">';
     html += navLink('#/about', '&#128100; About me', isAbout, 'about');
     html += navLink('#/book-report', '&#128218; Book Report', isBook, 'book');
@@ -260,8 +261,11 @@
       insights.addEventListener('click', function () {
         activeCategory = 'All';
         if (!location.hash || location.hash === '#/') {
+          insightsOpen = !insightsOpen;
           renderList();
           renderSidebar();
+        } else {
+          insightsOpen = true;
         }
       });
     }
@@ -358,8 +362,10 @@
     if (h.indexOf('#/post/') === 0) {
       renderPost(decodeURIComponent(h.slice(7)));
     } else if (h === '#/about') {
+      insightsOpen = false;
       renderAbout();
     } else if (h === '#/book-report') {
+      insightsOpen = false;
       renderBookReport();
     } else {
       renderList();
