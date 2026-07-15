@@ -132,6 +132,7 @@
 
   var API_TREE = 'https://api.github.com/repos/' + OWNER + '/' + REPO + '/git/trees/' + BRANCH + '?recursive=1';
   var RAW_BASE = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BRANCH + '/';
+  var POSTS_URL = RAW_BASE + 'posts.json'; // Actions가 미리 생성한 글 목록 (API 제한 없음)
 
   var posts = [];        // {path, title, category}
   var activeCategory = 'All';
@@ -140,6 +141,24 @@
   var $main = document.getElementById('main');
   var $sidebar = document.getElementById('sidebar');
   var $search = document.getElementById('search');
+
+  // 1순위: 미리 생성된 posts.json (raw CDN, 요청 제한 없음)
+  // 2순위(폴백): GitHub tree API (IP당 시간당 60회 제한)
+  function loadPosts() {
+    return fetch(POSTS_URL)
+      .then(function (r) {
+        if (!r.ok) throw new Error('posts.json 없음');
+        return r.json();
+      })
+      .then(function (list) {
+        return list
+          .filter(function (p) { return p && p.path && p.title; })
+          .sort(function (a, b) { return a.title.localeCompare(b.title, 'ko'); });
+      })
+      .catch(function () {
+        return fetchTree().then(buildPosts);
+      });
+  }
 
   function fetchTree() {
     var cached = sessionStorage.getItem('tree-cache');
@@ -274,9 +293,9 @@
 
   window.addEventListener('hashchange', route);
 
-  fetchTree()
-    .then(function (tree) {
-      posts = buildPosts(tree);
+  loadPosts()
+    .then(function (list) {
+      posts = list;
       renderSidebar();
       route();
     })
