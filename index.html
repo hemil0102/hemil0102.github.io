@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harry's Insights</title>
+<meta name="description" content="경영, 기술, 인사이트 노트 아카이브">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.5/purify.min.js"></script>
+<style>
+  :root {
+    --bg: #fafafa;
+    --card: #ffffff;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+    --accent: #001f4d;
+    --accent-light: #eef2ff;
+    --border: #e5e7eb;
+    --code-bg: #f3f4f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111318;
+      --card: #1a1d24;
+      --text: #e7e9ee;
+      --muted: #9aa0ab;
+      --accent: #7ea6ff;
+      --accent-light: #1e2636;
+      --border: #2a2e37;
+      --code-bg: #23262e;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+  header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .header-inner {
+    max-width: 1100px; margin: 0 auto; padding: 16px 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .logo { font-size: 1.25rem; font-weight: 700; cursor: pointer; color: var(--text); text-decoration: none; }
+  .logo span { color: var(--accent); }
+  #search {
+    padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--text); width: 220px; font-size: 0.9rem;
+  }
+  .layout {
+    max-width: 1100px; margin: 0 auto; padding: 32px 24px;
+    display: grid; grid-template-columns: 220px 1fr; gap: 32px;
+  }
+  @media (max-width: 768px) { .layout { grid-template-columns: 1fr; } }
+  nav.sidebar h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px; }
+  .cat-btn {
+    display: block; width: 100%; text-align: left; padding: 8px 12px; margin-bottom: 4px;
+    border: none; background: transparent; color: var(--text); border-radius: 8px;
+    cursor: pointer; font-size: 0.95rem; font-family: inherit;
+  }
+  .cat-btn:hover { background: var(--accent-light); }
+  .cat-btn.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
+  .cat-btn .count { color: var(--muted); font-size: 0.8rem; margin-left: 6px; }
+  .post-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 24px; margin-bottom: 14px; cursor: pointer; transition: box-shadow .15s, transform .15s;
+  }
+  .post-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
+  .post-card h3 { font-size: 1.1rem; margin-bottom: 6px; }
+  .post-card .meta { font-size: 0.82rem; color: var(--muted); }
+  .badge {
+    display: inline-block; background: var(--accent-light); color: var(--accent);
+    border-radius: 999px; padding: 2px 10px; font-size: 0.75rem; font-weight: 600; margin-right: 8px;
+  }
+  article {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 36px 40px;
+  }
+  @media (max-width: 768px) { article { padding: 24px 20px; } }
+  article h1 { font-size: 1.7rem; margin-bottom: 16px; line-height: 1.35; }
+  article h2 { font-size: 1.3rem; margin: 28px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  article h3 { font-size: 1.1rem; margin: 22px 0 10px; }
+  article p, article ul, article ol { margin-bottom: 14px; }
+  article ul, article ol { padding-left: 24px; }
+  article a { color: var(--accent); }
+  article blockquote { border-left: 3px solid var(--accent); padding-left: 16px; color: var(--muted); margin: 16px 0; }
+  article code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-size: 0.88em; }
+  article pre { background: var(--code-bg); padding: 16px; border-radius: 8px; overflow-x: auto; margin-bottom: 16px; }
+  article pre code { background: none; padding: 0; }
+  article img { max-width: 100%; border-radius: 8px; }
+  article table { border-collapse: collapse; width: 100%; margin-bottom: 16px; }
+  article th, article td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+  article span[style] { border-radius: 4px; padding: 1px 4px; }
+  .back-btn {
+    background: none; border: none; color: var(--accent); cursor: pointer;
+    font-size: 0.9rem; margin-bottom: 16px; padding: 0; font-family: inherit;
+  }
+  .article-meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 24px; }
+  .article-meta a { color: var(--muted); }
+  .status { color: var(--muted); padding: 40px 0; text-align: center; }
+  footer { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 32px 0 48px; }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <a class="logo" href="#/">Harry's <span>Insights</span></a>
+    <input id="search" type="search" placeholder="검색...">
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar"></nav>
+  <main id="main"><div class="status">글 목록을 불러오는 중...</div></main>
+</div>
+
+<footer>
+  콘텐츠 저장소: <a href="https://github.com/hemil0102/insights" target="_blank" rel="noopener">hemil0102/insights</a>
+</footer>
+
+<script>
+(function () {
+  var OWNER = 'hemil0102';
+  var REPO = 'insights';
+  var BRANCH = 'main';
+  var ROOT = 'Topics/'; // 이 폴더 아래 .md 파일만 글로 취급
+
+  var API_TREE = 'https://api.github.com/repos/' + OWNER + '/' + REPO + '/git/trees/' + BRANCH + '?recursive=1';
+  var RAW_BASE = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BRANCH + '/';
+
+  var posts = [];        // {path, title, category}
+  var activeCategory = 'All';
+  var searchTerm = '';
+
+  var $main = document.getElementById('main');
+  var $sidebar = document.getElementById('sidebar');
+  var $search = document.getElementById('search');
+
+  function fetchTree() {
+    var cached = sessionStorage.getItem('tree-cache');
+    if (cached) {
+      try { return Promise.resolve(JSON.parse(cached)); } catch (e) { /* fall through */ }
+    }
+    return fetch(API_TREE)
+      .then(function (r) {
+        if (!r.ok) throw new Error('GitHub API 오류 (' + r.status + ')');
+        return r.json();
+      })
+      .then(function (data) {
+        try { sessionStorage.setItem('tree-cache', JSON.stringify(data)); } catch (e) {}
+        return data;
+      });
+  }
+
+  function buildPosts(tree) {
+    return tree.tree
+      .filter(function (n) {
+        return n.type === 'blob' && n.path.indexOf(ROOT) === 0 && /\.md$/i.test(n.path);
+      })
+      .map(function (n) {
+        var rel = n.path.slice(ROOT.length);
+        var parts = rel.split('/');
+        var category = parts.length > 1 ? parts[0] : '기타';
+        var file = parts[parts.length - 1].replace(/\.md$/i, '');
+        return { path: n.path, title: file, category: category };
+      })
+      .sort(function (a, b) { return a.title.localeCompare(b.title, 'ko'); });
+  }
+
+  function renderSidebar() {
+    var counts = {};
+    posts.forEach(function (p) { counts[p.category] = (counts[p.category] || 0) + 1; });
+    var cats = Object.keys(counts).sort();
+    var html = '<h2>카테고리</h2>';
+    html += catBtn('All', posts.length);
+    cats.forEach(function (c) { html += catBtn(c, counts[c]); });
+    $sidebar.innerHTML = html;
+    Array.prototype.forEach.call($sidebar.querySelectorAll('.cat-btn'), function (btn) {
+      btn.addEventListener('click', function () {
+        activeCategory = btn.getAttribute('data-cat');
+        location.hash = '#/';
+        renderList();
+        renderSidebar();
+      });
+    });
+  }
+
+  function catBtn(cat, count) {
+    var active = cat === activeCategory ? ' active' : '';
+    return '<button class="cat-btn' + active + '" data-cat="' + escapeAttr(cat) + '">' +
+      escapeHtml(cat) + '<span class="count">' + count + '</span></button>';
+  }
+
+  function renderList() {
+    var list = posts.filter(function (p) {
+      var okCat = activeCategory === 'All' || p.category === activeCategory;
+      var okSearch = !searchTerm || p.title.toLowerCase().indexOf(searchTerm) !== -1;
+      return okCat && okSearch;
+    });
+    if (!list.length) {
+      $main.innerHTML = '<div class="status">해당하는 글이 없습니다.</div>';
+      return;
+    }
+    var html = '';
+    list.forEach(function (p, i) {
+      html += '<div class="post-card" data-i="' + i + '">' +
+        '<h3>' + escapeHtml(p.title) + '</h3>' +
+        '<div class="meta"><span class="badge">' + escapeHtml(p.category) + '</span></div></div>';
+    });
+    $main.innerHTML = html;
+    Array.prototype.forEach.call($main.querySelectorAll('.post-card'), function (card) {
+      card.addEventListener('click', function () {
+        var p = list[parseInt(card.getAttribute('data-i'), 10)];
+        location.hash = '#/post/' + encodeURIComponent(p.path);
+      });
+    });
+  }
+
+  function renderPost(path) {
+    var post = posts.filter(function (p) { return p.path === path; })[0];
+    $main.innerHTML = '<div class="status">글을 불러오는 중...</div>';
+    fetch(RAW_BASE + path.split('/').map(encodeURIComponent).join('/'))
+      .then(function (r) {
+        if (!r.ok) throw new Error('파일을 불러올 수 없습니다 (' + r.status + ')');
+        return r.text();
+      })
+      .then(function (md) {
+        var html = DOMPurify.sanitize(marked.parse(md), { ADD_ATTR: ['style'] });
+        var ghUrl = 'https://github.com/' + OWNER + '/' + REPO + '/blob/' + BRANCH + '/' +
+          path.split('/').map(encodeURIComponent).join('/');
+        $main.innerHTML =
+          '<button class="back-btn" id="back">&larr; 목록으로</button>' +
+          '<article>' +
+          '<div class="article-meta">' +
+          (post ? '<span class="badge">' + escapeHtml(post.category) + '</span>' : '') +
+          '<a href="' + ghUrl + '" target="_blank" rel="noopener">GitHub에서 보기</a></div>' +
+          html + '</article>';
+        document.getElementById('back').addEventListener('click', function () {
+          location.hash = '#/';
+        });
+        window.scrollTo(0, 0);
+      })
+      .catch(function (e) {
+        $main.innerHTML = '<div class="status">오류: ' + escapeHtml(e.message) + '</div>';
+      });
+  }
+
+  function route() {
+    var h = location.hash;
+    if (h.indexOf('#/post/') === 0) {
+      renderPost(decodeURIComponent(h.slice(7)));
+    } else {
+      renderList();
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function escapeAttr(s) { return escapeHtml(s); }
+
+  $search.addEventListener('input', function () {
+    searchTerm = $search.value.trim().toLowerCase();
+    if (location.hash.indexOf('#/post/') === 0) location.hash = '#/';
+    else renderList();
+  });
+
+  window.addEventListener('hashchange', route);
+
+  fetchTree()
+    .then(function (tree) {
+      posts = buildPosts(tree);
+      renderSidebar();
+      route();
+    })
+    .catch(function (e) {
+      $main.innerHTML = '<div class="status">글 목록을 불러오지 못했습니다: ' +
+        escapeHtml(e.message) + '<br>잠시 후 새로고침해 주세요. (GitHub API 시간당 60회 제한)</div>';
+    });
+})();
+</script>
+</body>
+</html>
