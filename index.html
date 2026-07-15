@@ -291,7 +291,7 @@
     var isIns = h === '#/insights' || h.indexOf('#/post/') === 0;
     $topnav.innerHTML =
       '<a href="#/about" data-nav="about" class="' + (isAbout ? 'active' : '') + '">About me</a>' +
-      '<a href="#/insights" data-nav="insights" class="' + (isIns ? 'active' : '') + '">Insights<span class="count">' + posts.length + '</span></a>' +
+      '<a href="#/insights" data-nav="insights" class="' + (isIns ? 'active' : '') + '">Insights</a>' +
       '<a href="#/book-report" data-nav="book" class="' + (isBook ? 'active' : '') + '">Book Report</a>';
     Array.prototype.forEach.call($topnav.querySelectorAll('a'), function (a) {
       var nav = a.getAttribute('data-nav');
