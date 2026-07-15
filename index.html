@@ -98,6 +98,25 @@
     pointer-events: none;
   }
   .glass-ind.no-anim { transition: none; }
+  @media (hover: none), (pointer: coarse) {
+    header {
+      -webkit-backdrop-filter: none; backdrop-filter: none;
+      background: var(--card);
+    }
+    .overlay {
+      -webkit-backdrop-filter: none; backdrop-filter: none;
+      background: var(--bg);
+    }
+    .dropdown {
+      -webkit-backdrop-filter: none; backdrop-filter: none;
+      background: var(--card); box-shadow: none;
+    }
+    .glass-ind {
+      box-shadow: inset 0 1px 1px var(--glass-inner);
+    }
+    .glass-ind::after { display: none; }
+    .m-sub { box-shadow: inset 0 1px 1px var(--glass-inner); }
+  }
   @keyframes glassWobble {
     0%   { transform: scale(1, 1); }
     35%  { transform: scale(1.06, 0.95); }
