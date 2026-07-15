@@ -43,40 +43,78 @@
     position: sticky; top: 0; z-index: 10;
   }
   .header-inner {
-    max-width: 1100px; margin: 0 auto; padding: 16px 24px;
-    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    max-width: 1100px; margin: 0 auto; padding: 14px 24px;
+    display: flex; align-items: center; gap: 28px;
   }
-  .logo { font-size: 1.25rem; font-weight: 700; cursor: pointer; color: var(--text); text-decoration: none; }
+  .logo { font-size: 1.2rem; font-weight: 700; cursor: pointer; color: var(--text); text-decoration: none; white-space: nowrap; }
   .logo span { color: var(--accent); }
+  .topnav { display: flex; gap: 26px; flex: 1; }
+  .topnav a {
+    color: var(--text); text-decoration: none; font-size: 0.92rem; font-weight: 500;
+    padding: 6px 0; white-space: nowrap;
+  }
+  .topnav a:hover, .topnav a.active { color: var(--accent); }
+  .topnav .count { color: var(--muted); font-size: 0.75rem; margin-left: 4px; }
   #search {
     padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px;
-    background: var(--bg); color: var(--text); width: 220px; font-size: 0.9rem;
+    background: var(--bg); color: var(--text); width: 200px; font-size: 0.9rem;
   }
-  .layout {
-    max-width: 1100px; margin: 0 auto; padding: 32px 24px;
-    display: grid; grid-template-columns: 220px 1fr; gap: 32px;
+  #menu-btn {
+    display: none; background: none; border: none; cursor: pointer;
+    color: var(--text); font-size: 1.4rem; padding: 2px 6px; line-height: 1; font-family: inherit;
   }
-  @media (max-width: 768px) { .layout { grid-template-columns: 1fr; } }
-  nav.sidebar h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px; }
-  .nav-links { margin-bottom: 8px; }
-  .about-link {
-    display: block; padding: 8px 4px; margin-bottom: 2px;
-    color: var(--text); text-decoration: none; font-weight: 600; font-size: 0.95rem;
+  @media (max-width: 768px) {
+    .topnav { display: none; }
+    #search { display: none; }
+    #menu-btn { display: block; margin-left: auto; }
+    .header-inner { gap: 12px; }
   }
-  .about-link:hover { color: var(--accent); }
-  .about-link.active { color: var(--accent); }
-  .about-link .count { color: var(--muted); font-size: 0.8rem; margin-left: 6px; font-weight: 400; }
-  .cat-list { margin: 2px 0 8px 10px; padding-left: 10px; border-left: 1px solid var(--border); }
-  .cat-list .cat-btn { color: var(--muted); }
-  .cat-list .cat-btn:hover, .cat-list .cat-btn.active { color: var(--accent); }
-  .cat-btn {
-    display: block; width: 100%; text-align: left; padding: 8px 12px; margin-bottom: 4px;
-    border: none; background: transparent; color: var(--text); border-radius: 8px;
-    cursor: pointer; font-size: 0.95rem; font-family: inherit;
+  .dropdown {
+    display: none; background: var(--card); border-top: 1px solid var(--border);
   }
-  .cat-btn:hover { background: var(--accent-light); }
-  .cat-btn.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
-  .cat-btn .count { color: var(--muted); font-size: 0.8rem; margin-left: 6px; }
+  .dropdown.open { display: block; }
+  .dropdown-inner { max-width: 1100px; margin: 0 auto; padding: 22px 24px 30px; }
+  .dropdown h3 {
+    font-size: 0.78rem; color: var(--muted); font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
+  }
+  .dropdown .cat-btn {
+    display: block; background: none; border: none; text-align: left; cursor: pointer;
+    font-family: inherit; font-size: 1.15rem; font-weight: 700; color: var(--text); padding: 6px 0;
+  }
+  .dropdown .cat-btn:hover { color: var(--accent); }
+  .dropdown .cat-btn .count { color: var(--muted); font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
+  .overlay {
+    position: fixed; inset: 0; background: var(--bg); z-index: 50;
+    display: none; padding: 20px 28px 40px; overflow-y: auto;
+  }
+  .overlay.open { display: block; }
+  .overlay-top { display: flex; justify-content: flex-end; }
+  #overlay-close {
+    background: none; border: none; cursor: pointer; color: var(--text);
+    font-size: 1.5rem; padding: 4px 8px; line-height: 1; font-family: inherit;
+  }
+  .overlay nav { margin-top: 20px; }
+  .m-link {
+    display: block; color: var(--text); text-decoration: none;
+    font-size: 1.65rem; font-weight: 700; padding: 10px 0;
+  }
+  .m-link:hover, .m-link.active { color: var(--accent); }
+  .m-link .count { color: var(--muted); font-size: 0.95rem; font-weight: 400; margin-left: 8px; }
+  .m-sub { margin: 2px 0 10px 6px; border-left: 1px solid var(--border); padding-left: 18px; }
+  .m-sub .cat-btn {
+    display: block; background: none; border: none; text-align: left; cursor: pointer;
+    font-family: inherit; font-size: 1.1rem; font-weight: 600; color: var(--muted); padding: 7px 0;
+  }
+  .m-sub .cat-btn:hover { color: var(--accent); }
+  .m-sub .cat-btn .count { font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
+  #m-search {
+    width: 100%; margin-top: 24px; padding: 10px 14px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--card); color: var(--text); font-size: 1rem;
+  }
+  .layout { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .list-head { color: var(--muted); font-size: 0.9rem; margin-bottom: 14px; }
   .post-card {
     background: var(--card); border: 1px solid var(--border); border-radius: 12px;
     padding: 20px 24px; margin-bottom: 14px; cursor: pointer; transition: box-shadow .15s, transform .15s;
@@ -139,15 +177,25 @@
 </style>
 </head>
 <body>
-<header>
+<header id="header">
   <div class="header-inner">
     <a class="logo" href="#/">Harry's <span>Insights</span></a>
+    <nav class="topnav" id="topnav"></nav>
     <input id="search" type="search" placeholder="검색...">
+    <button id="menu-btn" aria-label="메뉴 열기">&#9776;</button>
   </div>
+  <div class="dropdown" id="dropdown"></div>
 </header>
 
+<div class="overlay" id="overlay">
+  <div class="overlay-top">
+    <button id="overlay-close" aria-label="메뉴 닫기">&#10005;</button>
+  </div>
+  <nav id="overlay-nav"></nav>
+  <input id="m-search" type="search" placeholder="검색...">
+</div>
+
 <div class="layout">
-  <nav class="sidebar" id="sidebar"></nav>
   <main id="main"><div class="status">글 목록을 불러오는 중...</div></main>
 </div>
 
@@ -169,14 +217,16 @@
   var posts = [];        // {path, title, category}
   var activeCategory = 'All';
   var searchTerm = '';
-  var insightsOpen = false; // Insights 메뉴 확장 여부 (클릭 시 토글)
 
   var $main = document.getElementById('main');
-  var $sidebar = document.getElementById('sidebar');
+  var $topnav = document.getElementById('topnav');
+  var $dropdown = document.getElementById('dropdown');
+  var $overlay = document.getElementById('overlay');
+  var $overlayNav = document.getElementById('overlay-nav');
+  var $header = document.getElementById('header');
   var $search = document.getElementById('search');
+  var $mSearch = document.getElementById('m-search');
 
-  // 1순위: 미리 생성된 posts.json (raw CDN, 요청 제한 없음)
-  // 2순위(폴백): GitHub tree API (IP당 시간당 60회 제한)
   function loadPosts() {
     return fetch(POSTS_URL)
       .then(function (r) {
@@ -224,60 +274,118 @@
       .sort(function (a, b) { return a.title.localeCompare(b.title, 'ko'); });
   }
 
-  function navLink(href, label, active, nav) {
-    return '<a class="about-link' + (active ? ' active' : '') + '" data-nav="' + nav + '" href="' + href + '">' + label + '</a>';
-  }
-
-  function renderSidebar() {
+  function categoryCounts() {
     var counts = {};
     posts.forEach(function (p) { counts[p.category] = (counts[p.category] || 0) + 1; });
+    return counts;
+  }
+
+  function selectCategory(cat) {
+    activeCategory = cat;
+    closeDropdown();
+    closeOverlay();
+    if (location.hash && location.hash !== '#/') location.hash = '#/';
+    else { renderList(); renderNav(); }
+  }
+
+  /* ---------- 데스크톱 상단 메뉴 ---------- */
+
+  function renderNav() {
+    var h = location.hash;
+    var isAbout = h === '#/about';
+    var isBook = h === '#/book-report';
+    var isIns = !isAbout && !isBook;
+    $topnav.innerHTML =
+      '<a href="#/about" data-nav="about" class="' + (isAbout ? 'active' : '') + '">About me</a>' +
+      '<a href="#/book-report" data-nav="book" class="' + (isBook ? 'active' : '') + '">Book Report</a>' +
+      '<a href="#/" data-nav="insights" class="' + (isIns ? 'active' : '') + '">Insights<span class="count">' + posts.length + '</span></a>';
+    Array.prototype.forEach.call($topnav.querySelectorAll('a'), function (a) {
+      var nav = a.getAttribute('data-nav');
+      if (nav === 'insights') {
+        a.addEventListener('mouseenter', openDropdown);
+        a.addEventListener('click', function () {
+          activeCategory = 'All';
+          closeDropdown();
+          if (!location.hash || location.hash === '#/') { renderList(); renderNav(); }
+        });
+      } else {
+        a.addEventListener('mouseenter', closeDropdown);
+      }
+    });
+  }
+
+  function openDropdown() {
+    var counts = categoryCounts();
+    var cats = Object.keys(counts).sort();
+    var html = '<div class="dropdown-inner"><h3>Insights 카테고리</h3>';
+    html += '<button class="cat-btn" data-cat="All">모두 보기<span class="count">' + posts.length + '</span></button>';
+    cats.forEach(function (c) {
+      html += '<button class="cat-btn" data-cat="' + escapeAttr(c) + '">' + escapeHtml(c) +
+        '<span class="count">' + counts[c] + '</span></button>';
+    });
+    html += '</div>';
+    $dropdown.innerHTML = html;
+    Array.prototype.forEach.call($dropdown.querySelectorAll('.cat-btn'), function (btn) {
+      btn.addEventListener('click', function () { selectCategory(btn.getAttribute('data-cat')); });
+    });
+    $dropdown.classList.add('open');
+  }
+
+  function closeDropdown() {
+    $dropdown.classList.remove('open');
+  }
+
+  $header.addEventListener('mouseleave', closeDropdown);
+
+  /* ---------- 모바일 오버레이 메뉴 ---------- */
+
+  function renderOverlayNav() {
+    var counts = categoryCounts();
     var cats = Object.keys(counts).sort();
     var h = location.hash;
     var isAbout = h === '#/about';
     var isBook = h === '#/book-report';
-    var isInsights = insightsOpen && !isAbout && !isBook;
-    var html = '<div class="nav-links">';
-    html += navLink('#/about', '&#128100; About me', isAbout, 'about');
-    html += navLink('#/book-report', '&#128218; Book Report', isBook, 'book');
-    html += navLink('#/', '&#128161; Insights<span class="count">' + posts.length + '</span>', isInsights, 'insights');
+    var isIns = !isAbout && !isBook;
+    var html =
+      '<a href="#/about" class="m-link' + (isAbout ? ' active' : '') + '">About me</a>' +
+      '<a href="#/book-report" class="m-link' + (isBook ? ' active' : '') + '">Book Report</a>' +
+      '<a href="#/" class="m-link' + (isIns ? ' active' : '') + '" data-nav="insights">Insights<span class="count">' + posts.length + '</span></a>';
+    html += '<div class="m-sub">';
+    cats.forEach(function (c) {
+      html += '<button class="cat-btn" data-cat="' + escapeAttr(c) + '">' + escapeHtml(c) +
+        '<span class="count">' + counts[c] + '</span></button>';
+    });
     html += '</div>';
-    if (isInsights) {
-      html += '<div class="cat-list">';
-      cats.forEach(function (c) { html += catBtn(c, counts[c]); });
-      html += '</div>';
-    }
-    $sidebar.innerHTML = html;
-    Array.prototype.forEach.call($sidebar.querySelectorAll('.cat-btn'), function (btn) {
-      btn.addEventListener('click', function () {
-        activeCategory = btn.getAttribute('data-cat');
-        if (location.hash && location.hash !== '#/') {
-          location.hash = '#/';
-        } else {
-          renderList();
-          renderSidebar();
+    $overlayNav.innerHTML = html;
+    Array.prototype.forEach.call($overlayNav.querySelectorAll('.m-link'), function (a) {
+      a.addEventListener('click', function () {
+        if (a.getAttribute('data-nav') === 'insights') activeCategory = 'All';
+        closeOverlay();
+        if (a.getAttribute('href') === '#/' && (!location.hash || location.hash === '#/')) {
+          renderList(); renderNav();
         }
       });
     });
-    var insights = $sidebar.querySelector('a[data-nav="insights"]');
-    if (insights) {
-      insights.addEventListener('click', function () {
-        activeCategory = 'All';
-        if (!location.hash || location.hash === '#/') {
-          insightsOpen = !insightsOpen;
-          renderList();
-          renderSidebar();
-        } else {
-          insightsOpen = true;
-        }
-      });
-    }
+    Array.prototype.forEach.call($overlayNav.querySelectorAll('.cat-btn'), function (btn) {
+      btn.addEventListener('click', function () { selectCategory(btn.getAttribute('data-cat')); });
+    });
   }
 
-  function catBtn(cat, count) {
-    var active = cat === activeCategory ? ' active' : '';
-    return '<button class="cat-btn' + active + '" data-cat="' + escapeAttr(cat) + '">' +
-      escapeHtml(cat) + '<span class="count">' + count + '</span></button>';
+  function openOverlay() {
+    renderOverlayNav();
+    $overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
   }
+
+  function closeOverlay() {
+    $overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('menu-btn').addEventListener('click', openOverlay);
+  document.getElementById('overlay-close').addEventListener('click', closeOverlay);
+
+  /* ---------- 본문 렌더링 ---------- */
 
   function renderList() {
     var list = posts.filter(function (p) {
@@ -285,11 +393,16 @@
       var okSearch = !searchTerm || p.title.toLowerCase().indexOf(searchTerm) !== -1;
       return okCat && okSearch;
     });
+    var head = '';
+    if (activeCategory !== 'All') {
+      head = '<div class="list-head">Insights &rsaquo; ' + escapeHtml(activeCategory) +
+        ' (' + list.length + ')</div>';
+    }
     if (!list.length) {
-      $main.innerHTML = '<div class="status">해당하는 글이 없습니다.</div>';
+      $main.innerHTML = head + '<div class="status">해당하는 글이 없습니다.</div>';
       return;
     }
-    var html = '';
+    var html = head;
     list.forEach(function (p, i) {
       html += '<div class="post-card" data-i="' + i + '">' +
         '<h3>' + escapeHtml(p.title) + '</h3>' +
@@ -364,15 +477,14 @@
     if (h.indexOf('#/post/') === 0) {
       renderPost(decodeURIComponent(h.slice(7)));
     } else if (h === '#/about') {
-      insightsOpen = false;
       renderAbout();
     } else if (h === '#/book-report') {
-      insightsOpen = false;
       renderBookReport();
     } else {
       renderList();
     }
-    renderSidebar();
+    renderNav();
+    closeDropdown();
   }
 
   function escapeHtml(s) {
@@ -382,10 +494,16 @@
   }
   function escapeAttr(s) { return escapeHtml(s); }
 
-  $search.addEventListener('input', function () {
-    searchTerm = $search.value.trim().toLowerCase();
+  function onSearchInput(value) {
+    searchTerm = value.trim().toLowerCase();
     if (location.hash && location.hash !== '#/') location.hash = '#/';
     else renderList();
+  }
+
+  $search.addEventListener('input', function () { onSearchInput($search.value); });
+  $mSearch.addEventListener('input', function () { onSearchInput($mSearch.value); });
+  $mSearch.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') closeOverlay();
   });
 
   window.addEventListener('hashchange', route);
