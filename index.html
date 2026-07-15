@@ -17,6 +17,12 @@
     --accent-light: #eef2ff;
     --border: #e5e7eb;
     --code-bg: #f3f4f6;
+    --header-glass: rgba(255, 255, 255, 0.72);
+    --glass-fill: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(233,237,246,0.55));
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --glass-inner: rgba(255, 255, 255, 0.9);
+    --glass-shadow: rgba(0, 0, 0, 0.14);
+    --tray-fill: rgba(0, 0, 0, 0.035);
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -28,6 +34,12 @@
       --accent-light: #1e2636;
       --border: #2a2e37;
       --code-bg: #23262e;
+      --header-glass: rgba(17, 19, 24, 0.72);
+      --glass-fill: linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.07));
+      --glass-border: rgba(255, 255, 255, 0.28);
+      --glass-inner: rgba(255, 255, 255, 0.35);
+      --glass-shadow: rgba(0, 0, 0, 0.55);
+      --tray-fill: rgba(255, 255, 255, 0.06);
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,23 +50,46 @@
     line-height: 1.7;
   }
   header {
-    background: var(--card);
+    background: var(--header-glass);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
     border-bottom: 1px solid var(--border);
     position: sticky; top: 0; z-index: 10;
   }
   .header-inner {
-    max-width: 1100px; margin: 0 auto; padding: 14px 24px;
+    max-width: 1100px; margin: 0 auto; padding: 12px 24px;
     display: flex; align-items: center; gap: 28px;
   }
   .logo { font-size: 1.2rem; font-weight: 700; cursor: pointer; color: var(--text); text-decoration: none; white-space: nowrap; }
   .logo span { color: var(--accent); }
-  .topnav { display: flex; gap: 26px; flex: 1; }
-  .topnav a {
-    color: var(--text); text-decoration: none; font-size: 0.92rem; font-weight: 500;
-    padding: 6px 0; white-space: nowrap;
+  .glass-ind {
+    position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; z-index: 0;
+    border-radius: 999px;
+    background: var(--glass-fill);
+    border: 1px solid var(--glass-border);
+    box-shadow: inset 0 1px 2px var(--glass-inner), 0 6px 16px var(--glass-shadow);
+    -webkit-backdrop-filter: blur(10px) saturate(170%);
+    backdrop-filter: blur(10px) saturate(170%);
+    transition:
+      left .55s cubic-bezier(.32,1.35,.36,1),
+      top .55s cubic-bezier(.32,1.35,.36,1),
+      width .55s cubic-bezier(.32,1.35,.36,1),
+      height .45s cubic-bezier(.32,1.35,.36,1),
+      opacity .25s ease;
+    pointer-events: none;
   }
-  .topnav a:hover, .topnav a.active { color: var(--accent); }
-  .topnav .count { color: var(--muted); font-size: 0.75rem; margin-left: 4px; }
+  .glass-ind.no-anim { transition: none; }
+  .topnav {
+    margin-left: auto; display: flex; gap: 2px; position: relative;
+    padding: 4px; border-radius: 999px;
+    background: var(--tray-fill);
+    border: 1px solid var(--glass-border);
+  }
+  .topnav a {
+    position: relative; z-index: 1;
+    color: var(--text); text-decoration: none; font-size: 0.92rem; font-weight: 500;
+    padding: 7px 16px; border-radius: 999px; white-space: nowrap;
+  }
   #menu-btn {
     display: none; background: none; border: none; cursor: pointer;
     color: var(--text); font-size: 1.4rem; padding: 2px 6px; line-height: 1; font-family: inherit;
@@ -65,7 +100,7 @@
     .header-inner { gap: 12px; }
   }
   .dropdown {
-    display: none; background: var(--card); border-top: 1px solid var(--border);
+    display: none; background: transparent; border-top: 1px solid var(--border);
   }
   .dropdown.open { display: block; }
   .dropdown-inner { max-width: 1100px; margin: 0 auto; padding: 22px 24px 30px; }
@@ -80,7 +115,10 @@
   .dropdown .cat-btn:hover { color: var(--accent); }
   .dropdown .cat-btn .count { color: var(--muted); font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
   .overlay {
-    position: fixed; inset: 0; background: var(--bg); z-index: 50;
+    position: fixed; inset: 0; z-index: 50;
+    background: var(--header-glass);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
     display: none; padding: 20px 28px 40px; overflow-y: auto;
   }
   .overlay.open { display: block; }
@@ -89,19 +127,18 @@
     background: none; border: none; cursor: pointer; color: var(--text);
     font-size: 1.5rem; padding: 4px 8px; line-height: 1; font-family: inherit;
   }
-  .overlay nav { margin-top: 20px; }
+  #overlay-wrap { position: relative; margin-top: 20px; }
   .m-link {
     display: block; color: var(--text); text-decoration: none;
-    font-size: 1.65rem; font-weight: 700; padding: 10px 0;
+    font-size: 1.55rem; font-weight: 700; padding: 10px 18px;
+    border-radius: 999px; position: relative; z-index: 1;
   }
-  .m-link:hover, .m-link.active { color: var(--accent); }
-  .m-link .count { color: var(--muted); font-size: 0.95rem; font-weight: 400; margin-left: 8px; }
-  .m-sub { margin: 2px 0 10px 6px; border-left: 1px solid var(--border); padding-left: 18px; }
+  .m-sub { margin: 2px 0 10px 26px; border-left: 1px solid var(--border); padding-left: 14px; }
   .m-sub .cat-btn {
     display: block; background: none; border: none; text-align: left; cursor: pointer;
-    font-family: inherit; font-size: 1.1rem; font-weight: 600; color: var(--muted); padding: 7px 0;
+    font-family: inherit; font-size: 1.08rem; font-weight: 600; color: var(--muted);
+    padding: 8px 14px; border-radius: 999px; position: relative; z-index: 1;
   }
-  .m-sub .cat-btn:hover { color: var(--accent); }
   .m-sub .cat-btn .count { font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
   .layout { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
   .main-card {
@@ -179,7 +216,12 @@
 <header id="header">
   <div class="header-inner">
     <a class="logo" href="#/">Harry's <span>Insights</span></a>
-    <nav class="topnav" id="topnav"></nav>
+    <nav class="topnav" id="topnav">
+      <div class="glass-ind" id="nav-ind"></div>
+      <a href="#/about" data-nav="about">About me</a>
+      <a href="#/insights" data-nav="insights">Insights</a>
+      <a href="#/book-report" data-nav="book">Book Report</a>
+    </nav>
     <button id="menu-btn" aria-label="메뉴 열기">&#9776;</button>
   </div>
   <div class="dropdown" id="dropdown"></div>
@@ -189,7 +231,10 @@
   <div class="overlay-top">
     <button id="overlay-close" aria-label="메뉴 닫기">&#10005;</button>
   </div>
-  <nav id="overlay-nav"></nav>
+  <div id="overlay-wrap">
+    <div class="glass-ind" id="m-ind"></div>
+    <nav id="overlay-nav"></nav>
+  </div>
 </div>
 
 <div class="layout">
@@ -214,12 +259,15 @@
   var posts = [];        // {path, title, category}
   var activeCategory = 'All';
   var mInsightsOpen = false; // 모바일 메뉴에서 Insights 확장 여부
+  var navInit = false;
 
   var $main = document.getElementById('main');
   var $topnav = document.getElementById('topnav');
+  var $navInd = document.getElementById('nav-ind');
   var $dropdown = document.getElementById('dropdown');
   var $overlay = document.getElementById('overlay');
   var $overlayNav = document.getElementById('overlay-nav');
+  var $mInd = document.getElementById('m-ind');
   var $header = document.getElementById('header');
 
   function loadPosts() {
@@ -280,34 +328,56 @@
     closeDropdown();
     closeOverlay();
     if (location.hash !== '#/insights') location.hash = '#/insights';
-    else { renderList(); renderNav(); }
+    else { renderList(); updateNav(); }
+  }
+
+  /* ---------- 리퀴드 글래스 인디케이터 ---------- */
+
+  function moveInd($ind, el, animate) {
+    if (!el) { $ind.style.opacity = '0'; return; }
+    if (!animate) $ind.classList.add('no-anim');
+    $ind.style.opacity = '1';
+    $ind.style.left = el.offsetLeft + 'px';
+    $ind.style.top = el.offsetTop + 'px';
+    $ind.style.width = el.offsetWidth + 'px';
+    $ind.style.height = el.offsetHeight + 'px';
+    if (!animate) { void $ind.offsetWidth; $ind.classList.remove('no-anim'); }
+  }
+
+  function routeNavKey() {
+    var h = location.hash;
+    if (h === '#/about') return 'about';
+    if (h === '#/book-report') return 'book';
+    if (h === '#/insights' || h.indexOf('#/post/') === 0) return 'insights';
+    return null;
   }
 
   /* ---------- 데스크톱 상단 메뉴 ---------- */
 
-  function renderNav() {
-    var h = location.hash;
-    var isAbout = h === '#/about';
-    var isBook = h === '#/book-report';
-    var isIns = h === '#/insights' || h.indexOf('#/post/') === 0;
-    $topnav.innerHTML =
-      '<a href="#/about" data-nav="about" class="' + (isAbout ? 'active' : '') + '">About me</a>' +
-      '<a href="#/insights" data-nav="insights" class="' + (isIns ? 'active' : '') + '">Insights</a>' +
-      '<a href="#/book-report" data-nav="book" class="' + (isBook ? 'active' : '') + '">Book Report</a>';
+  function updateNav() {
+    var key = routeNavKey();
+    var activeEl = null;
     Array.prototype.forEach.call($topnav.querySelectorAll('a'), function (a) {
-      var nav = a.getAttribute('data-nav');
-      if (nav === 'insights') {
-        a.addEventListener('mouseenter', openDropdown);
-        a.addEventListener('click', function () {
-          activeCategory = 'All';
-          closeDropdown();
-          if (location.hash === '#/insights') { renderList(); renderNav(); }
-        });
-      } else {
-        a.addEventListener('mouseenter', closeDropdown);
-      }
+      var is = a.getAttribute('data-nav') === key;
+      a.classList.toggle('active', is);
+      if (is) activeEl = a;
     });
+    moveInd($navInd, activeEl, navInit);
+    navInit = true;
   }
+
+  Array.prototype.forEach.call($topnav.querySelectorAll('a'), function (a) {
+    if (a.getAttribute('data-nav') === 'insights') {
+      a.addEventListener('mouseenter', openDropdown);
+      a.addEventListener('click', function () {
+        activeCategory = 'All';
+        closeDropdown();
+        if (location.hash === '#/insights') { renderList(); updateNav(); }
+      });
+    } else {
+      a.addEventListener('mouseenter', closeDropdown);
+    }
+  });
 
   function openDropdown() {
     var counts = categoryCounts();
@@ -337,13 +407,9 @@
   function renderOverlayNav() {
     var counts = categoryCounts();
     var cats = Object.keys(counts).sort();
-    var h = location.hash;
-    var isAbout = h === '#/about';
-    var isBook = h === '#/book-report';
-    var isIns = h === '#/insights' || h.indexOf('#/post/') === 0;
     var html =
-      '<a href="#/about" class="m-link' + (isAbout ? ' active' : '') + '">About me</a>' +
-      '<a href="#/insights" class="m-link' + (isIns || mInsightsOpen ? ' active' : '') + '" data-nav="insights">Insights</a>';
+      '<a href="#/about" class="m-link" data-nav="about">About me</a>' +
+      '<a href="#/insights" class="m-link" data-nav="insights">Insights</a>';
     if (mInsightsOpen) {
       html += '<div class="m-sub">';
       html += '<button class="cat-btn" data-cat="All">모두 보기<span class="count">' + posts.length + '</span></button>';
@@ -353,22 +419,36 @@
       });
       html += '</div>';
     }
-    html += '<a href="#/book-report" class="m-link' + (isBook ? ' active' : '') + '">Book Report</a>';
+    html += '<a href="#/book-report" class="m-link" data-nav="book">Book Report</a>';
     $overlayNav.innerHTML = html;
     Array.prototype.forEach.call($overlayNav.querySelectorAll('.m-link'), function (a) {
       a.addEventListener('click', function (e) {
+        e.preventDefault();
         if (a.getAttribute('data-nav') === 'insights') {
-          e.preventDefault();
           mInsightsOpen = !mInsightsOpen;
           renderOverlayNav();
+          moveInd($mInd, $overlayNav.querySelector('[data-nav="insights"]'), true);
           return;
         }
-        closeOverlay();
+        moveInd($mInd, a, true);
+        setTimeout(function () {
+          closeOverlay();
+          location.hash = a.getAttribute('href');
+        }, 380);
       });
     });
     Array.prototype.forEach.call($overlayNav.querySelectorAll('.cat-btn'), function (btn) {
-      btn.addEventListener('click', function () { selectCategory(btn.getAttribute('data-cat')); });
+      btn.addEventListener('click', function () {
+        moveInd($mInd, btn, true);
+        setTimeout(function () { selectCategory(btn.getAttribute('data-cat')); }, 380);
+      });
     });
+  }
+
+  function positionMIndByRoute(animate) {
+    var key = routeNavKey();
+    var el = key ? $overlayNav.querySelector('[data-nav="' + key + '"]') : null;
+    moveInd($mInd, el, animate);
   }
 
   function openOverlay() {
@@ -376,6 +456,7 @@
     renderOverlayNav();
     $overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
+    positionMIndByRoute(false);
   }
 
   function closeOverlay() {
@@ -385,6 +466,16 @@
 
   document.getElementById('menu-btn').addEventListener('click', openOverlay);
   document.getElementById('overlay-close').addEventListener('click', closeOverlay);
+
+  window.addEventListener('resize', function () {
+    var key = routeNavKey();
+    var el = null;
+    Array.prototype.forEach.call($topnav.querySelectorAll('a'), function (a) {
+      if (a.getAttribute('data-nav') === key) el = a;
+    });
+    moveInd($navInd, el, false);
+    if ($overlay.classList.contains('open')) positionMIndByRoute(false);
+  });
 
   /* ---------- 본문 렌더링 ---------- */
 
@@ -504,7 +595,7 @@
     } else {
       renderHome();
     }
-    renderNav();
+    updateNav();
     closeDropdown();
   }
 
