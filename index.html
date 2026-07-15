@@ -213,6 +213,7 @@
 
   var posts = [];        // {path, title, category}
   var activeCategory = 'All';
+  var mInsightsOpen = false; // 모바일 메뉴에서 Insights 확장 여부
 
   var $main = document.getElementById('main');
   var $topnav = document.getElementById('topnav');
@@ -342,22 +343,27 @@
     var isIns = h === '#/insights' || h.indexOf('#/post/') === 0;
     var html =
       '<a href="#/about" class="m-link' + (isAbout ? ' active' : '') + '">About me</a>' +
-      '<a href="#/insights" class="m-link' + (isIns ? ' active' : '') + '" data-nav="insights">Insights<span class="count">' + posts.length + '</span></a>';
-    html += '<div class="m-sub">';
-    cats.forEach(function (c) {
-      html += '<button class="cat-btn" data-cat="' + escapeAttr(c) + '">' + escapeHtml(c) +
-        '<span class="count">' + counts[c] + '</span></button>';
-    });
-    html += '</div>';
+      '<a href="#/insights" class="m-link' + (isIns || mInsightsOpen ? ' active' : '') + '" data-nav="insights">Insights</a>';
+    if (mInsightsOpen) {
+      html += '<div class="m-sub">';
+      html += '<button class="cat-btn" data-cat="All">모두 보기<span class="count">' + posts.length + '</span></button>';
+      cats.forEach(function (c) {
+        html += '<button class="cat-btn" data-cat="' + escapeAttr(c) + '">' + escapeHtml(c) +
+          '<span class="count">' + counts[c] + '</span></button>';
+      });
+      html += '</div>';
+    }
     html += '<a href="#/book-report" class="m-link' + (isBook ? ' active' : '') + '">Book Report</a>';
     $overlayNav.innerHTML = html;
     Array.prototype.forEach.call($overlayNav.querySelectorAll('.m-link'), function (a) {
-      a.addEventListener('click', function () {
-        if (a.getAttribute('data-nav') === 'insights') activeCategory = 'All';
-        closeOverlay();
-        if (a.getAttribute('href') === '#/insights' && location.hash === '#/insights') {
-          renderList(); renderNav();
+      a.addEventListener('click', function (e) {
+        if (a.getAttribute('data-nav') === 'insights') {
+          e.preventDefault();
+          mInsightsOpen = !mInsightsOpen;
+          renderOverlayNav();
+          return;
         }
+        closeOverlay();
       });
     });
     Array.prototype.forEach.call($overlayNav.querySelectorAll('.cat-btn'), function (btn) {
@@ -366,6 +372,7 @@
   }
 
   function openOverlay() {
+    mInsightsOpen = false;
     renderOverlayNav();
     $overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
