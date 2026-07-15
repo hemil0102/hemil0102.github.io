@@ -202,6 +202,7 @@
     posts.forEach(function (p) { counts[p.category] = (counts[p.category] || 0) + 1; });
     var cats = Object.keys(counts).sort();
     var html = '<a class="about-link" href="profile.html">&#128100; About me</a>';
+    html += '<a class="about-link" href="#">&#128218; Book Report</a>';
     html += '<h2>카테고리</h2>';
     html += catBtn('All', posts.length);
     cats.forEach(function (c) { html += catBtn(c, counts[c]); });
