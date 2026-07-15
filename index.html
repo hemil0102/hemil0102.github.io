@@ -58,14 +58,15 @@
   }
   @media (max-width: 768px) { .layout { grid-template-columns: 1fr; } }
   nav.sidebar h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 12px; }
-  .nav-links { margin-bottom: 20px; }
+  .nav-links { margin-bottom: 8px; }
   .about-link {
-    display: block; padding: 10px 12px; margin-bottom: 6px;
-    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    display: block; padding: 8px 4px; margin-bottom: 2px;
     color: var(--text); text-decoration: none; font-weight: 600; font-size: 0.95rem;
   }
-  .about-link:hover { background: var(--accent-light); color: var(--accent); }
-  .about-link.active { background: var(--accent-light); color: var(--accent); }
+  .about-link:hover { color: var(--accent); }
+  .about-link.active { color: var(--accent); }
+  .about-link .count { color: var(--muted); font-size: 0.8rem; margin-left: 6px; font-weight: 400; }
+  .cat-list { margin: 2px 0 8px 14px; }
   .cat-btn {
     display: block; width: 100%; text-align: left; padding: 8px 12px; margin-bottom: 4px;
     border: none; background: transparent; color: var(--text); border-radius: 8px;
@@ -231,13 +232,17 @@
     var h = location.hash;
     var isAbout = h === '#/about';
     var isBook = h === '#/book-report';
+    var isInsights = !isAbout && !isBook;
     var html = '<div class="nav-links">';
     html += navLink('#/about', '&#128100; About me', isAbout, 'about');
     html += navLink('#/book-report', '&#128218; Book Report', isBook, 'book');
-    html += navLink('#/', '&#128161; Insights', !isAbout && !isBook, 'insights');
+    html += navLink('#/', '&#128161; Insights<span class="count">' + posts.length + '</span>', isInsights, 'insights');
     html += '</div>';
-    html += catBtn('All', posts.length);
-    cats.forEach(function (c) { html += catBtn(c, counts[c]); });
+    if (isInsights) {
+      html += '<div class="cat-list">';
+      cats.forEach(function (c) { html += catBtn(c, counts[c]); });
+      html += '</div>';
+    }
     $sidebar.innerHTML = html;
     Array.prototype.forEach.call($sidebar.querySelectorAll('.cat-btn'), function (btn) {
       btn.addEventListener('click', function () {
