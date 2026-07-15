@@ -770,10 +770,13 @@
   var lastScrollY = window.scrollY;
   window.addEventListener('scroll', function () {
     var y = window.scrollY;
+    var maxY = document.documentElement.scrollHeight - window.innerHeight;
     if (y > lastScrollY + 4 && y > 80) {
       $header.classList.add('hidden');
       closeDropdown();
-    } else if (y < lastScrollY - 4) {
+    } else if (y < lastScrollY - 4 && y > 0 && y < maxY - 4) {
+      // 바닥/천장 바운스(고무줄 효과) 구간에서는 무시하고,
+      // 사용자가 실제로 위로 스크롤할 때만 헤더를 다시 표시
       $header.classList.remove('hidden');
     }
     lastScrollY = y;
