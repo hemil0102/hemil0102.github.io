@@ -772,6 +772,9 @@
   // 이렇게 하면 짧은 페이지, 고무줄 바운스, 관성 스크롤에 영향을 받지 않는다.
 
   function hideHeader() {
+    var maxY = document.documentElement.scrollHeight - window.innerHeight;
+    if (maxY <= 80) return;               // 콘텐츠가 짧아 스크롤할 게 없으면 숨기지 않음
+    if (window.scrollY >= maxY - 2) return; // 이미 바닥이라 더 내릴 게 없으면 숨기지 않음
     if (window.scrollY > 80) {
       $header.classList.add('hidden');
       closeDropdown();
@@ -796,8 +799,8 @@
     if (touchY === null) return;
     var cy = e.touches[0].clientY;
     var dy = cy - touchY;
-    if (dy < -8) { hideHeader(); touchY = cy; }
-    else if (dy > 8) { showHeader(); touchY = cy; }
+    if (dy < -3) { hideHeader(); touchY = cy; }
+    else if (dy > 3) { showHeader(); touchY = cy; }
   }, { passive: true });
   window.addEventListener('touchend', function () { touchY = null; }, { passive: true });
 
