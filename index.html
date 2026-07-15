@@ -23,8 +23,9 @@
     --glass-inner: rgba(255, 255, 255, 0.9);
     --glass-shadow: rgba(0, 0, 0, 0.14);
     --tray-fill: rgba(0, 0, 0, 0.035);
-    --glint: rgba(255, 255, 255, 0.55);
+    --pill-fill: rgba(0, 0, 0, 0.045);
     --rim: rgba(255, 255, 255, 0.95);
+    --rim-b: rgba(255, 255, 255, 0.45);
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -42,8 +43,9 @@
       --glass-inner: rgba(255, 255, 255, 0.35);
       --glass-shadow: rgba(0, 0, 0, 0.55);
       --tray-fill: rgba(255, 255, 255, 0.06);
-      --glint: rgba(255, 255, 255, 0.3);
-      --rim: rgba(255, 255, 255, 0.6);
+      --pill-fill: rgba(255, 255, 255, 0.09);
+      --rim: rgba(255, 255, 255, 0.55);
+      --rim-b: rgba(255, 255, 255, 0.18);
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -69,11 +71,14 @@
   .glass-ind {
     position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; z-index: 0;
     border-radius: 999px;
-    background: var(--glass-fill);
+    background: var(--pill-fill);
     border: 1px solid var(--glass-border);
-    box-shadow: inset 0 1px 2px var(--glass-inner), 0 6px 16px var(--glass-shadow);
-    -webkit-backdrop-filter: blur(10px) saturate(170%);
-    backdrop-filter: blur(10px) saturate(170%);
+    box-shadow:
+      inset 0 1px 1px var(--glass-inner),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.06),
+      0 4px 12px var(--glass-shadow);
+    will-change: left, top, width, height, transform;
+    transform: translateZ(0);
     transition:
       left .7s cubic-bezier(.32,1.18,.36,1),
       top .7s cubic-bezier(.32,1.18,.36,1),
@@ -82,16 +87,10 @@
       opacity .25s ease;
     pointer-events: none;
   }
-  .glass-ind::before {
-    content: ""; position: absolute; inset: 0; border-radius: inherit;
-    background: linear-gradient(calc(115deg + var(--tilt, 0deg)),
-      rgba(255,255,255,0) 32%, var(--glint) 47%, rgba(255,255,255,0) 62%);
-    pointer-events: none;
-  }
   .glass-ind::after {
     content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1.5px;
-    background: conic-gradient(from calc(var(--tilt, 0deg) - 40deg),
-      var(--rim) 0%, transparent 22%, var(--rim) 46%, transparent 68%, var(--rim) 100%);
+    background: linear-gradient(180deg,
+      var(--rim) 0%, rgba(255,255,255,0.05) 38%, rgba(255,255,255,0.02) 62%, var(--rim-b) 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -173,10 +172,12 @@
     border-radius: 999px; position: relative; z-index: 1;
   }
   .m-sub {
-    margin: 4px 0 12px 26px; padding: 8px 10px; border-radius: 22px;
-    background: var(--tray-fill); border: 1px solid var(--glass-border);
-    -webkit-backdrop-filter: blur(12px) saturate(150%);
-    backdrop-filter: blur(12px) saturate(150%);
+    margin: 4px 0 12px 0; padding: 8px 12px; border-radius: 26px;
+    background: var(--pill-fill); border: 1px solid var(--glass-border);
+    box-shadow:
+      inset 0 1px 1px var(--glass-inner),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.06),
+      0 4px 12px var(--glass-shadow);
   }
   .m-sub .cat-btn {
     display: block; background: none; border: none; text-align: left; cursor: pointer;
@@ -719,37 +720,6 @@
     });
   }
   function escapeAttr(s) { return escapeHtml(s); }
-
-  /* ---------- 유리 반사광 (기울기/마우스 반응) ---------- */
-
-  var tiltTarget = 0, tiltCur = 0;
-  function tiltLoop() {
-    tiltCur += (tiltTarget - tiltCur) * 0.07;
-    document.documentElement.style.setProperty('--tilt', tiltCur.toFixed(2) + 'deg');
-    requestAnimationFrame(tiltLoop);
-  }
-  requestAnimationFrame(tiltLoop);
-
-  if (hasHover) {
-    window.addEventListener('mousemove', function (e) {
-      tiltTarget = ((e.clientX / window.innerWidth) - 0.5) * 90 +
-                   ((e.clientY / window.innerHeight) - 0.5) * 30;
-    });
-  }
-  window.addEventListener('deviceorientation', function (e) {
-    if (e.gamma == null) return;
-    tiltTarget = e.gamma * 1.6 + (e.beta || 0) * 0.5;
-  });
-  function askMotionPermission() {
-    try {
-      if (typeof DeviceOrientationEvent !== 'undefined' &&
-          typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission().catch(function () {});
-      }
-    } catch (err) { /* 무시 */ }
-    document.removeEventListener('touchend', askMotionPermission);
-  }
-  document.addEventListener('touchend', askMotionPermission);
 
   window.addEventListener('hashchange', route);
 
