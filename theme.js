@@ -218,6 +218,18 @@
   function movePill(instant) {
     movePillTo(document.querySelector('.theme-dot[aria-checked="true"]'), instant);
   }
+  /* 시스템(상태)바 색: 투명도 없는 헤더 색으로 지정 */
+  function updateThemeColor() {
+    var v = getComputedStyle(document.documentElement).getPropertyValue('--header-bg-solid').trim();
+    if (!v) return;
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (!m) {
+      m = document.createElement('meta');
+      m.setAttribute('name', 'theme-color');
+      document.head.appendChild(m);
+    }
+    m.setAttribute('content', v);
+  }
   function applyTheme(id, instant) {
     document.documentElement.setAttribute('data-theme', id);
     try { localStorage.setItem(STORAGE_KEY, id); } catch (e) {}
@@ -225,6 +237,7 @@
       dot.setAttribute('aria-checked', dot.getAttribute('data-theme-id') === id ? 'true' : 'false');
     });
     movePill(instant);
+    updateThemeColor();
   }
 
   /* ---------- 팔레트 UI 렌더링 ---------- */
@@ -260,6 +273,7 @@
   /* ---------- 초기화 ---------- */
   buildThemeCss();
   document.documentElement.setAttribute('data-theme', currentTheme());
+  updateThemeColor();
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', renderPalette);
   } else {
