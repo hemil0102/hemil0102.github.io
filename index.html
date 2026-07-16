@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fae4d1">
 <title>Harry's Insights</title>
 <meta name="description" content="경영, 기술, 인사이트 노트 아카이브">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -54,6 +55,12 @@
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  /* 상단 오버스크롤/시스템바 영역이 헤더 색으로 보이게 */
+  html {
+    background: linear-gradient(to bottom,
+      var(--header-bg-solid, #fae4d1) 0%, var(--header-bg-solid, #fae4d1) 50%,
+      var(--bg, #fbf8f6) 50%, var(--bg, #fbf8f6) 100%);
+  }
   body {
     font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", Roboto, sans-serif;
     background: var(--bg);
