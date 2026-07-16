@@ -239,7 +239,11 @@
     transform-origin: top center;
   }
   .dropdown.open { animation: capsuleGrow .38s cubic-bezier(.3,1.05,.4,1); }
-  header.dd-open { border-radius: 26px 26px 0 0; }
+  /* 부모에 backdrop-filter가 있으면 자식 블러가 무효화되므로, 열려 있는 동안 헤더 블러를 드롭다운으로 위임 */
+  header.dd-open {
+    border-radius: 26px 26px 0 0;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
   header { transition: border-radius .25s ease; }
   .dropdown.open { display: block; }
   .dropdown-inner { max-width: 1100px; margin: 0 auto; padding: 22px 24px 30px; position: relative; }
