@@ -71,8 +71,9 @@
     background: var(--header-bg, rgba(26, 17, 20, 0.92));
     -webkit-backdrop-filter: blur(18px) saturate(160%);
     backdrop-filter: blur(18px) saturate(160%);
-    position: sticky; top: 0; z-index: 10;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10;
   }
+  body { padding-top: var(--header-h, 66px); }
   .header-inner {
     max-width: 1100px; margin: 0 auto; padding: 12px 24px;
     display: flex; align-items: center; gap: 28px;
@@ -106,7 +107,7 @@
     box-shadow:
       inset 0 1px 2px rgba(255, 255, 255, 0.28),
       inset 0 -1.5px 3px rgba(255, 255, 255, 0.15),
-      0 2px 4px rgba(0, 0, 0, 0.10);
+      0 3px 7px rgba(0, 0, 0, 0.22);
   }
   .glass-ind::after {
     content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 0.6px;
@@ -213,10 +214,17 @@
   .topnav a.active { color: var(--logo-accent, var(--accent)); }
   #menu-btn {
     display: none; width: 42px; height: 42px; border-radius: 50%;
-    align-items: center; justify-content: center;
-    cursor: pointer; color: var(--header-text, #ffffff);
-    font-size: 1.2rem; font-weight: 700; padding: 0 0 4px 0; line-height: 0; font-family: inherit;
+    flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    cursor: pointer; padding: 0; font-family: inherit;
   }
+  .mb-bar {
+    display: block; width: 16px; height: 2px; border-radius: 2px;
+    background: var(--header-text, #ffffff);
+    transition: transform .3s cubic-bezier(.3,1.2,.4,1), opacity .2s ease;
+  }
+  #menu-btn.open .mb-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  #menu-btn.open .mb-bar:nth-child(2) { opacity: 0; transform: scaleX(0.3); }
+  #menu-btn.open .mb-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
   @media (max-width: 768px) {
     .topnav { display: none; }
     #menu-btn { display: flex; margin-left: auto; }
@@ -239,14 +247,18 @@
   }
   .dropdown .cat-btn .count { color: var(--header-muted, #ab9fa2); font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
   .overlay {
-    position: fixed; inset: 0; z-index: 50;
+    position: fixed; top: var(--header-h, 66px); left: 0; right: 0; bottom: 0; z-index: 9;
     background: var(--header-glass);
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     backdrop-filter: blur(24px) saturate(160%);
-    display: none; padding: 20px 28px 40px; overflow-y: auto;
+    display: none; padding: 12px 28px 40px; overflow-y: auto;
   }
-  .overlay.open { display: block; }
-  .overlay-top { display: flex; justify-content: flex-end; }
+  .overlay.open { display: block; animation: overlaySlide .35s cubic-bezier(.3,.9,.4,1); }
+  @keyframes overlaySlide {
+    0%   { opacity: 0; transform: translateY(-16px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  .overlay-top { display: none; }
   #overlay-close {
     width: 42px; height: 42px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
@@ -381,7 +393,7 @@
       <a href="#/insights" data-nav="insights">Insights</a>
       <a href="#/book-report" data-nav="book">Book Report</a>
     </nav>
-    <button id="menu-btn" aria-label="메뉴 열기">&#9776;</button>
+    <button id="menu-btn" aria-label="메뉴 열기"><span class="mb-bar"></span><span class="mb-bar"></span><span class="mb-bar"></span></button>
   </div>
   <div class="dropdown" id="dropdown"></div>
 </header>
@@ -710,21 +722,39 @@
     moveInd($mInd, el, animate);
   }
 
+  var $menuBtn = document.getElementById('menu-btn');
+
   function openOverlay() {
     mInsightsOpen = false;
     renderOverlayNav();
     $overlay.classList.add('open');
+    $menuBtn.classList.add('open');
+    $menuBtn.setAttribute('aria-label', '메뉴 닫기');
     document.body.style.overflow = 'hidden';
     positionMIndByRoute(false);
   }
 
   function closeOverlay() {
     $overlay.classList.remove('open');
+    $menuBtn.classList.remove('open');
+    $menuBtn.setAttribute('aria-label', '메뉴 열기');
     document.body.style.overflow = '';
   }
 
-  document.getElementById('menu-btn').addEventListener('click', openOverlay);
+  $menuBtn.addEventListener('click', function () {
+    if ($overlay.classList.contains('open')) closeOverlay();
+    else openOverlay();
+  });
   document.getElementById('overlay-close').addEventListener('click', closeOverlay);
+
+  /* 고정 헤더 높이만큼 본문·오버레이 시작 위치 조정 */
+  function setHeaderHeight() {
+    var inner = $header.querySelector('.header-inner');
+    document.documentElement.style.setProperty('--header-h', (inner ? inner.offsetHeight : $header.offsetHeight) + 'px');
+  }
+  setHeaderHeight();
+  window.addEventListener('load', setHeaderHeight);
+  window.addEventListener('resize', setHeaderHeight);
 
   window.addEventListener('resize', function () {
     var key = routeNavKey();
