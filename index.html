@@ -665,11 +665,25 @@
         btn.addEventListener('mouseenter', function () { moveInd($ddInd, btn, true); });
       }
     });
+    function ddActiveBtn() {
+      if (routeNavKey() !== 'insights') return null;
+      var found = null;
+      Array.prototype.forEach.call($dropdown.querySelectorAll('.cat-btn'), function (btn) {
+        if (btn.getAttribute('data-cat') === activeCategory) found = btn;
+      });
+      return found;
+    }
     if (hasHover) {
-      $dropdown.addEventListener('mouseleave', function () { moveInd($ddInd, null, true); });
+      $dropdown.addEventListener('mouseleave', function () { moveInd($ddInd, ddActiveBtn(), true); });
     }
     $dropdown.classList.add('open');
     $header.classList.add('dd-open');
+    /* 캡슐 펼침이 끝난 뒤, 선택돼 있는 카테고리 위에 물방울 표시 (세로 모드와 동일) */
+    setTimeout(function () {
+      if (!$dropdown.classList.contains('open')) return;
+      var btn = ddActiveBtn();
+      if (btn && !$dropdown.matches(':hover')) moveInd($ddInd, btn, false);
+    }, 420);
     moveInd($navInd, $topnav.querySelector('[data-nav="insights"]'), true);
   }
 
