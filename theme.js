@@ -88,14 +88,15 @@
     var dAccS = Math.min(hsl.s, 90);
     var dAccL = fitContrast(h, dAccS, Math.max(hsl.l, 55), darkBg, 1); // 어두운 배경 위 텍스트용
 
-    /* 헤더: 모든 테마 공통 — 흰색에 가까운 밝은 파스텔 톤 + 반투명(스크롤 시 콘텐츠가 살짝 비침) */
+    /* 헤더·버튼 톤 — 라이트: 밝은 파스텔 / 다크: 테마색이 감도는 짙은 톤 */
     var hdrS = 80, hdrL = 90;
     var pastelBg = hslToRgb(h, hdrS, hdrL);
     var txtL = fitContrast(h, 55, 32, pastelBg, -1);
-    var hdrText = css(h, 55, txtL);
-    var hdrMuted = css(h, 30, 44);
-    var logoAccent = base; /* 로고 포인트 = 팔레트 원색 그대로 */
     var btnTextL = fitContrast(h, hsl.s, hsl.l, pastelBg, -1, 3);
+    var dHdrS = 28, dHdrL = 16;
+    var dBtnBg = hslToRgb(h, 30, 21);
+    var dBtnS = Math.min(hsl.s, 95);
+    var dBtnTextL = fitContrast(h, dBtnS, Math.max(hsl.l, 60), dBtnBg, 1, 3);
 
     return {
       light: {
@@ -107,7 +108,17 @@
         '--accent':       css(h, accS, accL),
         '--border':       css(h, 30, 88),
         '--code-bg':      css(h, 32, 94),
-        '--glass-fill':   'linear-gradient(135deg, rgba(255,255,255,0.9), ' + css(h, 55, 91, 0.55) + ')'
+        '--glass-fill':   'linear-gradient(135deg, rgba(255,255,255,0.9), ' + css(h, 55, 91, 0.55) + ')',
+        '--header-bg':        css(h, hdrS, hdrL, 0.72),
+        '--header-bg-solid':  css(h, hdrS, hdrL),
+        '--header-bg-strong': css(h, hdrS, hdrL, 0.9),
+        '--header-glass':     css(h, hdrS, hdrL, 0.6),
+        '--header-text':      css(h, 55, txtL),
+        '--header-muted':     css(h, 30, 44),
+        '--nav-pill-fill':    'rgba(255, 255, 255, 0.55)',
+        '--nav-pill-border':  css(h, 45, 40, 0.28),
+        '--accent-light':     css(h, hdrS, hdrL), /* 버튼 배경 = 헤더 배경색 */
+        '--btn-text':         css(h, hsl.s, btnTextL) /* 버튼 글자 = 팔레트 색(가독성 보정) */
       },
       dark: {
         '--bg':           css(h, 18, 9),
@@ -117,20 +128,21 @@
         '--sub-text':     css(h, 10, 80),
         '--accent':       css(h, dAccS, dAccL),
         '--border':       css(h, 14, 21),
-        '--code-bg':      css(h, 14, 16)
+        '--code-bg':      css(h, 14, 16),
+        '--glass-fill':   'linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.05))',
+        '--header-bg':        css(h, dHdrS, dHdrL, 0.85),
+        '--header-bg-solid':  css(h, dHdrS, dHdrL),
+        '--header-bg-strong': css(h, dHdrS, dHdrL, 0.92),
+        '--header-glass':     css(h, dHdrS, dHdrL, 0.6),
+        '--header-text':      css(h, 20, 88),
+        '--header-muted':     css(h, 10, 64),
+        '--nav-pill-fill':    'rgba(255, 255, 255, 0.10)',
+        '--nav-pill-border':  'rgba(255, 255, 255, 0.25)',
+        '--accent-light':     css(h, 30, 21),
+        '--btn-text':         css(h, dBtnS, dBtnTextL)
       },
-      always: { /* 헤더·버튼은 라이트/다크 공통 */
-        '--header-bg':        css(h, hdrS, hdrL, 0.72),
-        '--header-bg-solid':  css(h, hdrS, hdrL),
-        '--header-bg-strong': css(h, hdrS, hdrL, 0.78),
-        '--header-glass':     css(h, hdrS, hdrL, 0.6),
-        '--header-text':      hdrText,
-        '--header-muted':     hdrMuted,
-        '--logo-accent':      logoAccent,
-        '--nav-pill-fill':    'rgba(255, 255, 255, 0.55)',
-        '--nav-pill-border':  css(h, 45, 40, 0.28),
-        '--accent-light':     css(h, hdrS, hdrL), /* 버튼 배경 = 헤더 배경색 */
-        '--btn-text':         css(h, hsl.s, btnTextL) /* 버튼 글자 = 팔레트 색(가독성 보정) */
+      always: {
+        '--logo-accent': base /* 로고 = 팔레트 원색 (두 모드 공통) */
       }
     };
   }
@@ -274,6 +286,9 @@
   buildThemeCss();
   document.documentElement.setAttribute('data-theme', currentTheme());
   updateThemeColor();
+  try { /* 라이트/다크 전환 시 시스템바 색 갱신 */
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeColor);
+  } catch (e) {}
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', renderPalette);
   } else {
