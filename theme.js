@@ -117,13 +117,13 @@
         '--sub-text':     css(h, 10, 80),
         '--accent':       css(h, dAccS, dAccL),
         '--border':       css(h, 14, 21),
-        '--code-bg':      css(h, 14, 16),
-        '--header-glass': css(h, hdrS, hdrL, 0.72)
+        '--code-bg':      css(h, 14, 16)
       },
       always: { /* 헤더·버튼은 라이트/다크 공통 */
-        '--header-bg':        css(h, hdrS, hdrL, 0.82),
+        '--header-bg':        css(h, hdrS, hdrL, 0.72),
         '--header-bg-solid':  css(h, hdrS, hdrL),
-        '--header-bg-strong': css(h, hdrS, hdrL, 0.9),
+        '--header-bg-strong': css(h, hdrS, hdrL, 0.78),
+        '--header-glass':     css(h, hdrS, hdrL, 0.6),
         '--header-text':      hdrText,
         '--header-muted':     hdrMuted,
         '--logo-accent':      logoAccent,
