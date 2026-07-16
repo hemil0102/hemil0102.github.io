@@ -79,11 +79,17 @@
   .glass-ind {
     position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; z-index: 0;
     border-radius: 999px;
-    background: var(--pill-fill);
-    border: 1px solid var(--glass-border);
+    /* 투명한 물방울 유리: 흰 채움 없이 반사광·물빛 광택·림으로만 표현 */
+    background: radial-gradient(140% 130% at 30% 12%,
+      rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.07) 38%,
+      rgba(255,255,255,0.01) 58%, rgba(255,255,255,0.16) 100%);
+    -webkit-backdrop-filter: blur(1.5px) saturate(175%);
+    backdrop-filter: blur(1.5px) saturate(175%);
     box-shadow:
-      inset 0 1px 1px var(--glass-inner),
-      inset 0 -1px 1px rgba(0, 0, 0, 0.06);
+      inset 0 1.5px 2.5px rgba(255, 255, 255, 0.75),
+      inset 0 -2px 4px rgba(255, 255, 255, 0.5),
+      inset 2px 0 3px rgba(255, 255, 255, 0.2),
+      0 4px 10px rgba(0, 0, 0, 0.16);
     will-change: left, top, width, height, transform;
     transform: translateZ(0);
     transition:
@@ -91,13 +97,23 @@
       top .7s cubic-bezier(.32,1.18,.36,1),
       width .7s cubic-bezier(.32,1.14,.36,1),
       height .6s cubic-bezier(.32,1.12,.36,1),
+      transform .35s cubic-bezier(.34,1.4,.64,1),
       opacity .25s ease;
     pointer-events: none;
   }
+  .glass-ind.traveling { transform: translateZ(0) scale(1.18); }
+  @keyframes dropLand {
+    0%   { transform: scale(1.18); }
+    40%  { transform: scale(0.94, 1.05); }
+    70%  { transform: scale(1.03, 0.98); }
+    100% { transform: scale(1, 1); }
+  }
+  .glass-ind.drop-land { animation: dropLand .6s ease-out; }
   .glass-ind::after {
-    content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1.5px;
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px;
     background: linear-gradient(180deg,
-      var(--rim) 0%, rgba(255,255,255,0.05) 38%, rgba(255,255,255,0.02) 62%, var(--rim-b) 100%);
+      rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.1) 35%,
+      rgba(255,255,255,0.05) 60%, rgba(255,255,255,0.7) 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -163,10 +179,6 @@
     position: relative; z-index: 1;
     color: var(--header-text, #ffffff); text-decoration: none; font-size: 0.92rem; font-weight: 600;
     padding: 7px 16px; border-radius: 999px; white-space: nowrap;
-  }
-  .topnav .glass-ind, .dropdown .glass-ind {
-    background: var(--nav-pill-fill, rgba(255, 255, 255, 0.13));
-    border-color: var(--nav-pill-border, rgba(255, 255, 255, 0.28));
   }
   #menu-btn {
     display: none; width: 42px; height: 42px; border-radius: 50%;
@@ -450,31 +462,48 @@
 
   /* ---------- 리퀴드 글래스 인디케이터 ---------- */
 
+  var IND_GROW = 4; /* 물방울이 트레이보다 사방으로 커지는 양(px) */
   function moveInd($ind, el, animate, pulse) {
     if (!el) {
       $ind.style.opacity = '0';
-      $ind.classList.remove('wobble', 'select-pulse');
+      $ind.classList.remove('wobble', 'select-pulse', 'traveling', 'drop-land');
+      clearTimeout($ind._travelTimer);
       return;
     }
+    var L = (el.offsetLeft - IND_GROW) + 'px';
+    var T = (el.offsetTop - IND_GROW) + 'px';
+    var W = (el.offsetWidth + IND_GROW * 2) + 'px';
+    var H = (el.offsetHeight + IND_GROW * 2) + 'px';
     var same = $ind.style.opacity === '1' &&
-      $ind.style.left === el.offsetLeft + 'px' &&
-      $ind.style.top === el.offsetTop + 'px' &&
-      $ind.style.width === el.offsetWidth + 'px';
+      $ind.style.left === L &&
+      $ind.style.top === T &&
+      $ind.style.width === W;
     if (!animate) $ind.classList.add('no-anim');
     $ind.style.opacity = '1';
-    $ind.style.left = el.offsetLeft + 'px';
-    $ind.style.top = el.offsetTop + 'px';
-    $ind.style.width = el.offsetWidth + 'px';
-    $ind.style.height = el.offsetHeight + 'px';
+    $ind.style.left = L;
+    $ind.style.top = T;
+    $ind.style.width = W;
+    $ind.style.height = H;
     if (!animate) {
       void $ind.offsetWidth;
       $ind.classList.remove('no-anim');
       return;
     }
     if (same && !pulse) return;
-    $ind.classList.remove('wobble', 'select-pulse');
-    void $ind.offsetWidth;
-    $ind.classList.add(pulse ? 'select-pulse' : 'wobble');
+    clearTimeout($ind._travelTimer);
+    $ind.classList.remove('wobble', 'select-pulse', 'drop-land');
+    if (!same) {
+      /* 이동 중에는 더 크게 부푼 상태로 이동, 도착하면서 줄어들며 울렁임 */
+      $ind.classList.add('traveling');
+      $ind._travelTimer = setTimeout(function () {
+        $ind.classList.remove('traveling');
+        void $ind.offsetWidth;
+        $ind.classList.add('drop-land');
+      }, 600);
+    } else {
+      void $ind.offsetWidth;
+      $ind.classList.add(pulse ? 'select-pulse' : 'wobble');
+    }
   }
 
   function routeNavKey() {
