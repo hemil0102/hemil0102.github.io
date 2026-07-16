@@ -11,10 +11,11 @@
 (function () {
   'use strict';
 
+  /* header: 'pastel' → 밝고 부드러운 파스텔 헤더(어두운 글자), 생략 시 짙은 컬러 헤더(흰 글자) */
   var THEMES = [
     { id: 'green',  name: '초록', base: '#61BB46' },
-    { id: 'yellow', name: '노랑', base: '#FDB827' },
-    { id: 'orange', name: '주황', base: '#F5821F' },
+    { id: 'yellow', name: '노랑', base: '#FDB827', header: 'pastel' },
+    { id: 'orange', name: '주황', base: '#F5821F', header: 'pastel' },
     { id: 'red',    name: '빨강', base: '#E03A3E' },
     { id: 'purple', name: '보라', base: '#963D97' },
     { id: 'blue',   name: '파랑', base: '#009DDC' }
@@ -76,7 +77,7 @@
   }
 
   /* ---------- 기본 색상 하나로 라이트/다크 팔레트 파생 ---------- */
-  function derive(base) {
+  function derive(base, headerMode) {
     var hsl = rgbToHsl(hexToRgb(base));
     var h = hsl.h;
     var white = [255, 255, 255];
@@ -87,9 +88,22 @@
     var dAccS = Math.min(hsl.s, 90);
     var dAccL = fitContrast(h, dAccS, Math.max(hsl.l, 55), darkBg, 1); // 어두운 배경 위 텍스트용
 
-    /* 헤더: 테마색에 가까운 짙은 톤 (흰 글자 대비 4.5:1 보장) */
-    var hdrS = Math.min(hsl.s, 65);
-    var hdrL = fitContrast(h, hdrS, 42, white, -1);
+    /* 헤더: 기본은 테마색의 짙은 톤(흰 글자), pastel 모드는 밝고 부드러운 톤(어두운 글자) */
+    var hdrS, hdrL, hdrText, hdrMuted, logoAccent;
+    if (headerMode === 'pastel') {
+      hdrS = 82; hdrL = 78;
+      var pastelBg = hslToRgb(h, hdrS, hdrL);
+      var txtL = fitContrast(h, 55, 30, pastelBg, -1);
+      hdrText = css(h, 55, txtL);
+      hdrMuted = css(h, 35, Math.min(txtL + 16, 45));
+      logoAccent = css(h, accS, accL);
+    } else {
+      hdrS = Math.min(hsl.s, 65);
+      hdrL = fitContrast(h, hdrS, 42, white, -1);
+      hdrText = '#ffffff';
+      hdrMuted = css(h, 12, 78);
+      logoAccent = css(h, Math.min(hsl.s, 80), 82);
+    }
 
     return {
       light: {
@@ -116,11 +130,13 @@
         '--code-bg':      css(h, 14, 16),
         '--header-glass': css(h, hdrS, hdrL, 0.72)
       },
-      always: { /* 헤더는 항상 테마색 기반의 짙은 톤 */
+      always: { /* 헤더는 라이트/다크 공통 */
         '--header-bg':        css(h, hdrS, hdrL, 0.92),
         '--header-bg-solid':  css(h, hdrS, hdrL),
         '--header-bg-strong': css(h, hdrS, hdrL, 0.95),
-        '--logo-accent':      css(h, Math.min(hsl.s, 80), 82)
+        '--header-text':      hdrText,
+        '--header-muted':     hdrMuted,
+        '--logo-accent':      logoAccent
       }
     };
   }
@@ -132,7 +148,7 @@
   function buildThemeCss() {
     var out = '';
     THEMES.forEach(function (t) {
-      var p = derive(t.base);
+      var p = derive(t.base, t.header);
       var o = t.overrides || {};
       var light = Object.assign({}, p.light, p.always, o.light || {});
       var dark = Object.assign({}, p.dark, p.always, o.dark || {});
@@ -149,11 +165,18 @@
       '.theme-dot:hover { transform: scale(1.2); }',
       /* 리퀴드 글래스 캡슐 선택 표시 */
       '.theme-pill { position: absolute; top: 50%; z-index: 0; border-radius: 999px;',
-      '  background: rgba(255,255,255,0.08);',
-      '  border: 1px solid rgba(255,255,255,0.38);',
-      '  box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 2px 6px rgba(0,0,0,0.18);',
+      '  background: linear-gradient(135deg, rgba(255,255,255,0.20), rgba(255,255,255,0.04));',
+      '  -webkit-backdrop-filter: blur(4px) saturate(180%);',
+      '  backdrop-filter: blur(4px) saturate(180%);',
+      '  box-shadow: inset 0 1px 1px rgba(255,255,255,0.45), inset 0 -1px 1px rgba(0,0,0,0.12), 0 3px 8px rgba(0,0,0,0.22);',
       '  transform: translateY(-50%); pointer-events: none; opacity: 0;',
       '  transition: left .55s cubic-bezier(.32,1.18,.36,1), width .4s ease, height .4s ease, opacity .25s ease; }',
+      '.theme-pill::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1.2px;',
+      '  background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.08) 40%, rgba(255,255,255,0.04) 60%, rgba(255,255,255,0.45) 100%);',
+      '  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);',
+      '  -webkit-mask-composite: xor;',
+      '  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);',
+      '  mask-composite: exclude; pointer-events: none; }',
       '.theme-pill.on { opacity: 1; }',
       '.theme-pill.no-anim { transition: none; }',
       '@media (max-width: 640px) { .theme-palette { gap: 6px; } .theme-dot { width: 10px; height: 10px; } }'
