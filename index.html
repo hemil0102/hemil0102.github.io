@@ -64,8 +64,9 @@
     background: var(--header-bg, rgba(26, 17, 20, 0.92));
     -webkit-backdrop-filter: blur(18px) saturate(160%);
     backdrop-filter: blur(18px) saturate(160%);
-    position: sticky; top: 0; z-index: 10;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 10;
   }
+  body { padding-top: var(--header-h, 64px); }
   .header-inner {
     max-width: 1100px; margin: 0 auto; padding: 12px 24px;
     display: flex; align-items: center; gap: 28px;
@@ -143,8 +144,10 @@
   .glass-ind.no-anim { transition: none; }
   @media (hover: none), (pointer: coarse) {
     header {
-      -webkit-backdrop-filter: none; backdrop-filter: none;
-      background: var(--header-bg-solid, #1a1214);
+      /* 모바일에서도 반투명 유지: 콘텐츠가 헤더 뒤로 비쳐 보이게 */
+      -webkit-backdrop-filter: blur(14px) saturate(150%);
+      backdrop-filter: blur(14px) saturate(150%);
+      background: var(--header-bg, rgba(26, 17, 20, 0.92));
     }
     .overlay {
       -webkit-backdrop-filter: none; backdrop-filter: none;
@@ -420,6 +423,15 @@
   var $overlayNav = document.getElementById('overlay-nav');
   var $mInd = document.getElementById('m-ind');
   var $header = document.getElementById('header');
+
+  /* 고정 헤더 높이만큼 본문을 밀어내기 */
+  function setHeaderHeight() {
+    var inner = $header.querySelector('.header-inner');
+    document.documentElement.style.setProperty('--header-h', (inner ? inner.offsetHeight : $header.offsetHeight) + 'px');
+  }
+  setHeaderHeight();
+  window.addEventListener('resize', setHeaderHeight);
+  window.addEventListener('load', setHeaderHeight);
 
   function loadPosts() {
     return fetch(POSTS_URL)
