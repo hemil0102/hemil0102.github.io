@@ -141,13 +141,21 @@
     });
     /* 팔레트 UI */
     out += [
-      '.theme-palette { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }',
+      '.theme-palette { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; position: relative; }',
       '.theme-dot { width: 11px; height: 11px; border-radius: 50%; border: none; padding: 0;',
       '  cursor: pointer; flex: 0 0 auto; -webkit-appearance: none; appearance: none;',
-      '  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);',
-      '  transition: transform .15s ease, box-shadow .15s ease; }',
+      '  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12); position: relative; z-index: 1;',
+      '  transition: transform .15s ease; }',
       '.theme-dot:hover { transform: scale(1.2); }',
-      '.theme-dot.selected { box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px rgba(0,0,0,0.25); }',
+      /* 리퀴드 글래스 캡슐 선택 표시 */
+      '.theme-pill { position: absolute; top: 50%; z-index: 0; border-radius: 999px;',
+      '  background: rgba(255,255,255,0.08);',
+      '  border: 1px solid rgba(255,255,255,0.38);',
+      '  box-shadow: inset 0 1px 1px rgba(255,255,255,0.3), 0 2px 6px rgba(0,0,0,0.18);',
+      '  transform: translateY(-50%); pointer-events: none; opacity: 0;',
+      '  transition: left .55s cubic-bezier(.32,1.18,.36,1), width .4s ease, height .4s ease, opacity .25s ease; }',
+      '.theme-pill.on { opacity: 1; }',
+      '.theme-pill.no-anim { transition: none; }',
       '@media (max-width: 640px) { .theme-palette { gap: 6px; } .theme-dot { width: 10px; height: 10px; } }'
     ].join('\n');
     var style = document.createElement('style');
@@ -162,14 +170,29 @@
     try { saved = localStorage.getItem(STORAGE_KEY); } catch (e) {}
     return THEMES.some(function (t) { return t.id === saved; }) ? saved : DEFAULT_THEME;
   }
-  function applyTheme(id) {
+  function movePill(instant) {
+    var pill = document.querySelector('.theme-pill');
+    var dot = document.querySelector('.theme-dot[aria-checked="true"]');
+    if (!pill || !dot) return;
+    var pad = 3; /* 점 주변 여백 → 캡슐 크기 */
+    var size = dot.offsetWidth + pad * 2;
+    if (instant) pill.classList.add('no-anim');
+    pill.style.width = size + 'px';
+    pill.style.height = size + 'px';
+    pill.style.left = (dot.offsetLeft + dot.offsetWidth / 2 - size / 2) + 'px';
+    pill.classList.add('on');
+    if (instant) {
+      void pill.offsetWidth; /* reflow 후 애니메이션 복원 */
+      pill.classList.remove('no-anim');
+    }
+  }
+  function applyTheme(id, instant) {
     document.documentElement.setAttribute('data-theme', id);
     try { localStorage.setItem(STORAGE_KEY, id); } catch (e) {}
     document.querySelectorAll('.theme-dot').forEach(function (dot) {
-      var on = dot.getAttribute('data-theme-id') === id;
-      dot.classList.toggle('selected', on);
-      dot.setAttribute('aria-checked', on ? 'true' : 'false');
+      dot.setAttribute('aria-checked', dot.getAttribute('data-theme-id') === id ? 'true' : 'false');
     });
+    movePill(instant);
   }
 
   /* ---------- 팔레트 UI 렌더링 ---------- */
@@ -180,6 +203,9 @@
     wrap.className = 'theme-palette';
     wrap.setAttribute('role', 'radiogroup');
     wrap.setAttribute('aria-label', '색상 테마 선택');
+    var pill = document.createElement('div');
+    pill.className = 'theme-pill';
+    wrap.appendChild(pill);
     THEMES.forEach(function (t) {
       var b = document.createElement('button');
       b.type = 'button';
@@ -193,7 +219,8 @@
       wrap.appendChild(b);
     });
     logo.insertAdjacentElement('afterend', wrap);
-    applyTheme(currentTheme());
+    applyTheme(currentTheme(), true);
+    window.addEventListener('resize', function () { movePill(true); });
   }
 
   /* ---------- 초기화 ---------- */
