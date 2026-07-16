@@ -70,9 +70,10 @@
       : 'hsla(' + h + ', ' + s + '%, ' + l + '%, ' + a + ')';
   }
 
-  /* ---------- 가독성 보정: 대비 4.5:1 이상이 되도록 명도 조절 ---------- */
-  function fitContrast(h, s, l, bgRgb, dir) {
-    while (contrast(hslToRgb(h, s, l), bgRgb) < 4.5 && l > 8 && l < 92) l += dir;
+  /* ---------- 가독성 보정: 목표 대비(기본 4.5:1) 이상이 되도록 명도 조절 ---------- */
+  function fitContrast(h, s, l, bgRgb, dir, target) {
+    target = target || 4.5;
+    while (contrast(hslToRgb(h, s, l), bgRgb) < target && l > 8 && l < 92) l += dir;
     return l;
   }
 
@@ -89,20 +90,22 @@
     var dAccL = fitContrast(h, dAccS, Math.max(hsl.l, 55), darkBg, 1); // 어두운 배경 위 텍스트용
 
     /* 헤더: 기본은 테마색의 짙은 톤(흰 글자), pastel 모드는 밝고 부드러운 톤(어두운 글자) */
-    var hdrS, hdrL, hdrText, hdrMuted, logoAccent;
+    var hdrS, hdrL, hdrText, hdrMuted, logoAccent, btnTextL;
     if (headerMode === 'pastel') {
       hdrS = 82; hdrL = 78;
       var pastelBg = hslToRgb(h, hdrS, hdrL);
       var txtL = fitContrast(h, 55, 30, pastelBg, -1);
       hdrText = css(h, 55, txtL);
       hdrMuted = css(h, 35, Math.min(txtL + 16, 45));
-      logoAccent = css(h, accS, accL);
+      logoAccent = base; /* 로고 포인트 = 팔레트 원색 그대로 */
+      btnTextL = fitContrast(h, hsl.s, hsl.l, pastelBg, -1, 3);
     } else {
       hdrS = Math.min(hsl.s, 65);
       hdrL = fitContrast(h, hdrS, 42, white, -1);
       hdrText = '#ffffff';
       hdrMuted = css(h, 12, 78);
       logoAccent = css(h, Math.min(hsl.s, 80), 82);
+      btnTextL = fitContrast(h, hsl.s, hsl.l, hslToRgb(h, hdrS, hdrL), 1, 3);
     }
 
     return {
@@ -113,7 +116,6 @@
         '--muted':        css(h, 12, 44),
         '--sub-text':     css(h, 16, 32),
         '--accent':       css(h, accS, accL),
-        '--accent-light': css(h, 80, 94),
         '--border':       css(h, 30, 88),
         '--code-bg':      css(h, 32, 94),
         '--glass-fill':   'linear-gradient(135deg, rgba(255,255,255,0.9), ' + css(h, 55, 91, 0.55) + ')'
@@ -125,18 +127,19 @@
         '--muted':        css(h, 10, 66),
         '--sub-text':     css(h, 10, 80),
         '--accent':       css(h, dAccS, dAccL),
-        '--accent-light': css(h, 32, 18),
         '--border':       css(h, 14, 21),
         '--code-bg':      css(h, 14, 16),
         '--header-glass': css(h, hdrS, hdrL, 0.72)
       },
-      always: { /* 헤더는 라이트/다크 공통 */
+      always: { /* 헤더·버튼은 라이트/다크 공통 */
         '--header-bg':        css(h, hdrS, hdrL, 0.92),
         '--header-bg-solid':  css(h, hdrS, hdrL),
         '--header-bg-strong': css(h, hdrS, hdrL, 0.95),
         '--header-text':      hdrText,
         '--header-muted':     hdrMuted,
-        '--logo-accent':      logoAccent
+        '--logo-accent':      logoAccent,
+        '--accent-light':     css(h, hdrS, hdrL), /* 버튼 배경 = 헤더 배경색 */
+        '--btn-text':         css(h, hsl.s, btnTextL) /* 버튼 글자 = 팔레트 색(가독성 보정) */
       }
     };
   }
@@ -165,14 +168,14 @@
       '.theme-dot:hover { transform: scale(1.2); }',
       /* 리퀴드 글래스 캡슐 선택 표시 */
       '.theme-pill { position: absolute; top: 50%; z-index: 0; border-radius: 999px;',
-      '  background: linear-gradient(135deg, rgba(255,255,255,0.20), rgba(255,255,255,0.04));',
-      '  -webkit-backdrop-filter: blur(4px) saturate(180%);',
-      '  backdrop-filter: blur(4px) saturate(180%);',
-      '  box-shadow: inset 0 1px 1px rgba(255,255,255,0.45), inset 0 -1px 1px rgba(0,0,0,0.12), 0 3px 8px rgba(0,0,0,0.22);',
+      '  background: linear-gradient(160deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.05) 55%, rgba(255,255,255,0.14) 100%);',
+      '  -webkit-backdrop-filter: blur(6px) saturate(170%);',
+      '  backdrop-filter: blur(6px) saturate(170%);',
+      '  box-shadow: inset 0 1px 1.5px rgba(255,255,255,0.45), inset 0 -1px 1px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.18);',
       '  transform: translateY(-50%); pointer-events: none; opacity: 0;',
       '  transition: left .55s cubic-bezier(.32,1.18,.36,1), width .4s ease, height .4s ease, opacity .25s ease; }',
-      '.theme-pill::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1.2px;',
-      '  background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.08) 40%, rgba(255,255,255,0.04) 60%, rgba(255,255,255,0.45) 100%);',
+      '.theme-pill::after { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;',
+      '  background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.06) 40%, rgba(255,255,255,0.03) 62%, rgba(255,255,255,0.28) 100%);',
       '  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);',
       '  -webkit-mask-composite: xor;',
       '  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);',
