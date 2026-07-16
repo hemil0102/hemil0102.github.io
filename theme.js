@@ -11,11 +11,10 @@
 (function () {
   'use strict';
 
-  /* header: 'pastel' → 밝고 부드러운 파스텔 헤더(어두운 글자), 생략 시 짙은 컬러 헤더(흰 글자) */
   var THEMES = [
     { id: 'green',  name: '초록', base: '#61BB46' },
-    { id: 'yellow', name: '노랑', base: '#FDB827', header: 'pastel' },
-    { id: 'orange', name: '주황', base: '#F5821F', header: 'pastel' },
+    { id: 'yellow', name: '노랑', base: '#FDB827' },
+    { id: 'orange', name: '주황', base: '#F5821F' },
     { id: 'red',    name: '빨강', base: '#E03A3E' },
     { id: 'purple', name: '보라', base: '#963D97' },
     { id: 'blue',   name: '파랑', base: '#009DDC' }
@@ -78,7 +77,7 @@
   }
 
   /* ---------- 기본 색상 하나로 라이트/다크 팔레트 파생 ---------- */
-  function derive(base, headerMode) {
+  function derive(base) {
     var hsl = rgbToHsl(hexToRgb(base));
     var h = hsl.h;
     var white = [255, 255, 255];
@@ -89,24 +88,14 @@
     var dAccS = Math.min(hsl.s, 90);
     var dAccL = fitContrast(h, dAccS, Math.max(hsl.l, 55), darkBg, 1); // 어두운 배경 위 텍스트용
 
-    /* 헤더: 기본은 테마색의 짙은 톤(흰 글자), pastel 모드는 밝고 부드러운 톤(어두운 글자) */
-    var hdrS, hdrL, hdrText, hdrMuted, logoAccent, btnTextL;
-    if (headerMode === 'pastel') {
-      hdrS = 82; hdrL = 78;
-      var pastelBg = hslToRgb(h, hdrS, hdrL);
-      var txtL = fitContrast(h, 55, 30, pastelBg, -1);
-      hdrText = css(h, 55, txtL);
-      hdrMuted = css(h, 35, Math.min(txtL + 16, 45));
-      logoAccent = base; /* 로고 포인트 = 팔레트 원색 그대로 */
-      btnTextL = fitContrast(h, hsl.s, hsl.l, pastelBg, -1, 3);
-    } else {
-      hdrS = Math.min(hsl.s, 65);
-      hdrL = fitContrast(h, hdrS, 42, white, -1);
-      hdrText = '#ffffff';
-      hdrMuted = css(h, 12, 78);
-      logoAccent = css(h, Math.min(hsl.s, 80), 82);
-      btnTextL = fitContrast(h, hsl.s, hsl.l, hslToRgb(h, hdrS, hdrL), 1, 3);
-    }
+    /* 헤더: 모든 테마 공통 — 흰색에 가까운 밝은 파스텔 톤 + 반투명(스크롤 시 콘텐츠가 살짝 비침) */
+    var hdrS = 80, hdrL = 90;
+    var pastelBg = hslToRgb(h, hdrS, hdrL);
+    var txtL = fitContrast(h, 55, 32, pastelBg, -1);
+    var hdrText = css(h, 55, txtL);
+    var hdrMuted = css(h, 30, 44);
+    var logoAccent = base; /* 로고 포인트 = 팔레트 원색 그대로 */
+    var btnTextL = fitContrast(h, hsl.s, hsl.l, pastelBg, -1, 3);
 
     return {
       light: {
@@ -132,12 +121,14 @@
         '--header-glass': css(h, hdrS, hdrL, 0.72)
       },
       always: { /* 헤더·버튼은 라이트/다크 공통 */
-        '--header-bg':        css(h, hdrS, hdrL, 0.92),
+        '--header-bg':        css(h, hdrS, hdrL, 0.82),
         '--header-bg-solid':  css(h, hdrS, hdrL),
-        '--header-bg-strong': css(h, hdrS, hdrL, 0.95),
+        '--header-bg-strong': css(h, hdrS, hdrL, 0.9),
         '--header-text':      hdrText,
         '--header-muted':     hdrMuted,
         '--logo-accent':      logoAccent,
+        '--nav-pill-fill':    'rgba(255, 255, 255, 0.55)',
+        '--nav-pill-border':  css(h, 45, 40, 0.28),
         '--accent-light':     css(h, hdrS, hdrL), /* 버튼 배경 = 헤더 배경색 */
         '--btn-text':         css(h, hsl.s, btnTextL) /* 버튼 글자 = 팔레트 색(가독성 보정) */
       }
@@ -151,7 +142,7 @@
   function buildThemeCss() {
     var out = '';
     THEMES.forEach(function (t) {
-      var p = derive(t.base, t.header);
+      var p = derive(t.base);
       var o = t.overrides || {};
       var light = Object.assign({}, p.light, p.always, o.light || {});
       var dark = Object.assign({}, p.dark, p.always, o.dark || {});
@@ -182,6 +173,13 @@
       '  mask-composite: exclude; pointer-events: none; }',
       '.theme-pill.on { opacity: 1; }',
       '.theme-pill.no-anim { transition: none; }',
+      /* 이동 시 젤리처럼 울렁이는 효과 */
+      '@keyframes theme-pill-jelly {',
+      '  0% { transform: translateY(-50%) scale(1, 1); }',
+      '  35% { transform: translateY(-50%) scale(1.22, 0.82); }',
+      '  65% { transform: translateY(-50%) scale(0.9, 1.1); }',
+      '  100% { transform: translateY(-50%) scale(1, 1); }',
+      '}',
       '@media (max-width: 640px) { .theme-palette { gap: 6px; } .theme-dot { width: 10px; height: 10px; } }'
     ].join('\n');
     var style = document.createElement('style');
@@ -196,21 +194,29 @@
     try { saved = localStorage.getItem(STORAGE_KEY); } catch (e) {}
     return THEMES.some(function (t) { return t.id === saved; }) ? saved : DEFAULT_THEME;
   }
-  function movePill(instant) {
+  function movePillTo(dot, instant) {
     var pill = document.querySelector('.theme-pill');
-    var dot = document.querySelector('.theme-dot[aria-checked="true"]');
     if (!pill || !dot) return;
     var pad = 3; /* 점 주변 여백 → 캡슐 크기 */
     var size = dot.offsetWidth + pad * 2;
+    var left = (dot.offsetLeft + dot.offsetWidth / 2 - size / 2) + 'px';
     if (instant) pill.classList.add('no-anim');
+    var moved = pill.style.left !== left;
     pill.style.width = size + 'px';
     pill.style.height = size + 'px';
-    pill.style.left = (dot.offsetLeft + dot.offsetWidth / 2 - size / 2) + 'px';
+    pill.style.left = left;
     pill.classList.add('on');
     if (instant) {
       void pill.offsetWidth; /* reflow 후 애니메이션 복원 */
       pill.classList.remove('no-anim');
+    } else if (moved) {
+      pill.style.animation = 'none';
+      void pill.offsetWidth;
+      pill.style.animation = 'theme-pill-jelly .55s ease .12s';
     }
+  }
+  function movePill(instant) {
+    movePillTo(document.querySelector('.theme-dot[aria-checked="true"]'), instant);
   }
   function applyTheme(id, instant) {
     document.documentElement.setAttribute('data-theme', id);
@@ -242,8 +248,10 @@
       b.setAttribute('aria-label', t.name + ' 테마');
       b.style.background = t.base;
       b.addEventListener('click', function () { applyTheme(t.id); });
+      b.addEventListener('mouseenter', function () { movePillTo(b); }); /* 호버를 따라 캡슐이 이동 */
       wrap.appendChild(b);
     });
+    wrap.addEventListener('mouseleave', function () { movePill(); }); /* 벗어나면 선택된 색으로 복귀 */
     logo.insertAdjacentElement('afterend', wrap);
     applyTheme(currentTheme(), true);
     window.addEventListener('resize', function () { movePill(true); });
