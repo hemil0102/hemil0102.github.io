@@ -248,17 +248,27 @@
     padding: 6px 14px; border-radius: 999px; position: relative; z-index: 1;
   }
   .dropdown .cat-btn .count { color: var(--header-muted, #ab9fa2); font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
+  /* 캡슐 확장형: 헤더 알약이 아래로 늘어나 메뉴까지 한 덩어리가 됨 */
   .overlay {
-    position: fixed; top: var(--header-h, 66px); left: 0; right: 0; bottom: 0; z-index: 9;
+    position: fixed; top: 10px; left: 0; right: 0; z-index: 9;
     background: var(--header-glass);
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     backdrop-filter: blur(24px) saturate(160%);
-    display: none; padding: 12px 28px 40px; overflow-y: auto;
+    border-radius: 26px;
+    display: none;
+    padding: calc(var(--header-h, 52px) + 4px) 28px 26px;
+    max-height: calc(100dvh - 20px); overflow-y: auto;
+    transform-origin: top center;
   }
-  .overlay.open { display: block; animation: overlaySlide .35s cubic-bezier(.3,.9,.4,1); }
-  @keyframes overlaySlide {
-    0%   { opacity: 0; transform: translateY(-16px); }
-    100% { opacity: 1; transform: translateY(0); }
+  .overlay.open { display: block; animation: capsuleGrow .38s cubic-bezier(.3,1.05,.4,1); }
+  @keyframes capsuleGrow {
+    0%   { opacity: 0; transform: scaleY(0.72); }
+    100% { opacity: 1; transform: scaleY(1); }
+  }
+  /* 메뉴가 열리면 헤더는 캡슐 유리에 얹힌 상태가 되므로 자체 배경 제거 */
+  body.menu-open header {
+    background: transparent;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
   }
   .overlay-top { display: none; }
   #overlay-close {
@@ -738,9 +748,8 @@
   function openOverlay() {
     mInsightsOpen = false;
     renderOverlayNav();
-    /* 헤더가 콘텐츠와 함께 스크롤되므로, 열 때 헤더 아래 지점부터 펼침 */
-    $overlay.style.top = Math.max($header.getBoundingClientRect().bottom, 0) + 'px';
     $overlay.classList.add('open');
+    document.body.classList.add('menu-open');
     $menuBtn.classList.add('open');
     $menuBtn.setAttribute('aria-label', '메뉴 닫기');
     document.body.style.overflow = 'hidden';
@@ -749,6 +758,7 @@
 
   function closeOverlay() {
     $overlay.classList.remove('open');
+    document.body.classList.remove('menu-open');
     $menuBtn.classList.remove('open');
     $menuBtn.setAttribute('aria-label', '메뉴 열기');
     document.body.style.overflow = '';
@@ -768,10 +778,7 @@
       if (a.getAttribute('data-nav') === key) el = a;
     });
     moveInd($navInd, el, false);
-    if ($overlay.classList.contains('open')) {
-      $overlay.style.top = Math.max($header.getBoundingClientRect().bottom, 0) + 'px';
-      positionMIndByRoute(false);
-    }
+    if ($overlay.classList.contains('open')) positionMIndByRoute(false);
   });
 
   /* ---------- 본문 렌더링 ---------- */
