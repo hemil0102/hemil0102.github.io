@@ -82,41 +82,45 @@
     var white = [255, 255, 255];
     var darkBg = hslToRgb(h, 12, 8);
 
-    var accS = Math.min(hsl.s, 80);
-    var accL = fitContrast(h, accS, Math.min(hsl.l, 45), white, -1);   // 흰 배경 위 텍스트용
-    var dAccS = Math.min(hsl.s, 85);
+    var accS = Math.min(hsl.s, 88);
+    var accL = fitContrast(h, accS, Math.min(hsl.l, 46), white, -1);   // 흰 배경 위 텍스트용
+    var dAccS = Math.min(hsl.s, 90);
     var dAccL = fitContrast(h, dAccS, Math.max(hsl.l, 55), darkBg, 1); // 어두운 배경 위 텍스트용
+
+    /* 헤더: 테마색에 가까운 짙은 톤 (흰 글자 대비 4.5:1 보장) */
+    var hdrS = Math.min(hsl.s, 65);
+    var hdrL = fitContrast(h, hdrS, 42, white, -1);
 
     return {
       light: {
-        '--bg':           css(h, 30, 98),
+        '--bg':           css(h, 50, 97),
         '--card':         '#ffffff',
-        '--text':         css(h, 22, 14),
-        '--muted':        css(h, 8, 45),
-        '--sub-text':     css(h, 12, 33),
+        '--text':         css(h, 28, 15),
+        '--muted':        css(h, 12, 44),
+        '--sub-text':     css(h, 16, 32),
         '--accent':       css(h, accS, accL),
-        '--accent-light': css(h, 70, 96),
-        '--border':       css(h, 16, 90),
-        '--code-bg':      css(h, 18, 95),
-        '--glass-fill':   'linear-gradient(135deg, rgba(255,255,255,0.9), ' + css(h, 45, 93, 0.55) + ')'
+        '--accent-light': css(h, 80, 94),
+        '--border':       css(h, 30, 88),
+        '--code-bg':      css(h, 32, 94),
+        '--glass-fill':   'linear-gradient(135deg, rgba(255,255,255,0.9), ' + css(h, 55, 91, 0.55) + ')'
       },
       dark: {
-        '--bg':           css(h, 12, 8),
-        '--card':         css(h, 10, 12),
-        '--text':         css(h, 14, 92),
-        '--muted':        css(h, 6, 64),
-        '--sub-text':     css(h, 8, 80),
+        '--bg':           css(h, 18, 9),
+        '--card':         css(h, 16, 13),
+        '--text':         css(h, 16, 92),
+        '--muted':        css(h, 10, 66),
+        '--sub-text':     css(h, 10, 80),
         '--accent':       css(h, dAccS, dAccL),
-        '--accent-light': css(h, 20, 16),
-        '--border':       css(h, 8, 19),
-        '--code-bg':      css(h, 8, 15),
-        '--header-glass': css(h, 14, 8, 0.72)
+        '--accent-light': css(h, 32, 18),
+        '--border':       css(h, 14, 21),
+        '--code-bg':      css(h, 14, 16),
+        '--header-glass': css(h, hdrS, hdrL, 0.72)
       },
-      always: { /* 헤더는 항상 어두운 톤 */
-        '--header-bg':        css(h, 16, 9, 0.92),
-        '--header-bg-solid':  css(h, 16, 9),
-        '--header-bg-strong': css(h, 16, 9, 0.95),
-        '--logo-accent':      css(h, Math.min(hsl.s, 75), 74)
+      always: { /* 헤더는 항상 테마색 기반의 짙은 톤 */
+        '--header-bg':        css(h, hdrS, hdrL, 0.92),
+        '--header-bg-solid':  css(h, hdrS, hdrL),
+        '--header-bg-strong': css(h, hdrS, hdrL, 0.95),
+        '--logo-accent':      css(h, Math.min(hsl.s, 80), 82)
       }
     };
   }
@@ -138,13 +142,13 @@
     /* 팔레트 UI */
     out += [
       '.theme-palette { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }',
-      '.theme-dot { width: 15px; height: 15px; border-radius: 50%; border: none; padding: 0;',
+      '.theme-dot { width: 11px; height: 11px; border-radius: 50%; border: none; padding: 0;',
       '  cursor: pointer; flex: 0 0 auto; -webkit-appearance: none; appearance: none;',
       '  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12);',
       '  transition: transform .15s ease, box-shadow .15s ease; }',
       '.theme-dot:hover { transform: scale(1.2); }',
       '.theme-dot.selected { box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px rgba(0,0,0,0.25); }',
-      '@media (max-width: 640px) { .theme-palette { gap: 6px; } .theme-dot { width: 13px; height: 13px; } }'
+      '@media (max-width: 640px) { .theme-palette { gap: 6px; } .theme-dot { width: 10px; height: 10px; } }'
     ].join('\n');
     var style = document.createElement('style');
     style.id = 'theme-css';
