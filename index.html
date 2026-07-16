@@ -12,16 +12,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.5/purify.min.js"></script>
 <style>
   :root {
-    --bg: #fafafa;
+    --bg: #fbf8f6;
     --card: #ffffff;
-    --text: #1a1a2e;
-    --muted: #6b7280;
-    --accent: #001f4d;
-    --accent-light: #eef2ff;
-    --border: #e5e7eb;
-    --code-bg: #f3f4f6;
+    --text: #2b1a1e;
+    --muted: #80716f;
+    --accent: #b3223f;
+    --accent-light: #fdeef1;
+    --border: #ebe3e1;
+    --code-bg: #f6f1f0;
     --header-glass: rgba(255, 255, 255, 0.72);
-    --glass-fill: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(233,237,246,0.55));
+    --glass-fill: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(246,236,237,0.55));
     --glass-border: rgba(0, 0, 0, 0.08);
     --glass-inner: rgba(255, 255, 255, 0.9);
     --glass-shadow: rgba(0, 0, 0, 0.14);
@@ -29,19 +29,19 @@
     --pill-fill: rgba(0, 0, 0, 0.045);
     --rim: rgba(255, 255, 255, 0.95);
     --rim-b: rgba(255, 255, 255, 0.45);
-    --sub-text: #4b5563;
+    --sub-text: #5d4b4f;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #111318;
-      --card: #1a1d24;
-      --text: #e7e9ee;
-      --muted: #9aa0ab;
-      --accent: #7ea6ff;
-      --accent-light: #1e2636;
-      --border: #2a2e37;
-      --code-bg: #23262e;
-      --header-glass: rgba(17, 19, 24, 0.72);
+      --bg: #181214;
+      --card: #241a1d;
+      --text: #eee7e8;
+      --muted: #ab9a9e;
+      --accent: #fb7185;
+      --accent-light: #361e25;
+      --border: #372a2e;
+      --code-bg: #2e2327;
+      --header-glass: rgba(24, 17, 19, 0.72);
       --glass-fill: linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.07));
       --glass-border: rgba(255, 255, 255, 0.28);
       --glass-inner: rgba(255, 255, 255, 0.35);
@@ -50,7 +50,7 @@
       --pill-fill: rgba(255, 255, 255, 0.09);
       --rim: rgba(255, 255, 255, 0.55);
       --rim-b: rgba(255, 255, 255, 0.18);
-      --sub-text: #c3c8d1;
+      --sub-text: #d1c3c6;
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -61,7 +61,7 @@
     line-height: 1.7;
   }
   header {
-    background: rgba(17, 19, 26, 0.92);
+    background: rgba(26, 17, 20, 0.92);
     -webkit-backdrop-filter: blur(18px) saturate(160%);
     backdrop-filter: blur(18px) saturate(160%);
     position: sticky; top: 0; z-index: 10;
@@ -75,7 +75,7 @@
     cursor: pointer; text-decoration: none; white-space: nowrap;
     color: #ffffff;
   }
-  .logo span { color: #9dbcf5; }
+  .logo span { color: #f79aa8; }
   .glass-ind {
     position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; z-index: 0;
     border-radius: 999px;
@@ -109,7 +109,7 @@
   @media (hover: none), (pointer: coarse) {
     header {
       -webkit-backdrop-filter: none; backdrop-filter: none;
-      background: #12131a;
+      background: #1a1214;
     }
     .overlay {
       -webkit-backdrop-filter: none; backdrop-filter: none;
@@ -169,7 +169,7 @@
   }
   .dropdown {
     display: none; border-top: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(17, 19, 26, 0.95);
+    background: rgba(26, 17, 20, 0.95);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
     backdrop-filter: blur(20px) saturate(160%);
     box-shadow: 0 14px 28px var(--glass-shadow);
@@ -177,7 +177,7 @@
   .dropdown.open { display: block; }
   .dropdown-inner { max-width: 1100px; margin: 0 auto; padding: 22px 24px 30px; position: relative; }
   .dropdown h3 {
-    font-size: 0.78rem; color: #9aa0ab; font-weight: 500;
+    font-size: 0.78rem; color: #ab9fa2; font-weight: 500;
     text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
   }
   .dropdown .cat-btn {
@@ -185,7 +185,7 @@
     font-family: inherit; font-size: 1.15rem; font-weight: 700; color: #ffffff;
     padding: 6px 14px; border-radius: 999px; position: relative; z-index: 1;
   }
-  .dropdown .cat-btn .count { color: #9aa0ab; font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
+  .dropdown .cat-btn .count { color: #ab9fa2; font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
   .overlay {
     position: fixed; inset: 0; z-index: 50;
     background: var(--header-glass);
