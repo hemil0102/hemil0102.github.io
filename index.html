@@ -210,6 +210,11 @@
     transition: color .25s ease;
   }
   .topnav a.active { color: var(--logo-accent, var(--accent)); }
+  /* 하이라이트는 물방울(호버)을 따라다니고, 벗어나면 현재 페이지 메뉴로 복귀 */
+  .topnav a:hover { color: var(--logo-accent, var(--accent)); }
+  .topnav:hover a.active:not(:hover) { color: var(--header-text, #ffffff); }
+  header.dd-open .topnav a[data-nav="insights"] { color: var(--logo-accent, var(--accent)); }
+  header.dd-open .topnav a.active:not([data-nav="insights"]):not(:hover) { color: var(--header-text, #ffffff); }
   #menu-btn {
     display: none; width: 34px; height: 34px; border-radius: 50%;
     flex-direction: column; align-items: center; justify-content: center; gap: 3px;
@@ -254,7 +259,7 @@
   }
   .dropdown .cat-btn {
     display: block; background: none; border: none; text-align: left; cursor: pointer;
-    font-family: inherit; font-size: 1.15rem; font-weight: 700; color: var(--header-text, #ffffff);
+    font-family: inherit; font-size: 1.15rem; font-weight: 700; color: var(--btn-text, var(--accent));
     padding: 6px 14px; border-radius: 999px; position: relative; z-index: 1;
   }
   .dropdown .cat-btn .count { color: var(--header-muted, #ab9fa2); font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
