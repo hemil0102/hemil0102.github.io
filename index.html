@@ -68,12 +68,12 @@
     line-height: 1.7;
   }
   header {
-    background: var(--header-bg, rgba(26, 17, 20, 0.92));
-    -webkit-backdrop-filter: blur(18px) saturate(160%);
-    backdrop-filter: blur(18px) saturate(160%);
-    position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+    /* 펼침 메뉴(오버레이)와 동일한 배경·투명도·블러 */
+    background: var(--header-glass, rgba(255, 255, 255, 0.72));
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+    position: relative; z-index: 10;
   }
-  body { padding-top: var(--header-h, 66px); }
   .header-inner {
     max-width: 1100px; margin: 0 auto; padding: 12px 24px;
     display: flex; align-items: center; gap: 28px;
@@ -81,9 +81,9 @@
   .logo {
     font-size: 1.2rem; font-weight: 700;
     cursor: pointer; text-decoration: none; white-space: nowrap;
-    color: var(--header-text, #ffffff);
+    color: var(--logo-accent, var(--header-text, #ffffff));
   }
-  .logo span { color: var(--header-text, #ffffff); }
+  .logo span { color: var(--logo-accent, var(--header-text, #ffffff)); }
   .glass-ind {
     position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; z-index: 0;
     border-radius: 999px;
@@ -150,20 +150,6 @@
   #overlay-wrap .glass-ind.drop-land { animation: dropLandV .45s cubic-bezier(.3,.7,.4,1); }
   .glass-ind.no-anim { transition: none; }
   @media (hover: none), (pointer: coarse) {
-    header {
-      /* 모바일에서도 반투명 유지: 콘텐츠가 헤더 뒤로 비쳐 보이게 */
-      -webkit-backdrop-filter: blur(14px) saturate(150%);
-      backdrop-filter: blur(14px) saturate(150%);
-      background: var(--header-bg, rgba(26, 17, 20, 0.92));
-    }
-    .overlay {
-      -webkit-backdrop-filter: none; backdrop-filter: none;
-      background: var(--bg);
-    }
-    .dropdown {
-      -webkit-backdrop-filter: none; backdrop-filter: none;
-      background: transparent; box-shadow: none;
-    }
     .glass-ind {
       box-shadow: inset 0 1px 1px var(--glass-inner);
     }
@@ -232,7 +218,10 @@
   }
   .dropdown {
     display: none;
-    background: transparent; /* 헤더 배경을 그대로 이어받아 완전히 한 몸으로 보이게 */
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--header-glass, rgba(255, 255, 255, 0.72));
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
   }
   .dropdown.open { display: block; }
   .dropdown-inner { max-width: 1100px; margin: 0 auto; padding: 22px 24px 30px; position: relative; }
@@ -288,7 +277,7 @@
   }
   #overlay-wrap { position: relative; margin-top: 20px; }
   .m-link {
-    display: block; color: var(--text); text-decoration: none;
+    display: block; color: var(--logo-accent, var(--text)); text-decoration: none;
     font-size: 1.25rem; font-weight: 700; padding: 8px 16px;
     border-radius: 999px; position: relative; z-index: 1;
   }
@@ -727,6 +716,8 @@
   function openOverlay() {
     mInsightsOpen = false;
     renderOverlayNav();
+    /* 헤더가 콘텐츠와 함께 스크롤되므로, 열 때 헤더 아래 지점부터 펼침 */
+    $overlay.style.top = Math.max($header.getBoundingClientRect().bottom, 0) + 'px';
     $overlay.classList.add('open');
     $menuBtn.classList.add('open');
     $menuBtn.setAttribute('aria-label', '메뉴 닫기');
@@ -747,14 +738,6 @@
   });
   document.getElementById('overlay-close').addEventListener('click', closeOverlay);
 
-  /* 고정 헤더 높이만큼 본문·오버레이 시작 위치 조정 */
-  function setHeaderHeight() {
-    var inner = $header.querySelector('.header-inner');
-    document.documentElement.style.setProperty('--header-h', (inner ? inner.offsetHeight : $header.offsetHeight) + 'px');
-  }
-  setHeaderHeight();
-  window.addEventListener('load', setHeaderHeight);
-  window.addEventListener('resize', setHeaderHeight);
 
   window.addEventListener('resize', function () {
     var key = routeNavKey();
@@ -763,7 +746,10 @@
       if (a.getAttribute('data-nav') === key) el = a;
     });
     moveInd($navInd, el, false);
-    if ($overlay.classList.contains('open')) positionMIndByRoute(false);
+    if ($overlay.classList.contains('open')) {
+      $overlay.style.top = Math.max($header.getBoundingClientRect().bottom, 0) + 'px';
+      positionMIndByRoute(false);
+    }
   });
 
   /* ---------- 본문 렌더링 ---------- */
