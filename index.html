@@ -75,7 +75,7 @@
     position: relative; z-index: 10;
   }
   .header-inner {
-    max-width: 1100px; margin: 0 auto; padding: 12px 24px;
+    max-width: 1100px; margin: 0 auto; padding: 8px 24px;
     display: flex; align-items: center; gap: 28px;
   }
   .logo {
@@ -199,18 +199,18 @@
   }
   .topnav a.active { color: var(--logo-accent, var(--accent)); }
   #menu-btn {
-    display: none; width: 42px; height: 42px; border-radius: 50%;
-    flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    display: none; width: 34px; height: 34px; border-radius: 50%;
+    flex-direction: column; align-items: center; justify-content: center; gap: 3px;
     cursor: pointer; padding: 0; font-family: inherit;
   }
   .mb-bar {
-    display: block; width: 16px; height: 2px; border-radius: 2px;
+    display: block; width: 13px; height: 2px; border-radius: 2px;
     background: var(--header-text, #ffffff);
     transition: transform .3s cubic-bezier(.3,1.2,.4,1), opacity .2s ease;
   }
-  #menu-btn.open .mb-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  #menu-btn.open .mb-bar:nth-child(1) { transform: translateY(5px) rotate(45deg); }
   #menu-btn.open .mb-bar:nth-child(2) { opacity: 0; transform: scaleX(0.3); }
-  #menu-btn.open .mb-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+  #menu-btn.open .mb-bar:nth-child(3) { transform: translateY(-5px) rotate(-45deg); }
   @media (max-width: 768px) {
     .topnav { display: none; }
     #menu-btn { display: flex; margin-left: auto; }
@@ -370,7 +370,7 @@
   footer { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 32px 0 48px; }
   footer a { color: var(--muted); }
 </style>
-<script src="theme.js?v=8"></script>
+<script src="theme.js?v=9"></script>
 </head>
 <body>
 <header id="header">

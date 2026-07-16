@@ -104,7 +104,7 @@
         '--card':         '#ffffff',
         '--text':         css(h, 28, 15),
         '--muted':        css(h, 12, 44),
-        '--sub-text':     css(h, 16, 32),
+        '--sub-text':     css(h, 30, 34), /* 팔레트 색이 감도는 진한 톤 */
         '--accent':       css(h, accS, accL),
         '--border':       css(h, 30, 88),
         '--code-bg':      css(h, 32, 94),
@@ -125,7 +125,7 @@
         '--card':         css(h, 16, 13),
         '--text':         css(h, 16, 92),
         '--muted':        css(h, 10, 66),
-        '--sub-text':     css(h, 10, 80),
+        '--sub-text':     css(h, 45, 82), /* 팔레트 색이 감도는 밝은 톤 */
         '--accent':       css(h, dAccS, dAccL),
         '--border':       css(h, 14, 21),
         '--code-bg':      css(h, 14, 16),
