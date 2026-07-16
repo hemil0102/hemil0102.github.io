@@ -141,9 +141,12 @@
   .topnav {
     margin-left: auto; display: flex; gap: 2px; position: relative;
     padding: 4px; border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12), 0 6px 16px var(--glass-shadow);
+    background: rgba(255, 255, 255, 0.34);
+    border: 1px solid var(--nav-pill-border, rgba(255, 255, 255, 0.16));
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.5),
+      0 3px 8px rgba(0, 0, 0, 0.14),
+      0 10px 24px var(--glass-shadow);
   }
   .topnav a {
     position: relative; z-index: 1;
