@@ -61,7 +61,7 @@
     line-height: 1.7;
   }
   header {
-    background: rgba(26, 17, 20, 0.92);
+    background: var(--header-bg, rgba(26, 17, 20, 0.92));
     -webkit-backdrop-filter: blur(18px) saturate(160%);
     backdrop-filter: blur(18px) saturate(160%);
     position: sticky; top: 0; z-index: 10;
@@ -75,7 +75,7 @@
     cursor: pointer; text-decoration: none; white-space: nowrap;
     color: #ffffff;
   }
-  .logo span { color: #f79aa8; }
+  .logo span { color: var(--logo-accent, #f79aa8); }
   .glass-ind {
     position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; z-index: 0;
     border-radius: 999px;
@@ -109,7 +109,7 @@
   @media (hover: none), (pointer: coarse) {
     header {
       -webkit-backdrop-filter: none; backdrop-filter: none;
-      background: #1a1214;
+      background: var(--header-bg-solid, #1a1214);
     }
     .overlay {
       -webkit-backdrop-filter: none; backdrop-filter: none;
@@ -169,7 +169,7 @@
   }
   .dropdown {
     display: none; border-top: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(26, 17, 20, 0.95);
+    background: var(--header-bg-strong, rgba(26, 17, 20, 0.95));
     -webkit-backdrop-filter: blur(20px) saturate(160%);
     backdrop-filter: blur(20px) saturate(160%);
     box-shadow: 0 14px 28px var(--glass-shadow);
@@ -298,6 +298,7 @@
   footer { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 32px 0 48px; }
   footer a { color: var(--muted); }
 </style>
+<script src="theme.js"></script>
 </head>
 <body>
 <header id="header">
