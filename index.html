@@ -68,11 +68,13 @@
     line-height: 1.7;
   }
   header {
-    /* 펼침 메뉴(오버레이)와 동일한 배경·투명도·블러 */
+    /* 펼침 메뉴(오버레이)와 동일한 배경·투명도·블러, 둥근 알약형 */
     background: var(--header-glass, rgba(255, 255, 255, 0.72));
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     backdrop-filter: blur(24px) saturate(160%);
     position: relative; z-index: 10;
+    margin: 10px 12px 0;
+    border-radius: 999px;
   }
   .header-inner {
     max-width: 1100px; margin: 0 auto; padding: 8px 24px;
@@ -218,10 +220,11 @@
   }
   .dropdown {
     display: none;
-    position: absolute; top: 100%; left: 0; right: 0;
+    position: absolute; top: calc(100% + 8px); left: 0; right: 0;
     background: var(--header-glass, rgba(255, 255, 255, 0.72));
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     backdrop-filter: blur(24px) saturate(160%);
+    border-radius: 20px;
   }
   .dropdown.open { display: block; }
   .dropdown-inner { max-width: 1100px; margin: 0 auto; padding: 22px 24px 30px; position: relative; }
