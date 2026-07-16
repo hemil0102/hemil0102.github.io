@@ -71,6 +71,21 @@
     border-radius: 999px;
   }
   body { padding-top: calc(var(--header-h, 52px) + 20px); }
+  /* 헤더 위/주변으로 지나가는 콘텐츠가 점점 흐려지며 사라지는 영역 */
+  #top-fade {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: calc(var(--header-h, 52px) + 14px);
+    z-index: 9; pointer-events: none;
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 100%);
+  }
+  #top-fade::before {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(to bottom, var(--bg, #fbf8f6) 0%, transparent 90%);
+    opacity: 0.75;
+  }
   .header-inner {
     max-width: 1100px; margin: 0 auto; padding: 8px 24px;
     display: flex; align-items: center; gap: 28px;
@@ -371,6 +386,7 @@
 <script src="theme.js?v=9"></script>
 </head>
 <body>
+<div id="top-fade" aria-hidden="true"></div>
 <header id="header">
   <div class="header-inner">
     <a class="logo" href="#/">Harry's <span>Insights</span></a>
