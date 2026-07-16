@@ -228,14 +228,19 @@
     #menu-btn { display: flex; margin-left: auto; }
     .header-inner { gap: 12px; }
   }
+  /* 캡슐 확장형: 헤더 알약이 아래로 이어져 드롭다운까지 한 덩어리 */
   .dropdown {
     display: none;
-    position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+    position: absolute; top: 100%; left: 0; right: 0;
     background: var(--header-glass, rgba(255, 255, 255, 0.72));
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     backdrop-filter: blur(24px) saturate(160%);
-    border-radius: 20px;
+    border-radius: 0 0 26px 26px;
+    transform-origin: top center;
   }
+  .dropdown.open { animation: capsuleGrow .38s cubic-bezier(.3,1.05,.4,1); }
+  header.dd-open { border-radius: 26px 26px 0 0; }
+  header { transition: border-radius .25s ease; }
   .dropdown.open { display: block; }
   .dropdown-inner { max-width: 1100px; margin: 0 auto; padding: 22px 24px 30px; position: relative; }
   .dropdown h3 {
@@ -654,12 +659,14 @@
       $dropdown.addEventListener('mouseleave', function () { moveInd($ddInd, null, true); });
     }
     $dropdown.classList.add('open');
+    $header.classList.add('dd-open');
     moveInd($navInd, $topnav.querySelector('[data-nav="insights"]'), true);
   }
 
   function closeDropdown() {
     if (!$dropdown.classList.contains('open')) return;
     $dropdown.classList.remove('open');
+    $header.classList.remove('dd-open');
   }
 
   $header.addEventListener('mouseleave', function () {
