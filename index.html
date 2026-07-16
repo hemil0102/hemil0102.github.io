@@ -79,47 +79,58 @@
   .glass-ind {
     position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; z-index: 0;
     border-radius: 999px;
-    /* 투명한 물방울 유리: 흰 채움 없이 반사광·물빛 광택·림으로만 표현 */
-    background: radial-gradient(140% 130% at 30% 12%,
-      rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.07) 38%,
-      rgba(255,255,255,0.01) 58%, rgba(255,255,255,0.16) 100%);
-    -webkit-backdrop-filter: blur(1.5px) saturate(175%);
-    backdrop-filter: blur(1.5px) saturate(175%);
-    box-shadow:
-      inset 0 1.5px 2.5px rgba(255, 255, 255, 0.75),
-      inset 0 -2px 4px rgba(255, 255, 255, 0.5),
-      inset 2px 0 3px rgba(255, 255, 255, 0.2),
-      0 4px 10px rgba(0, 0, 0, 0.16);
     will-change: left, top, width, height, transform;
     transform: translateZ(0);
     transition:
-      left .7s cubic-bezier(.32,1.18,.36,1),
-      top .7s cubic-bezier(.32,1.18,.36,1),
-      width .7s cubic-bezier(.32,1.14,.36,1),
-      height .6s cubic-bezier(.32,1.12,.36,1),
-      transform .35s cubic-bezier(.34,1.4,.64,1),
+      left .45s cubic-bezier(.3,1.06,.4,1),
+      top .45s cubic-bezier(.3,1.06,.4,1),
+      width .45s cubic-bezier(.3,1.04,.4,1),
+      height .45s cubic-bezier(.3,1.04,.4,1),
+      transform .18s cubic-bezier(.34,1.2,.64,1),
       opacity .25s ease;
     pointer-events: none;
   }
-  .glass-ind.traveling { transform: translateZ(0) scale(1.18); }
-  @keyframes dropLand {
-    0%   { transform: scale(1.18); }
-    40%  { transform: scale(0.94, 1.05); }
-    70%  { transform: scale(1.03, 0.98); }
-    100% { transform: scale(1, 1); }
+  /* 완전 투명한 물방울 유리: 반사광·림만으로 표현 (::before = 유리 본체, ::after = 림) */
+  .glass-ind::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit;
+    background: radial-gradient(140% 130% at 30% 12%,
+      rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 38%,
+      rgba(255,255,255,0) 58%, rgba(255,255,255,0.05) 100%);
+    box-shadow:
+      inset 0 1px 2px rgba(255, 255, 255, 0.28),
+      inset 0 -1.5px 3px rgba(255, 255, 255, 0.15),
+      0 2px 4px rgba(0, 0, 0, 0.10);
   }
-  .glass-ind.drop-land { animation: dropLand .6s ease-out; }
   .glass-ind::after {
-    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px;
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 0.6px;
     background: linear-gradient(180deg,
-      rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.1) 35%,
-      rgba(255,255,255,0.05) 60%, rgba(255,255,255,0.7) 100%);
+      rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.03) 35%,
+      rgba(255,255,255,0.015) 60%, rgba(255,255,255,0.18) 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask-composite: exclude;
     pointer-events: none;
   }
+  .glass-ind.traveling { transform: translateZ(0) scale(1.2, 1.4); }
+  .glass-ind.traveling::before, .glass-ind.traveling::after {
+    animation: dropJiggle .2s ease-in-out infinite;
+  }
+  @keyframes dropJiggle {
+    0%   { transform: scale(1.025, 0.975) skewX(1.6deg); }
+    25%  { transform: scale(0.99, 1.01) skewX(-0.5deg) skewY(0.5deg); }
+    50%  { transform: scale(0.975, 1.025) skewX(-1.6deg); }
+    75%  { transform: scale(1.012, 0.988) skewX(0.6deg) skewY(-0.5deg); }
+    100% { transform: scale(1.025, 0.975) skewX(1.6deg); }
+  }
+  @keyframes dropLand {
+    0%   { transform: scale(1.2, 1.4); }
+    32%  { transform: scale(0.975, 1.03) skewX(0.9deg); }
+    58%  { transform: scale(1.015, 0.98) skewX(-0.6deg); }
+    80%  { transform: scale(0.994, 1.007) skewX(0.3deg); }
+    100% { transform: scale(1, 1); }
+  }
+  .glass-ind.drop-land { animation: dropLand .45s cubic-bezier(.3,.7,.4,1); }
   .glass-ind.no-anim { transition: none; }
   @media (hover: none), (pointer: coarse) {
     header {
@@ -179,7 +190,9 @@
     position: relative; z-index: 1;
     color: var(--header-text, #ffffff); text-decoration: none; font-size: 0.92rem; font-weight: 600;
     padding: 7px 16px; border-radius: 999px; white-space: nowrap;
+    transition: color .25s ease;
   }
+  .topnav a.active { color: var(--logo-accent, var(--accent)); }
   #menu-btn {
     display: none; width: 42px; height: 42px; border-radius: 50%;
     align-items: center; justify-content: center;
@@ -338,7 +351,7 @@
   footer { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 32px 0 48px; }
   footer a { color: var(--muted); }
 </style>
-<script src="theme.js?v=5"></script>
+<script src="theme.js?v=6"></script>
 </head>
 <body>
 <header id="header">
@@ -462,18 +475,34 @@
 
   /* ---------- 리퀴드 글래스 인디케이터 ---------- */
 
-  var IND_GROW = 4; /* 물방울이 트레이보다 사방으로 커지는 양(px) */
+  var IND_HOLD_MS = 20; /* 도착 후 부푼 채 유지되는 시간 */
+  function indLand($ind) {
+    if (!$ind.classList.contains('traveling')) return;
+    $ind.classList.remove('traveling');
+    void $ind.offsetWidth;
+    $ind.classList.add('drop-land');
+  }
   function moveInd($ind, el, animate, pulse) {
+    if (!$ind._landBound) {
+      $ind._landBound = true;
+      $ind.addEventListener('transitionend', function (e) {
+        if (e.target === $ind && e.propertyName === 'left') {
+          clearTimeout($ind._holdTimer);
+          $ind._holdTimer = setTimeout(function () { indLand($ind); }, IND_HOLD_MS);
+        }
+      });
+    }
     if (!el) {
       $ind.style.opacity = '0';
       $ind.classList.remove('wobble', 'select-pulse', 'traveling', 'drop-land');
       clearTimeout($ind._travelTimer);
+      clearTimeout($ind._holdTimer);
       return;
     }
-    var L = (el.offsetLeft - IND_GROW) + 'px';
-    var T = (el.offsetTop - IND_GROW) + 'px';
-    var W = (el.offsetWidth + IND_GROW * 2) + 'px';
-    var H = (el.offsetHeight + IND_GROW * 2) + 'px';
+    var L = el.offsetLeft + 'px';
+    var T = el.offsetTop + 'px';
+    var W = el.offsetWidth + 'px';
+    var H = el.offsetHeight + 'px';
     var same = $ind.style.opacity === '1' &&
       $ind.style.left === L &&
       $ind.style.top === T &&
@@ -491,15 +520,12 @@
     }
     if (same && !pulse) return;
     clearTimeout($ind._travelTimer);
+    clearTimeout($ind._holdTimer);
     $ind.classList.remove('wobble', 'select-pulse', 'drop-land');
     if (!same) {
-      /* 이동 중에는 더 크게 부푼 상태로 이동, 도착하면서 줄어들며 울렁임 */
+      /* 부푼 채(가로 1.2배, 세로 1.4배) 자글자글 이동, 도착 후 20ms 뒤 축소 */
       $ind.classList.add('traveling');
-      $ind._travelTimer = setTimeout(function () {
-        $ind.classList.remove('traveling');
-        void $ind.offsetWidth;
-        $ind.classList.add('drop-land');
-      }, 600);
+      $ind._travelTimer = setTimeout(function () { indLand($ind); }, 560);
     } else {
       void $ind.offsetWidth;
       $ind.classList.add(pulse ? 'select-pulse' : 'wobble');
