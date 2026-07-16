@@ -795,7 +795,11 @@
       if (a.getAttribute('data-nav') === key) el = a;
     });
     moveInd($navInd, el, false);
-    if ($overlay.classList.contains('open')) positionMIndByRoute(false);
+    if ($overlay.classList.contains('open')) {
+      /* 세로→가로 전환 시 모바일 펼침 메뉴 닫기 */
+      if (window.innerWidth > 768) closeOverlay();
+      else positionMIndByRoute(false);
+    }
   });
 
   /* ---------- 본문 렌더링 ---------- */
