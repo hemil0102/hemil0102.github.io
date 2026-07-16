@@ -238,13 +238,23 @@
     border-radius: 0 0 26px 26px;
     transform-origin: top center;
   }
-  .dropdown.open { animation: capsuleGrow .38s cubic-bezier(.3,1.05,.4,1); }
+  /* 헤더 캡슐이 아래로 늘어나듯 말려 내려오는 애니메이션 */
+  .dropdown.open { animation: capsuleUnroll .42s cubic-bezier(.3,1,.4,1); }
+  @keyframes capsuleUnroll {
+    0%   { clip-path: inset(0 0 100% 0 round 0 0 26px 26px); -webkit-clip-path: inset(0 0 100% 0 round 0 0 26px 26px); }
+    100% { clip-path: inset(0 0 0 0 round 0 0 26px 26px); -webkit-clip-path: inset(0 0 0 0 round 0 0 26px 26px); }
+  }
+  .dropdown.open .dropdown-inner { animation: ddFade .3s ease .12s backwards; }
+  @keyframes ddFade {
+    0%   { opacity: 0; transform: translateY(-8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
   /* 부모에 backdrop-filter가 있으면 자식 블러가 무효화되므로, 열려 있는 동안 헤더 블러를 드롭다운으로 위임 */
   header.dd-open {
     border-radius: 26px 26px 0 0;
     -webkit-backdrop-filter: none; backdrop-filter: none;
   }
-  header { transition: border-radius .25s ease; }
+  header { transition: border-radius .15s ease; }
   .dropdown.open { display: block; }
   .dropdown-inner { max-width: 1100px; margin: 0 auto; padding: 22px 24px 30px; position: relative; }
   .dropdown h3 {
