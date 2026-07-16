@@ -55,12 +55,7 @@
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  /* 상단 오버스크롤/시스템바 영역이 헤더 색으로 보이게 */
-  html {
-    background: linear-gradient(to bottom,
-      var(--header-bg-solid, #fae4d1) 0%, var(--header-bg-solid, #fae4d1) 50%,
-      var(--bg, #fbf8f6) 50%, var(--bg, #fbf8f6) 100%);
-  }
+  html { background: var(--bg, #fbf8f6); }
   body {
     font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", Roboto, sans-serif;
     background: var(--bg);
@@ -73,7 +68,7 @@
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     backdrop-filter: blur(24px) saturate(160%);
     position: relative; z-index: 10;
-    margin: 10px 12px 0;
+    margin: 10px 0 0;
     border-radius: 999px;
   }
   .header-inner {
