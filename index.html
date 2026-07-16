@@ -131,6 +131,15 @@
     100% { transform: scale(1, 1); }
   }
   .glass-ind.drop-land { animation: dropLand .45s cubic-bezier(.3,.7,.4,1); }
+  /* 세로(모바일 오버레이) 메뉴: 좌우 확대 없이 상하 1.2배만 */
+  #overlay-wrap .glass-ind.traveling { transform: translateZ(0) scale(1, 1.2); }
+  @keyframes dropLandV {
+    0%   { transform: scale(1, 1.2); }
+    32%  { transform: scale(0.99, 1.02) skewX(0.5deg); }
+    58%  { transform: scale(1.006, 0.99) skewX(-0.35deg); }
+    100% { transform: scale(1, 1); }
+  }
+  #overlay-wrap .glass-ind.drop-land { animation: dropLandV .45s cubic-bezier(.3,.7,.4,1); }
   .glass-ind.no-anim { transition: none; }
   @media (hover: none), (pointer: coarse) {
     header {
