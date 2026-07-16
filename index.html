@@ -419,7 +419,7 @@
       <div class="glass-ind" id="nav-ind"></div>
       <a href="#/about" data-nav="about">About me</a>
       <a href="#/insights" data-nav="insights">Insights</a>
-      <a href="#/book-report" data-nav="book">Book Report</a>
+      <a href="#/book-report" data-nav="book">Book report</a>
     </nav>
     <button id="menu-btn" aria-label="메뉴 열기"><span class="mb-bar"></span><span class="mb-bar"></span><span class="mb-bar"></span></button>
   </div>
@@ -701,7 +701,7 @@
       });
       html += '</div>';
     }
-    html += '<a href="#/book-report" class="m-link" data-nav="book">Book Report</a>';
+    html += '<a href="#/book-report" class="m-link" data-nav="book">Book report</a>';
     $overlayNav.innerHTML = html;
     Array.prototype.forEach.call($overlayNav.querySelectorAll('.m-link'), function (a) {
       if (hasHover) {
@@ -869,7 +869,7 @@
   }
 
   function renderBookReport() {
-    $main.innerHTML = '<article><h1>&#128218; Book Report</h1>' +
+    $main.innerHTML = '<article><h1>&#128218; Book report</h1>' +
       '<p>아직 준비 중인 공간입니다. 읽은 책에 대한 기록이 곧 이곳에 채워질 예정입니다.</p></article>';
     window.scrollTo(0, 0);
   }
