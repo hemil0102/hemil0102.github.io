@@ -771,15 +771,20 @@
     $menuBtn.classList.add('open');
     $menuBtn.setAttribute('aria-label', '메뉴 닫기');
     document.body.style.overflow = 'hidden';
-    if (mInsightsOpen) {
-      var activeBtn = null;
-      Array.prototype.forEach.call($overlayNav.querySelectorAll('.cat-btn'), function (btn) {
-        if (btn.getAttribute('data-cat') === activeCategory) activeBtn = btn;
-      });
-      moveInd($mInd, activeBtn || $overlayNav.querySelector('[data-nav="insights"]'), false);
-    } else {
-      positionMIndByRoute(false);
-    }
+    /* 캡슐 펼침 애니메이션이 끝난 뒤에 물방울을 표시 (도중 측정하면 위치가 어긋남) */
+    moveInd($mInd, null, false);
+    setTimeout(function () {
+      if (!$overlay.classList.contains('open')) return;
+      if (mInsightsOpen) {
+        var activeBtn = null;
+        Array.prototype.forEach.call($overlayNav.querySelectorAll('.cat-btn'), function (btn) {
+          if (btn.getAttribute('data-cat') === activeCategory) activeBtn = btn;
+        });
+        moveInd($mInd, activeBtn || $overlayNav.querySelector('[data-nav="insights"]'), false);
+      } else {
+        positionMIndByRoute(false);
+      }
+    }, 420);
   }
 
   function closeOverlay() {
