@@ -728,16 +728,11 @@
           renderOverlayNav();
           if (mInsightsOpen) {
             /* 다시 펼치면 현재 보고 있는 카테고리로 물방울 이동 */
-            var activeBtn = null;
-            if (routeNavKey() === 'insights') {
-              Array.prototype.forEach.call($overlayNav.querySelectorAll('.cat-btn'), function (btn) {
-                if (btn.getAttribute('data-cat') === activeCategory) activeBtn = btn;
-              });
-            }
-            moveInd($mInd, activeBtn || $overlayNav.querySelector('[data-nav="insights"]'), true);
+            moveInd($mInd, mActiveTarget(), true);
           } else {
             positionMIndByRoute(true);
           }
+          settleMInd(); /* 레이아웃 안정 후 최종 위치 재보정 */
           return;
         }
         moveInd($mInd, a, true, true);
@@ -773,6 +768,28 @@
     moveInd($mInd, el, animate);
   }
 
+  /* 현재 화면에 해당하는 모바일 메뉴 요소(펼침 상태면 선택된 카테고리 버튼) */
+  function mActiveTarget() {
+    if (mInsightsOpen && routeNavKey() === 'insights') {
+      var found = null;
+      Array.prototype.forEach.call($overlayNav.querySelectorAll('.cat-btn'), function (btn) {
+        if (btn.getAttribute('data-cat') === activeCategory) found = btn;
+      });
+      if (found) return found;
+    }
+    var key = routeNavKey();
+    return key ? $overlayNav.querySelector('[data-nav="' + key + '"]') : null;
+  }
+
+  /* 애니메이션·재렌더링이 끝난 뒤 항상 신선한 요소를 다시 찾아 위치를 확정 */
+  function settleMInd() {
+    clearTimeout($mInd._settle);
+    $mInd._settle = setTimeout(function () {
+      if (!$overlay.classList.contains('open')) return;
+      moveInd($mInd, mActiveTarget(), false);
+    }, 700);
+  }
+
   var $menuBtn = document.getElementById('menu-btn');
 
   /* 고정 헤더 높이만큼 본문 시작 위치 확보 */
@@ -794,21 +811,15 @@
     document.body.style.overflow = 'hidden';
     /* 캡슐 펼침 애니메이션이 끝난 뒤에 물방울을 표시 (도중 측정하면 위치가 어긋남) */
     moveInd($mInd, null, false);
-    setTimeout(function () {
+    clearTimeout($mInd._settle);
+    $mInd._settle = setTimeout(function () {
       if (!$overlay.classList.contains('open')) return;
-      if (mInsightsOpen) {
-        var activeBtn = null;
-        Array.prototype.forEach.call($overlayNav.querySelectorAll('.cat-btn'), function (btn) {
-          if (btn.getAttribute('data-cat') === activeCategory) activeBtn = btn;
-        });
-        moveInd($mInd, activeBtn || $overlayNav.querySelector('[data-nav="insights"]'), false);
-      } else {
-        positionMIndByRoute(false);
-      }
+      moveInd($mInd, mActiveTarget(), false);
     }, 420);
   }
 
   function closeOverlay() {
+    clearTimeout($mInd._settle);
     $overlay.classList.remove('open');
     document.body.classList.remove('menu-open');
     $menuBtn.classList.remove('open');
