@@ -735,22 +735,24 @@
         if (a.getAttribute('data-nav') === 'insights') {
           mInsightsOpen = !mInsightsOpen;
           renderOverlayNav();
-          /* 순서 보장: 물방울을 숨기고, 펼침/접힘 애니메이션이 끝난 뒤에
-             좌표를 계산해서 정확한 위치에 바로 표시 */
-          moveInd($mInd, null, false);
-          clearTimeout($mInd._settle);
-          $mInd._settle = setTimeout(function () {
-            if (!$overlay.classList.contains('open')) return;
-            var target;
-            if (mInsightsOpen && routeNavKey() !== 'insights') {
-              /* 하위 메뉴가 선택된 상태가 아니면 펼쳤을 때 Insights 위에 표시 */
-              target = $overlayNav.querySelector('[data-nav="insights"]');
-            } else {
-              /* 접으면(또는 카테고리 선택 중이면) 현재 화면에 맞는 메뉴로 */
-              target = mActiveTarget();
-            }
-            moveInd($mInd, target, false);
-          }, 400);
+          if (routeNavKey() !== 'insights') {
+            /* About me 등 다른 화면: 위치가 안정적이므로 깜빡임 없이 물 흐르듯 이동
+               펼치면 Insights 위로, 접으면 현재 화면 메뉴로 */
+            var flowTarget = mInsightsOpen
+              ? $overlayNav.querySelector('[data-nav="insights"]')
+              : mActiveTarget();
+            clearTimeout($mInd._settle);
+            moveInd($mInd, flowTarget, true);
+          } else {
+            /* 카테고리 화면: 접기/펼치기로 레이아웃이 바뀌므로
+               숨겼다가 애니메이션이 끝난 뒤 정확한 위치에 표시 */
+            moveInd($mInd, null, false);
+            clearTimeout($mInd._settle);
+            $mInd._settle = setTimeout(function () {
+              if (!$overlay.classList.contains('open')) return;
+              moveInd($mInd, mActiveTarget(), false);
+            }, 400);
+          }
           return;
         }
         moveInd($mInd, a, true, true);
