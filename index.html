@@ -289,6 +289,8 @@
   .overlay {
     position: fixed; top: 10px; left: 0; right: 0; z-index: 9;
     background: var(--header-glass);
+    /* 뒤 스크림 위에서 조금 더 투명하게(색 틴트 알파를 낮춤) */
+    background: color-mix(in srgb, var(--header-bg-solid, #f2efe9) 42%, transparent);
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     backdrop-filter: blur(24px) saturate(160%);
     border-radius: 26px 26px 0 0;
