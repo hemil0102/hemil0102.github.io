@@ -288,9 +288,8 @@
   /* 캡슐 확장형: 헤더 알약이 아래로 늘어나 메뉴까지 한 덩어리가 됨 */
   .overlay {
     position: fixed; top: 10px; left: 0; right: 0; z-index: 9;
-    background: var(--header-glass);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
-    backdrop-filter: blur(24px) saturate(160%);
+    /* 불투명 배경: 뒤 콘텐츠가 전혀 비치지 않게 (테마 색감은 유지) */
+    background: var(--header-bg-solid, #f2efe9);
     border-radius: 26px 26px 0 0;
     display: none;
     padding: calc(var(--header-h, 52px) + 4px) 28px 60px;
