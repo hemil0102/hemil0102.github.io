@@ -102,7 +102,7 @@
   #bottom-fade {
     display: none;
     position: fixed; left: 0; right: 0; bottom: 0;
-    height: 20px; z-index: 12; pointer-events: none;
+    height: 1px; z-index: 12; pointer-events: none;
     transform: translateZ(0);
     background: var(--sysbar, #ffffff);
   }
@@ -291,11 +291,10 @@
     background: var(--header-glass);
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     backdrop-filter: blur(24px) saturate(160%);
-    border-radius: 26px 26px 0 0;
+    border-radius: 26px;   /* 위·아래 모두 둥근 카드 */
     display: none;
-    padding: calc(var(--header-h, 52px) + 4px) 28px 60px;
-    height: 100vh;        /* iOS: 툴바 숨김 기준 큰 뷰포트 → 툴바 뒤까지 덮음 */
-    height: 100lvh;       /* 지원 브라우저에서는 명시적 large viewport */
+    padding: calc(var(--header-h, 52px) + 4px) 28px 26px;
+    bottom: max(24px, env(safe-area-inset-bottom, 0px)); /* 하단 라운드가 보이도록 여백 */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     transform-origin: top center;
