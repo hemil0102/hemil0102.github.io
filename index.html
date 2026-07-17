@@ -102,8 +102,8 @@
   /* 하단 탭바 영역만 시스템바 색으로 덮음 (메뉴 유리보다 위) — 나머지는 콘텐츠가 비침 */
   #bottom-fade {
     display: none;
-    position: fixed; left: 0; right: 0; bottom: -40px;
-    height: 130px; z-index: 11; pointer-events: none;
+    position: fixed; left: 0; right: 0; bottom: 0;
+    height: 90px; z-index: 11; pointer-events: none; /* 사파리 탭바 높이만큼만 덮음 */
     background: var(--sysbar, #ffffff);
   }
   body.menu-open #bottom-fade { display: block; }
