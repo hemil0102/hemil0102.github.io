@@ -282,8 +282,8 @@
     backdrop-filter: blur(24px) saturate(160%);
     border-radius: 26px 26px 0 0;
     display: none;
-    padding: calc(var(--header-h, 52px) + 4px) 28px calc(26px + env(safe-area-inset-bottom, 0px));
-    bottom: 0; /* 화면 맨 아래(사파리 메뉴 뒤)까지 전부 덮음 */
+    padding: calc(var(--header-h, 52px) + 4px) 28px 180px;
+    bottom: -140px; /* 사파리 하단 툴바 아래까지 넉넉히 늘려 완전히 덮음 */
     overflow-y: auto;
     transform-origin: top center;
   }
