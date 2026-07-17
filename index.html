@@ -102,8 +102,8 @@
   /* 펼침 메뉴 위 하단 탭바 영역만 시스템바 색으로 덮음 (유리 질감은 유지) */
   #bottom-fade {
     display: none;
-    position: fixed; left: 0; right: 0; bottom: -1px; /* 하단 서브픽셀 재그리기 방지 */
-    height: 1px; z-index: 12; pointer-events: none;
+    position: fixed; left: 0; right: 0; bottom: 0;
+    height: 2px; z-index: 12; pointer-events: none;
     background: var(--sysbar, #ffffff);
   }
   body.menu-open #bottom-fade { display: block; }
