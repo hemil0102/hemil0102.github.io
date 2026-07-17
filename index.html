@@ -99,12 +99,11 @@
   }
   /* 하단: 애플처럼 시스템바 색으로 덮어 뒤 콘텐츠(footer 등)를 가림.
      펼침 메뉴(z-index 9)보다 위에 두어 메뉴 뒤로 비치는 것도 함께 가림 */
-  /* 펼침 메뉴 뒤 화면 전체를 덮는 불투명 판 — 유리(반투명)는 이 균일한 판을 블러하므로
-     질감은 유지되고 페이지 콘텐츠는 완전히 가려짐 (하단 탭바 영역 포함) */
+  /* 하단 탭바 영역만 시스템바 색으로 덮음 (메뉴 유리보다 위) — 나머지는 콘텐츠가 비침 */
   #bottom-fade {
     display: none;
-    position: fixed; inset: 0;
-    z-index: 8; pointer-events: none;
+    position: fixed; left: 0; right: 0; bottom: -40px;
+    height: 130px; z-index: 11; pointer-events: none;
     background: var(--sysbar, #ffffff);
   }
   body.menu-open #bottom-fade { display: block; }
@@ -290,9 +289,8 @@
   /* 캡슐 확장형: 헤더 알약이 아래로 늘어나 메뉴까지 한 덩어리가 됨 */
   .overlay {
     position: fixed; top: 10px; left: 0; right: 0; z-index: 9;
-    background: var(--header-glass);
-    /* 뒤 스크림(불투명) 위에서 틴트를 50%로 → 색이 더 옅고 투명해 보임 */
-    background: color-mix(in srgb, var(--header-bg-solid, #241a1d) 50%, transparent);
+    /* 반투명 유리: 뒤 페이지 콘텐츠가 블러되어 비침 */
+    background: var(--menu-glass, rgba(24,17,19,0.38));
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     backdrop-filter: blur(24px) saturate(160%);
     border-radius: 26px 26px 0 0;
@@ -437,7 +435,7 @@
   footer { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 32px 0 48px; }
   footer a { color: var(--muted); }
 </style>
-<script src="theme.js?v=11"></script>
+<script src="theme.js?v=12"></script>
 </head>
 <body>
 <div id="top-fade" aria-hidden="true"></div>

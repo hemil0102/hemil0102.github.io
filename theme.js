@@ -113,6 +113,7 @@
         '--header-bg-solid':  css(h, hdrS, hdrL),
         '--header-bg-strong': css(h, hdrS, hdrL, 0.9),
         '--header-glass':     css(h, hdrS, hdrL, 0.6),
+        '--menu-glass':       css(h, hdrS, hdrL, 0.38), /* 펼침 메뉴: 뒤 콘텐츠가 비치는 반투명 유리 */
         '--header-text':      css(h, 55, txtL),
         '--header-muted':     css(h, 30, 44),
         '--nav-pill-fill':    'rgba(255, 255, 255, 0.55)',
@@ -134,6 +135,7 @@
         '--header-bg-solid':  css(h, dHdrS, dHdrL),
         '--header-bg-strong': css(h, dHdrS, dHdrL, 0.92),
         '--header-glass':     css(h, dHdrS, dHdrL, 0.6),
+        '--menu-glass':       css(h, dHdrS, dHdrL, 0.38),
         '--header-text':      css(h, 20, 88),
         '--header-muted':     css(h, 10, 64),
         '--nav-pill-fill':    'rgba(255, 255, 255, 0.10)',
