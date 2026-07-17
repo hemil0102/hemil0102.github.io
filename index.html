@@ -291,6 +291,8 @@
   .overlay {
     position: fixed; top: 10px; left: 0; right: 0; z-index: 9;
     background: var(--header-glass);
+    /* 뒤 스크림(불투명) 위에서 틴트를 50%로 → 색이 더 옅고 투명해 보임 */
+    background: color-mix(in srgb, var(--header-bg-solid, #241a1d) 50%, transparent);
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     backdrop-filter: blur(24px) saturate(160%);
     border-radius: 26px 26px 0 0;
