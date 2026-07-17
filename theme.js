@@ -230,26 +230,6 @@
   function movePill(instant) {
     movePillTo(document.querySelector('.theme-dot[aria-checked="true"]'), instant);
   }
-  /* 시스템(상태)바 색: 투명도 없는 헤더 색으로 지정.
-   * iOS Safari는 기존 메타의 content만 바꾸면 반영하지 않는 경우가 있어
-   * 메타 태그를 새로 만들어 교체하고, 색상도 rgb 값으로 확정해서 넣는다. */
-  function updateThemeColor() {
-    var v = getComputedStyle(document.documentElement).getPropertyValue('--header-bg-solid').trim();
-    if (!v) return;
-    var probe = document.createElement('div');
-    probe.style.color = v;
-    probe.style.display = 'none';
-    document.documentElement.appendChild(probe);
-    var rgb = getComputedStyle(probe).color || v;
-    probe.parentNode.removeChild(probe);
-    document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
-      m.parentNode.removeChild(m);
-    });
-    var meta = document.createElement('meta');
-    meta.setAttribute('name', 'theme-color');
-    meta.setAttribute('content', rgb);
-    document.head.appendChild(meta);
-  }
   function applyTheme(id, instant) {
     document.documentElement.setAttribute('data-theme', id);
     try { localStorage.setItem(STORAGE_KEY, id); } catch (e) {}
@@ -257,7 +237,6 @@
       dot.setAttribute('aria-checked', dot.getAttribute('data-theme-id') === id ? 'true' : 'false');
     });
     movePill(instant);
-    updateThemeColor();
   }
 
   /* ---------- 팔레트 UI 렌더링 ---------- */
@@ -293,10 +272,6 @@
   /* ---------- 초기화 ---------- */
   buildThemeCss();
   document.documentElement.setAttribute('data-theme', currentTheme());
-  updateThemeColor();
-  try { /* 라이트/다크 전환 시 시스템바 색 갱신 */
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeColor);
-  } catch (e) {}
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', renderPalette);
   } else {
