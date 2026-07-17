@@ -62,7 +62,10 @@
   html { background: var(--sysbar, #ffffff); }
   body {
     font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
+    /* Safari 시스템바가 body의 background-color를 참고하므로 색상값은 흰/검으로,
+       실제 보이는 바탕색은 background-image(단색 그라데이션)로 그림 */
+    background-color: var(--sysbar, #ffffff);
+    background-image: linear-gradient(var(--bg), var(--bg));
     color: var(--text);
     line-height: 1.7;
   }

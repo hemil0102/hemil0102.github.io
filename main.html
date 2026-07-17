@@ -36,10 +36,12 @@
   @media (prefers-color-scheme: dark) { html { background: #000000; } }
   body {
     font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
+    background-color: #ffffff;
+    background-image: linear-gradient(var(--bg), var(--bg));
     color: var(--text);
     line-height: 1.7;
   }
+  @media (prefers-color-scheme: dark) { body { background-color: #000000; } }
   .container { max-width: 760px; margin: 0 auto; padding: 40px 24px; }
   .main-card {
     background: var(--card); border: 1px solid var(--border); border-radius: 12px;
