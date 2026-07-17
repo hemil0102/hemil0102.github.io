@@ -282,9 +282,11 @@
     backdrop-filter: blur(24px) saturate(160%);
     border-radius: 26px 26px 0 0;
     display: none;
-    padding: calc(var(--header-h, 52px) + 4px) 28px 180px;
-    bottom: -140px; /* 사파리 하단 툴바 아래까지 넉넉히 늘려 완전히 덮음 */
+    padding: calc(var(--header-h, 52px) + 4px) 28px 60px;
+    height: 100vh;        /* iOS: 툴바 숨김 기준 큰 뷰포트 → 툴바 뒤까지 덮음 */
+    height: 100lvh;       /* 지원 브라우저에서는 명시적 large viewport */
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     transform-origin: top center;
   }
   .overlay.open { display: block; animation: capsuleGrow .38s cubic-bezier(.3,1.05,.4,1); }
