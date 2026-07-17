@@ -731,12 +731,9 @@
         if (a.getAttribute('data-nav') === 'insights') {
           mInsightsOpen = !mInsightsOpen;
           renderOverlayNav();
-          if (mInsightsOpen) {
-            /* 다시 펼치면 현재 보고 있는 카테고리로 물방울 이동 */
-            moveInd($mInd, mActiveTarget(), true);
-          } else {
-            positionMIndByRoute(true);
-          }
+          /* 접기/펼치기로 레이아웃이 바뀌므로 이전 좌표에서 이동시키지 않고
+             정확한 위치에 바로 나타나게 함 (중간에 엉뚱한 곳에 보이는 문제 방지) */
+          moveInd($mInd, mActiveTarget(), false);
           settleMInd(); /* 레이아웃 안정 후 최종 위치 재보정 */
           return;
         }
