@@ -852,6 +852,12 @@
     else openOverlay();
   });
 
+  /* 로고 클릭 시 메인으로 이동하며 펼침 메뉴 닫기 */
+  document.querySelector('.header-inner .logo').addEventListener('click', function () {
+    closeOverlay();
+    closeDropdown();
+  });
+
   /* 펼침 메뉴 바깥을 클릭/터치하면 닫기 */
   document.addEventListener('click', function (e) {
     /* 클릭 처리 중 메뉴가 다시 그려져 요소가 DOM에서 분리된 경우는 내부 클릭으로 간주 */
