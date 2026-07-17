@@ -102,11 +102,12 @@
   #bottom-fade {
     display: none;
     position: fixed; left: 0; right: 0; bottom: 0;
-    height: 60px; z-index: 12; pointer-events: none;
+    height: 40px; z-index: 12; pointer-events: none;
     transform: translateZ(0);
     background: var(--sysbar, #ffffff);
   }
-  @media (hover: none), (pointer: coarse) { #bottom-fade { display: block; } }
+  /* 펼침 메뉴가 열려 있을 때만 하단 바 표시 */
+  body.menu-open #bottom-fade { display: block; }
   .header-inner {
     max-width: 1100px; margin: 0 auto; padding: 8px 24px;
     display: flex; align-items: center; gap: 28px;
