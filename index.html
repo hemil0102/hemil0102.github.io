@@ -74,14 +74,14 @@
     background: var(--header-glass, rgba(255, 255, 255, 0.72));
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     backdrop-filter: blur(24px) saturate(160%);
-    position: fixed; top: 18px; left: 0; right: 0; z-index: 10;
+    position: fixed; top: 10px; left: 0; right: 0; z-index: 10;
     border-radius: 999px;
   }
-  body { padding-top: calc(var(--header-h, 52px) + 28px); }
+  body { padding-top: calc(var(--header-h, 52px) + 20px); }
   /* 헤더 위/주변으로 지나가는 콘텐츠가 점점 흐려지며 사라지는 영역 */
   #top-fade {
     position: fixed; top: 0; left: 0; right: 0;
-    height: calc(var(--header-h, 52px) + 22px);
+    height: calc(var(--header-h, 52px) + 14px);
     z-index: 9; pointer-events: none;
     -webkit-backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);
@@ -274,7 +274,7 @@
   .dropdown .cat-btn .count { color: var(--logo-accent, var(--accent)); opacity: 0.75; font-size: 0.8rem; font-weight: 400; margin-left: 6px; }
   /* 캡슐 확장형: 헤더 알약이 아래로 늘어나 메뉴까지 한 덩어리가 됨 */
   .overlay {
-    position: fixed; top: 18px; left: 0; right: 0; z-index: 9;
+    position: fixed; top: 10px; left: 0; right: 0; z-index: 9;
     background: var(--header-glass);
     -webkit-backdrop-filter: blur(24px) saturate(160%);
     backdrop-filter: blur(24px) saturate(160%);
@@ -735,10 +735,14 @@
         if (a.getAttribute('data-nav') === 'insights') {
           mInsightsOpen = !mInsightsOpen;
           renderOverlayNav();
-          /* 접기/펼치기로 레이아웃이 바뀌므로 이전 좌표에서 이동시키지 않고
-             정확한 위치에 바로 나타나게 함 (중간에 엉뚱한 곳에 보이는 문제 방지) */
-          moveInd($mInd, mActiveTarget(), false);
-          settleMInd(); /* 레이아웃 안정 후 최종 위치 재보정 */
+          /* 순서 보장: 물방울을 숨기고, 펼침/접힘 애니메이션이 끝난 뒤에
+             좌표를 계산해서 정확한 위치에 바로 표시 */
+          moveInd($mInd, null, false);
+          clearTimeout($mInd._settle);
+          $mInd._settle = setTimeout(function () {
+            if (!$overlay.classList.contains('open')) return;
+            moveInd($mInd, mActiveTarget(), false);
+          }, 400);
           return;
         }
         moveInd($mInd, a, true, true);
