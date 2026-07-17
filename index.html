@@ -106,8 +106,8 @@
     height: 5px; z-index: 11; pointer-events: none;
     background: var(--sysbar, #ffffff);
   }
-  /* 세로 모드 스마트폰(터치·좁은 화면)에서만 하단 바 적용, PC 가로 모드는 미적용 */
-  @media (hover: none), (pointer: coarse), (max-width: 768px) {
+  /* 실제 터치 기기(사파리 툴바가 있는 폰)에서만 하단 바 적용 — PC는 창을 줄여도 미적용 */
+  @media (hover: none) and (pointer: coarse) {
     body.menu-open #bottom-fade { display: block; }
   }
   .header-inner {
