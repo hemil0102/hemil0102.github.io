@@ -741,7 +741,15 @@
           clearTimeout($mInd._settle);
           $mInd._settle = setTimeout(function () {
             if (!$overlay.classList.contains('open')) return;
-            moveInd($mInd, mActiveTarget(), false);
+            var target;
+            if (mInsightsOpen && routeNavKey() !== 'insights') {
+              /* 하위 메뉴가 선택된 상태가 아니면 펼쳤을 때 Insights 위에 표시 */
+              target = $overlayNav.querySelector('[data-nav="insights"]');
+            } else {
+              /* 접으면(또는 카테고리 선택 중이면) 현재 화면에 맞는 메뉴로 */
+              target = mActiveTarget();
+            }
+            moveInd($mInd, target, false);
           }, 400);
           return;
         }
