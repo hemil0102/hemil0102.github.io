@@ -99,14 +99,14 @@
   }
   /* 하단: 애플처럼 시스템바 색으로 덮어 뒤 콘텐츠(footer 등)를 가림.
      펼침 메뉴(z-index 9)보다 위에 두어 메뉴 뒤로 비치는 것도 함께 가림 */
+  /* 펼침 메뉴 뒤 전체를 덮는 불투명 스크림 — 유리 너머로 콘텐츠가 안 비치게 */
   #bottom-fade {
     display: none;
-    position: fixed; left: 0; right: 0; bottom: 0;
-    height: 1px; z-index: 12; pointer-events: none;
+    position: fixed; inset: 0;
+    z-index: 8; pointer-events: none;
     transform: translateZ(0);
     background: var(--sysbar, #ffffff);
   }
-  /* 펼침 메뉴가 열려 있을 때만 하단 바 표시 */
   body.menu-open #bottom-fade { display: block; }
   .header-inner {
     max-width: 1100px; margin: 0 auto; padding: 8px 24px;
@@ -288,8 +288,9 @@
   /* 캡슐 확장형: 헤더 알약이 아래로 늘어나 메뉴까지 한 덩어리가 됨 */
   .overlay {
     position: fixed; top: 10px; left: 0; right: 0; z-index: 9;
-    /* 불투명 배경: 뒤 콘텐츠가 전혀 비치지 않게 (테마 색감은 유지) */
-    background: var(--header-bg-solid, #f2efe9);
+    background: var(--header-glass);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
     border-radius: 26px 26px 0 0;
     display: none;
     padding: calc(var(--header-h, 52px) + 4px) 28px 60px;
