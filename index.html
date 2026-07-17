@@ -58,7 +58,8 @@
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { background: var(--bg, #fbf8f6); }
+  /* Safari가 상단 색을 페이지 배경에서 샘플링하는 경우 대비: html 배경 = 시스템바 색 */
+  html { background: var(--sysbar, #ffffff); }
   body {
     font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", Roboto, sans-serif;
     background: var(--bg);
