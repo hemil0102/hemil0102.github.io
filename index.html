@@ -69,6 +69,9 @@
     color: var(--text);
     line-height: 1.7;
   }
+  /* About me·Insights·Book report·글 화면: 흰/검 배경 */
+  body.plain-bg { background-image: linear-gradient(var(--sysbar, #ffffff), var(--sysbar, #ffffff)); }
+  body.plain-bg #top-fade::before { background: linear-gradient(to bottom, var(--sysbar, #ffffff) 0, transparent 100%); opacity: 0.85; }
   header {
     /* 펼침 메뉴(오버레이)와 동일한 배경·투명도·블러, 둥근 알약형 */
     background: var(--header-glass, rgba(255, 255, 255, 0.72));
@@ -281,7 +284,8 @@
     border-radius: 26px;
     display: none;
     padding: calc(var(--header-h, 52px) + 4px) 28px 26px;
-    max-height: calc(100dvh - 20px); overflow-y: auto;
+    bottom: 10px; /* 메뉴 수와 무관하게 화면 전체를 덮음 */
+    overflow-y: auto;
     transform-origin: top center;
   }
   .overlay.open { display: block; animation: capsuleGrow .38s cubic-bezier(.3,1.05,.4,1); }
@@ -1007,6 +1011,9 @@
     }
     updateNav();
     closeDropdown();
+    /* 대문 외 페이지는 배경을 시스템바 색(라이트 흰색/다크 검정)으로 */
+    document.body.classList.toggle('plain-bg', h === '#/about' || h === '#/book-report' ||
+      h === '#/insights' || h.indexOf('#/post/') === 0);
   }
 
   function escapeHtml(s) {
