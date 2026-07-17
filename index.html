@@ -99,11 +99,12 @@
   }
   /* 하단: 애플처럼 시스템바 색으로 덮어 뒤 콘텐츠(footer 등)를 가림.
      펼침 메뉴(z-index 9)보다 위에 두어 메뉴 뒤로 비치는 것도 함께 가림 */
-  /* 펼침 메뉴 위 하단 탭바 영역만 시스템바 색으로 덮음 (유리 질감은 유지) */
+  /* 펼침 메뉴 뒤 화면 전체를 덮는 불투명 판 — 유리(반투명)는 이 균일한 판을 블러하므로
+     질감은 유지되고 페이지 콘텐츠는 완전히 가려짐 (하단 탭바 영역 포함) */
   #bottom-fade {
     display: none;
-    position: fixed; left: 0; right: 0; bottom: 0;
-    height: 2px; z-index: 12; pointer-events: none;
+    position: fixed; inset: 0;
+    z-index: 8; pointer-events: none;
     background: var(--sysbar, #ffffff);
   }
   body.menu-open #bottom-fade { display: block; }
