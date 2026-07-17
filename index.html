@@ -103,7 +103,7 @@
      질감은 유지되고 페이지 콘텐츠는 완전히 가려짐 (하단 탭바 영역 포함) */
   #bottom-fade {
     display: none;
-    position: fixed; top: 0; left: 0; right: 0; bottom: -120px; /* 툴바 뒤까지 덮음 */
+    position: fixed; inset: 0;
     z-index: 8; pointer-events: none;
     background: var(--sysbar, #ffffff);
   }
