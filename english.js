@@ -89,8 +89,9 @@
   + '.eng-t{color:var(--accent);font-weight:700;cursor:pointer;font-size:.78rem;'
     + 'flex:0 0 auto;font-variant-numeric:tabular-nums}'
   + '.eng-t:hover{text-decoration:underline}'
-  + '.eng-sent{font-size:.79rem;line-height:1.65;min-width:0;'
+  + '.eng-sent{font-size:.79rem;line-height:1.65;min-width:0;cursor:pointer;'
     + 'display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}'
+  + '.eng-sent:hover{color:var(--accent)}'
   + '.eng-lv{display:inline-block;min-width:22px;text-align:center;font-size:.68rem;'
     + 'font-weight:700;padding:1px 5px;border-radius:4px;margin-right:6px;'
     + 'background:var(--accent-light);color:var(--accent)}'
@@ -1512,10 +1513,12 @@
       seekCue(cues[cueIdx].s);
       if (nodes[cueIdx]) nodes[cueIdx].scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
-    var src = d.querySelector('.eng-src');
-    if (src) src.addEventListener('click', jump);
-    var t = d.querySelector('.eng-t');
-    if (t) t.addEventListener('click', jump);
+    /* 구문·단어 탭과 동일하게, 스크립트를 클릭하면 그 장면으로 이동합니다.
+       (.eng-sent 는 label 안에 있으므로 jump 에서 기본동작을 막아
+        체크박스가 같이 토글되지 않도록 합니다) */
+    Array.prototype.forEach.call(
+      d.querySelectorAll('.eng-src, .eng-t, .eng-sent'),
+      function (el) { el.addEventListener('click', jump); });
     return d;
   }
 
@@ -1660,7 +1663,7 @@
   +       '<select class="eng-sel" id="eng-tn"></select>'
   +     '</div>'
   +     '<div class="eng-note">해당 시제가 쓰인 문장만 모아 보여줍니다. '
-  +       '시간표시를 클릭하면 그 장면으로 이동합니다.</div>'
+  +       '문장을 클릭하면 그 장면으로 이동합니다.</div>'
   +     '<div class="eng-bar" style="padding:0 0 8px">'
   +       '<button class="eng-btn" data-all="tn">전체 선택</button>'
   +       '<button class="eng-btn" data-none="tn">전체 해제</button>'
