@@ -69,17 +69,19 @@
   + '.eng-ex{margin-top:7px;padding-left:10px;border-left:2px solid var(--border);'
     + 'color:var(--muted);font-size:.78rem}'
   + '@media(max-width:768px){.eng-cue .t{flex-basis:42px}}'
-  /* ---- 가로 모드(낮은 화면): 영상 왼쪽 / 자막 오른쪽 좌우 분할 ---- */
-  + '@media (orientation:landscape) and (max-height:620px){'
-  +   '.eng-body{display:flex;gap:14px;align-items:flex-start}'
-  +   '.eng-stick{flex:0 0 var(--engcol,54%);min-width:0;top:0;padding-bottom:0}'
-  +   '.eng-tx{flex:1;min-width:0;padding:0 0 24px;max-height:calc(100dvh - 76px);'
-  +     'overflow-y:auto;-webkit-overflow-scrolling:touch}'
-  +   '.eng-ratio{height:min(var(--engvh,70vh),calc(var(--engw,400px) * 0.5625))}'
-  +   '.eng-load{margin-bottom:8px}'
-  +   '.eng-cue{padding:7px 9px;line-height:1.55}'
-  +   '.eng-bar{padding-top:7px}'
-  + '}';
+  /* ---- 좌우 분할: 영상 왼쪽 / 자막 오른쪽 ----
+     미디어쿼리로 화면을 추측하지 않고 JS 가 .split 클래스를 붙입니다.
+     (기기별 실제 뷰포트가 제각각이라 고정 임계값은 빗나갑니다) */
+  + '.eng.split .eng-body{display:flex;gap:16px;align-items:flex-start}'
+  + '.eng.split .eng-stick{flex:0 0 var(--engcol,54%);min-width:0;padding-bottom:0}'
+  + '.eng.split .eng-tx{flex:1;min-width:0;padding:0 0 20px;'
+  +   'max-height:calc(100dvh - var(--header-h,52px) - 46px);'
+  +   'overflow-y:auto;-webkit-overflow-scrolling:touch}'
+  /* 분할일 때 영상 크기는 칸 너비가 결정 (화면 밖으로 나가지 않게 상한만 둠) */
+  + '.eng.split .eng-ratio{height:calc(var(--engw,400px) * 0.5625);'
+  +   'max-height:calc(100dvh - var(--header-h,52px) - 130px)}'
+  + '.eng.split .eng-cue{padding:8px 10px;line-height:1.6}'
+  + '.eng.split .eng-load{margin-bottom:10px}';
 
   function injectCSS() {
     if (document.getElementById('eng-css')) return;
@@ -493,6 +495,25 @@
     requestAnimationFrame(syncWidth);
   }
 
+  /* 좌우 분할 여부를 실제 뷰포트로 판단.
+     고정 임계값 미디어쿼리는 기기마다 빗나가므로 JS 로 계산합니다. */
+  function shouldSplit() {
+    var w = window.innerWidth, h = window.innerHeight;
+    if (!h) return false;
+    var wide = w / h >= 1.3;              // 폭이 높이보다 확실히 넓을 때
+    return wide && (w >= 760 || w > h);   // 데스크톱 가로창 · 폰/태블릿 가로
+  }
+
+  function updateLayout() {
+    if (!root) return;
+    var mode = q('#eng-layout') ? q('#eng-layout').value : 'auto';
+    var split = mode === 'split' ? true
+              : mode === 'stack' ? false
+              : shouldSplit();
+    root.classList.toggle('split', split);
+    requestAnimationFrame(syncWidth);
+  }
+
   /* --------------------------------------------------------- 렌더 */
   function renderCues() {
     cues = merge ? mergeCues(rawCues)
@@ -623,6 +644,12 @@
   +       '<option value="m" selected>보통</option>'
   +       '<option value="l">크게</option>'
   +     '</select>'
+  +     '<span class="eng-chip">배치</span>'
+  +     '<select class="eng-sel" id="eng-layout">'
+  +       '<option value="auto" selected>자동</option>'
+  +       '<option value="split">좌우 분할</option>'
+  +       '<option value="stack">상하</option>'
+  +     '</select>'
   +     '<select class="eng-sel" id="eng-dict">'
   +       '<option value="https://en.dictionary.cambridge.org/dictionary/english-korean/">Cambridge 영한</option>'
   +       '<option value="https://dict.naver.com/dict.search?query=">네이버 사전</option>'
@@ -670,8 +697,12 @@
     var sz = store.get('size', 'm');
     q('#eng-size').value = SIZES[sz] ? sz : 'm';
     applySize(q('#eng-size').value);
+
+    q('#eng-layout').value = store.get('layout', 'auto');
+    updateLayout();
     syncWidth();
-    onResize = function () { syncWidth(); };
+
+    onResize = function () { updateLayout(); };
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
 
@@ -730,6 +761,10 @@
     q('#eng-size').addEventListener('change', function (e) {
       applySize(e.target.value);
       store.set('size', e.target.value);
+    });
+    q('#eng-layout').addEventListener('change', function (e) {
+      store.set('layout', e.target.value);
+      updateLayout();
     });
     q('#eng-hide').addEventListener('click', function (e) {
       root.classList.toggle('hide');
