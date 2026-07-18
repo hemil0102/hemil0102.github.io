@@ -111,6 +111,14 @@
   /* 추출된 부분 하이라이트 */
   + '.eng-hl{background:var(--accent);color:#fff;border-radius:3px;padding:0 2px;'
     + 'font-weight:600}'
+  /* 여러 번 나온 구문·단어를 제자리에서 넘겨 보는 페이저 */
+  + '.eng-pager{display:flex;align-items:center;gap:6px;margin-top:5px}'
+  + '.eng-pgn{font-size:.7rem;color:var(--muted);font-variant-numeric:tabular-nums}'
+  + '.eng-pg{width:20px;height:19px;padding:0;line-height:1;font-size:.8rem;'
+    + 'border:1px solid var(--border);background:var(--bg);color:var(--text);'
+    + 'border-radius:5px;cursor:pointer}'
+  + '.eng-pg:hover:not(:disabled){background:var(--accent-light);color:var(--accent)}'
+  + '.eng-pg:disabled{opacity:.3;cursor:default}'
   + '.eng-ex{margin-top:7px;padding-left:10px;border-left:2px solid var(--border);'
     + 'color:var(--muted);font-size:.78rem}'
   + '@media(max-width:768px){.eng-cue .t{flex-basis:42px}}'
@@ -454,8 +462,11 @@
     var found = {};
     function add(key, i) {
       if (!found[key]) found[key] = { label: key, hits: [], n: 0 };
-      found[key].n++;
-      if (found[key].hits.length < 3) found[key].hits.push(i);
+      var f = found[key];
+      /* 같은 자막 줄에서 두 번 걸리는 경우는 한 번만 셉니다 */
+      if (f.hits[f.hits.length - 1] === i) return;
+      f.hits.push(i);
+      f.n = f.hits.length;
     }
 
     cues.forEach(function (c, i) {
@@ -774,9 +785,10 @@
 
         if (low.length < 4) return;
         if (!/^[a-z][a-z-]*$/.test(low)) return;
-        if (!info[low]) info[low] = { w: low, n: 0, cap: 0, mid: 0, first: i };
+        if (!info[low]) info[low] = { w: low, n: 0, cap: 0, mid: 0, first: i, hits: [] };
         var f = info[low];
         f.n++;
+        if (f.hits[f.hits.length - 1] !== i) f.hits.push(i);   /* 나온 자막 줄 모두 기록 */
         if (/^[A-Z]/.test(tok)) { f.cap++; if (ti > 0) f.mid++; }
       });
     });
@@ -790,7 +802,7 @@
       /* 사전에 없는데 늘 대문자로만 나오면 이름·지명으로 봄 (Stanford, Pixar …) */
       if (lv === 'C1' && f.cap === f.n) return;
       if (RANK[lv] < min) return;
-      out.push({ word: k, level: lv, n: f.n, cue: f.first });
+      out.push({ word: k, level: lv, n: f.n, cue: f.first, hits: f.hits });
     });
 
     return out.sort(function (a, b) {
@@ -1255,7 +1267,7 @@
       var ex = BOOK[f.label] || [];
       box.appendChild(makeCard('ph', f.label,
         '<b>' + esch(f.label) + '</b> <span style="color:var(--muted)">×' + f.n + '</span>',
-        f.hits[0],
+        f.hits,
         ex.length ? '<div class="eng-ex">' + ex.map(function (s) {
           return '<div>· ' + esch(s) + '</div>';
         }).join('') + '</div>' : '',
@@ -1280,7 +1292,7 @@
         '<span class="eng-lv' + (f.level === 'C1' ? ' c1' : '') + '">' + f.level + '</span>'
         + '<b>' + esch(f.word) + '</b> '
         + '<span style="color:var(--muted)">×' + f.n + '</span>',
-        f.cue, '', true,
+        f.hits && f.hits.length ? f.hits : f.cue, '', true,
         new RegExp('\\b' + esc(f.word) + '\\b', 'gi')));
     });
 
@@ -1496,20 +1508,54 @@
      showSrc=false 면 출처줄을 생략합니다 — 시제 탭처럼 제목이 이미 문장인 경우,
      같은 문장이 두 번 나오는 것을 막습니다. */
   function makeCard(pane, key, titleHTML, cueIdx, extraHTML, showSrc, hlRe) {
+    /* cueIdx 는 자막 줄 번호 하나 또는 여러 개.
+       여러 번 나오는 구문·단어는 카드 높이를 늘리지 않고 제자리에서 넘겨 봅니다. */
+    var idxs = Array.isArray(cueIdx) ? cueIdx : [cueIdx];
+    var pos = 0;
+
     var d = document.createElement('div');
     d.className = 'eng-card';
     d.innerHTML =
       '<label class="eng-pick"><input type="checkbox" checked data-k="' + esch(key) + '">'
       + '<span>' + titleHTML + '</span></label>'
       + (showSrc === false ? ''
-          : '<div class="eng-src" data-i="' + cueIdx + '">▸ ' + S(cues[cueIdx].s) + ' '
-            + snippet(cues[cueIdx].x, hlRe) + '</div>')
+          : '<div class="eng-src"></div>'
+            + (idxs.length > 1
+                ? '<div class="eng-pager">'
+                  + '<button class="eng-pg" data-d="-1" title="이전">‹</button>'
+                  + '<span class="eng-pgn"></span>'
+                  + '<button class="eng-pg" data-d="1" title="다음">›</button>'
+                  + '</div>'
+                : ''))
       + (extraHTML || '');
+
+    function paint() {
+      var i = idxs[pos];
+      var src = d.querySelector('.eng-src');
+      if (src) src.innerHTML = '▸ ' + S(cues[i].s) + ' ' + snippet(cues[i].x, hlRe);
+      var n = d.querySelector('.eng-pgn');
+      if (n) n.textContent = (pos + 1) + ' / ' + idxs.length;
+      Array.prototype.forEach.call(d.querySelectorAll('.eng-pg'), function (b) {
+        var dir = +b.getAttribute('data-d');
+        b.disabled = dir < 0 ? pos === 0 : pos === idxs.length - 1;
+      });
+    }
+    if (showSrc !== false) paint();
 
     d.querySelector('input').addEventListener('change', function () { updateCount(pane); });
 
+    Array.prototype.forEach.call(d.querySelectorAll('.eng-pg'), function (b) {
+      b.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        pos = Math.min(idxs.length - 1, Math.max(0, pos + (+b.getAttribute('data-d'))));
+        paint();
+      });
+    });
+
     function jump(e) {
       if (e) { e.preventDefault(); e.stopPropagation(); }
+      var cueIdx = idxs[pos];
       seekCue(cues[cueIdx].s);
       if (nodes[cueIdx]) nodes[cueIdx].scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
