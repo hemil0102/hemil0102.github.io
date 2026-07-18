@@ -398,7 +398,78 @@
     'grow up': ['I grew up near the sea.', 'Kids grow up fast.'],
     'get over': ['It took months to get over it.', 'She got over the loss.'],
     'hand over': ['He handed over the keys.', 'They handed over control.'],
-    'pass away': ['His father passed away last spring.', 'She passed away peacefully.']
+    'pass away': ['His father passed away last spring.', 'She passed away peacefully.'],
+
+    /* --- 목적어가 사이에 끼는 분리형 구동사 --- */
+    'pick up': ['Can you pick it up on the way?', 'She picked up Spanish quickly.'],
+    'put on': ['He put on his coat.', 'Put it on before you leave.'],
+    'turn on': ['Turn on the light.', 'She turned it on by mistake.'],
+    'turn off': ['Please turn off your phone.', 'I turned it off an hour ago.'],
+    'put down': ['Put the box down here.', 'He put down the phone.'],
+    'throw away': ['Don\'t throw it away.', 'She threw away the receipt.'],
+    'write down': ['Write it down before you forget.', 'He wrote down the address.'],
+    'fill out': ['Fill out the form first.', 'I filled it out yesterday.'],
+    'hand in': ['Hand in your report by Friday.', 'She handed it in late.'],
+    'wake up': ['Wake me up at six.', 'He woke up early.'],
+    'clean up': ['Clean up the mess.', 'We cleaned it up together.'],
+    'cut off': ['They cut off the power.', 'He cut me off mid-sentence.'],
+    'break up': ['They broke up last year.', 'Break it up into smaller steps.'],
+    'make up': ['He made up an excuse.', 'They made up after the argument.'],
+    'pay off': ['The effort paid off.', 'She paid off her loan.'],
+    'call off': ['They called off the meeting.', 'We had to call it off.'],
+    'let down': ['I don\'t want to let you down.', 'The ending let me down.'],
+    'take back': ['I take back what I said.', 'He took it back to the store.'],
+    'set aside': ['Set aside an hour for this.', 'She set some money aside.'],
+    'turn up': ['He turned up an hour late.', 'Turn up the volume.'],
+
+    /* --- 명사구: 수량·정도 --- */
+    'a couple of': ['I need a couple of days.', 'We met a couple of times.'],
+    'a number of': ['A number of people complained.', 'There are a number of options.'],
+    'a variety of': ['They offer a variety of courses.', 'It failed for a variety of reasons.'],
+    'a range of': ['We tested a range of options.', 'It covers a range of topics.'],
+    'a handful of': ['Only a handful of people showed up.', 'I have a handful of questions.'],
+    'a great deal of': ['It took a great deal of effort.', 'She has a great deal of experience.'],
+    'plenty of': ['There is plenty of time.', 'We had plenty of warning.'],
+    'the majority of': ['The majority of users never notice.', 'The majority of it was fine.'],
+    'the rest of': ['I will read the rest of it later.', 'The rest of the team agreed.'],
+    'a series of': ['We ran a series of tests.', 'It was a series of small mistakes.'],
+    'a piece of': ['That is a useful piece of advice.', 'He gave me a piece of paper.'],
+
+    /* --- 명사구: 추상 --- */
+    'a matter of': ['It is a matter of time.', 'That is a matter of opinion.'],
+    'a sense of': ['She has a strong sense of purpose.', 'It gave me a sense of relief.'],
+    'a lack of': ['The project failed from a lack of funding.', 'There is a lack of clarity.'],
+    'a form of': ['Silence is a form of answer.', 'It is a form of self-defence.'],
+    'a source of': ['Coffee is my main source of energy.', 'It became a source of conflict.'],
+    'the point of': ['That is the whole point of the exercise.', 'What is the point of waiting?'],
+    'the sake of': ['For the sake of clarity, I will repeat it.', 'Do it for the sake of the team.'],
+    'the result of': ['It was the result of years of work.', 'This is the result of bad planning.'],
+    'the impact of': ['We measured the impact of the change.', 'The impact of the delay was small.'],
+    'the role of': ['She played the role of mediator.', 'The role of luck is underrated.'],
+    'the value of': ['I learned the value of patience.', 'The value of the advice was clear.'],
+    'the beginning of': ['That was the beginning of the end.', 'At the beginning of the year.'],
+    'the end of': ['By the end of the day, it was done.', 'This is not the end of the story.'],
+
+    /* --- 명사 + 전치사 (한국인이 자주 틀리는 짝) --- */
+    'interest in': ['She showed real interest in the topic.', 'I lost interest in it quickly.'],
+    'reason for': ['There is no reason for panic.', 'The reason for the delay was weather.'],
+    'solution to': ['We found a solution to the problem.', 'There is no simple solution to it.'],
+    'approach to': ['I like her approach to teaching.', 'We need a new approach to this.'],
+    'effect on': ['It had no effect on the result.', 'Sleep has a big effect on focus.'],
+    'impact on': ['The change had an impact on sales.', 'It made an impact on me.'],
+    'increase in': ['We saw an increase in traffic.', 'There was an increase in costs.'],
+    'demand for': ['Demand for the product grew.', 'There is little demand for it.'],
+    'need for': ['There is no need for that.', 'The need for speed was obvious.'],
+    'access to': ['Students have access to the library.', 'We lost access to the server.'],
+    'response to': ['This is a response to your question.', 'His response to criticism was calm.'],
+    'attention to': ['She pays close attention to detail.', 'It drew attention to the issue.'],
+    'relationship with': ['He has a good relationship with his team.', 'Their relationship with risk changed.'],
+    'difference between': ['The difference between them is small.', 'Know the difference between the two.'],
+    'connection between': ['There is a connection between the two events.', 'I see no connection between them.'],
+    'advantage of': ['The main advantage of this is speed.', 'It has the advantage of being cheap.'],
+    'chance of': ['There is a good chance of rain.', 'The chance of failure is low.'],
+    'risk of': ['It reduces the risk of injury.', 'There is a risk of losing data.'],
+    'possibility of': ['We discussed the possibility of moving.', 'The possibility of error is real.']
   };
 
   var IRREG = {
@@ -465,8 +536,25 @@
   /* 표제어의 첫 단어는 아래 목록에 없으면 전부 동사로 보고 활용형을 만듭니다.
      (표제어를 추가할 때 동사 목록을 따로 관리하지 않아도 되도록) */
   var NON_VERB_HEAD = {};
-  'in as so at on for a kind no instead rather used supposed might'
+  'in as so at on for a an the kind no instead rather used supposed might plenty'
     .split(' ').forEach(function (w) { NON_VERB_HEAD[w] = 1; });
+
+  /* ---- 분리형 구동사 ----
+     "looked it up", "turned the offer down" 처럼 목적어가 동사와 불변화사 사이에
+     끼는 형태. 아무 말이나 끼워 넣으면 오탐이 늘어나므로
+     대명사이거나 관사로 시작하는 짧은 명사구만 허용합니다. */
+  var SEP_PARTS = {};
+  'up out off on in down over back away around through together'
+    .split(' ').forEach(function (p) { SEP_PARTS[p] = 1; });
+
+  var PRON = {}, DET = {};
+  'it them him her me us you this that these those'
+    .split(' ').forEach(function (w) { PRON[w] = 1; });
+  'the a an my your his her its our their some any'
+    .split(' ').forEach(function (w) { DET[w] = 1; });
+
+  var OBJ = '(?:it|them|him|her|me|us|you|this|that|these|those|'
+    + '(?:the|a|an|my|your|his|her|its|our|their|some|any)\\s+\\w+(?:\\s+\\w+)?)';
 
   /* 끝소리가 '자음+모음+자음'인 짧은 동사는 자음을 겹칩니다:
      pop→popped, drop→dropped, stop→stopped, plan→planned.
@@ -498,12 +586,17 @@
     + 'already|probably|certainly|definitely|actually|generally|usually|often|sometimes|'
     + 'even|almost|rather|pretty|totally|completely|absolutely))*';
 
+  /* 두 단어짜리 '동사 + 불변화사' 표제어는 목적어가 끼어드는 형태도 허용 */
+  function sepSlot(w, isVerb) {
+    return (isVerb && w.length === 2 && SEP_PARTS[w[1]]) ? '(?:' + OBJ + '\\s+)?' : '';
+  }
+
   var PHRASE_RE = Object.keys(BOOK).map(function (key) {
     var w = key.split(' ');
     var isVerb = !NON_VERB_HEAD[w[0]];
     var head = isVerb ? '(?:' + forms(w[0]).map(esc).join('|') + ')' : esc(w[0]);
     var rest = w.slice(1).map(esc).join('\\s+');
-    var body = rest ? (isVerb ? MID : '') + '\\s+' + rest : '';
+    var body = rest ? (isVerb ? MID : '') + '\\s+' + sepSlot(w, isVerb) + rest : '';
     return { key: key, re: new RegExp('\\b' + head + body + '\\b') };
   });
 
@@ -605,10 +698,27 @@
          found out·came back·met with 같은 불규칙 과거형도 잡힙니다. */
       var toks = low.trim().split(' ');
       for (var t = 0; t < toks.length - 1; t++) {
-        if (!PARTSET[toks[t + 1]]) continue;
         var vb = verbBase(toks[t]);
         if (!vb) continue;
-        var base = vb + ' ' + toks[t + 1];
+
+        var base = null;
+        if (PARTSET[toks[t + 1]]) {
+          base = vb + ' ' + toks[t + 1];          /* 붙어 있는 형태 */
+        } else {
+          /* 분리형: 동사 + 목적어(1~3단어) + 불변화사 */
+          for (var k = 2; k <= 4 && t + k < toks.length; k++) {
+            if (!PARTSET[toks[t + k]]) continue;
+            var obj = toks.slice(t + 1, t + k);
+            var cand = vb + ' ' + toks[t + k];
+            /* 대명사면 분리형 구동사가 거의 확실.
+               일반 명사구는 사전에 있는 구동사일 때만 인정합니다
+               ("walked the dog in the park" 이 "walk in" 이 되지 않도록) */
+            if ((obj.length === 1 && PRON[obj[0]]) ||
+                (DET[obj[0]] && obj.length <= 3 && BOOK[cand])) base = cand;
+            break;
+          }
+        }
+        if (!base) continue;
         /* 이 줄에서 이미 잡힌 표제어에 포함된 조합이면 건너뜁니다.
            BOOK 에 있다는 이유만으로 건너뛰지는 않습니다 — "spent too much on" 처럼
            사이에 목적어가 끼어 표제어 매칭이 실패한 경우를 여기서 건집니다. */
@@ -1541,8 +1651,11 @@
     } else {
       headAlt = '(?:\\b(?:' + forms(w[0]).map(esc).join('|') + ')\\b|' + CONTR + ')';
     }
-    /* 머리(be동사 등)는 없을 수도 있게 — 최소한 나머지 구문은 표시됩니다 */
-    return new RegExp('(?:' + headAlt + "\\s*(?:n['’]?t)?" + MID + '\\s+)?' + rest, 'gi');
+    /* 머리(be동사 등)는 없을 수도 있게 — 최소한 나머지 구문은 표시됩니다.
+       분리형이면 목적어까지 통째로 하이라이트됩니다 ("looked it up") */
+    var sep = (!NON_VERB_HEAD[w[0]] && w.length === 2 && SEP_PARTS[w[1]])
+      ? '(?:' + OBJ + '\\s+)?' : '';
+    return new RegExp('(?:' + headAlt + "\\s*(?:n['’]?t)?" + MID + '\\s+)?' + sep + rest, 'gi');
   }
 
   var PPRE = '(?:\\w+ed|' + PP.join('|') + ')';
