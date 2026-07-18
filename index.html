@@ -7,6 +7,7 @@
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
 <title>Harry's Insights</title>
 <meta name="description" content="경영, 기술, 인사이트 노트 아카이브">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
@@ -439,6 +440,7 @@
   footer a { color: var(--muted); }
 </style>
 <script src="theme.js?v=12"></script>
+<script src="english.js?v=1"></script>
 </head>
 <body>
 <div id="top-fade" aria-hidden="true"></div>
@@ -451,6 +453,7 @@
       <a href="#/about" data-nav="about">About me</a>
       <a href="#/insights" data-nav="insights">Insights</a>
       <a href="#/book-report" data-nav="book">Book report</a>
+      <a href="#/english" data-nav="english">English</a>
     </nav>
     <button id="menu-btn" aria-label="메뉴 열기"><span class="mb-bar"></span><span class="mb-bar"></span><span class="mb-bar"></span></button>
   </div>
@@ -625,6 +628,7 @@
     var h = location.hash;
     if (h === '#/about') return 'about';
     if (h === '#/book-report') return 'book';
+    if (h.indexOf('#/english') === 0) return 'english';
     if (h === '#/insights' || h.indexOf('#/post/') === 0) return 'insights';
     return null;
   }
@@ -747,6 +751,7 @@
       html += '</div>';
     }
     html += '<a href="#/book-report" class="m-link" data-nav="book">Book report</a>';
+    html += '<a href="#/english" class="m-link" data-nav="english">English</a>';
     $overlayNav.innerHTML = html;
     Array.prototype.forEach.call($overlayNav.querySelectorAll('.m-link'), function (a) {
       if (hasHover) {
@@ -985,6 +990,14 @@
     window.scrollTo(0, 0);
   }
 
+  function renderEnglish() {
+    if (!window.EnglishPage) {
+      $main.innerHTML = '<div class="status">english.js 를 불러오지 못했습니다.</div>';
+      return;
+    }
+    window.EnglishPage.render($main);
+  }
+
   function renderPost(path) {
     var post = posts.filter(function (p) { return p.path === path; })[0];
     $main.innerHTML = '<div class="status">글을 불러오는 중...</div>';
@@ -1016,6 +1029,14 @@
 
   function route() {
     var h = location.hash;
+    /* English 화면을 떠나면 플레이어와 타이머를 정리 */
+    if (window.EnglishPage && h.indexOf('#/english') !== 0) window.EnglishPage.destroy();
+    if (h.indexOf('#/english') === 0) {
+      renderEnglish();
+      updateNav();
+      closeDropdown();
+      return;
+    }
     if (h.indexOf('#/post/') === 0) {
       renderPost(decodeURIComponent(h.slice(7)));
     } else if (h === '#/about') {
