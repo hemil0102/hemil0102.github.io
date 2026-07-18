@@ -34,7 +34,16 @@
     + 'height:min(var(--engvh,46vh),calc(var(--engw,700px) * 0.5625));'
     + 'background:#000;border-radius:12px;overflow:hidden;border:1px solid var(--border)}'
   + '.eng-ratio iframe,.eng-ratio>div{position:absolute;inset:0;width:100%;height:100%}'
-  + '.eng-bar{display:flex;gap:4px;flex-wrap:wrap;align-items:center;padding:7px 0 0}'
+  + '.eng-bar{display:flex;gap:4px;flex-wrap:wrap;align-items:center;padding:7px 0 0;'
+    + 'position:relative}'
+  /* 설정 팝업 — 자주 안 쓰는 항목을 접어두어 툴바를 비웁니다 */
+  + '.eng-pop{position:absolute;right:0;top:calc(100% + 6px);z-index:20;'
+    + 'background:var(--card);border:1px solid var(--border);border-radius:10px;'
+    + 'padding:8px;min-width:236px;box-shadow:0 10px 28px rgba(0,0,0,.22)}'
+  + '.eng-row{display:flex;align-items:center;gap:8px;padding:5px 3px;font-size:.79rem}'
+  + '.eng-row>span:first-child{flex:1;color:var(--muted);white-space:nowrap}'
+  + '.eng-row select{flex:0 0 auto}'
+  + '.eng-caret{font-size:.6rem;opacity:.6;margin-left:3px}'
   + '.eng-bar .sp{flex:1}'
   + '.eng-chip{font-size:.72rem;color:var(--muted);padding:0 2px}'
   /* 자막은 자기 영역 안에서만 스크롤 — 영상 뒤로 흘러가지 않도록.
@@ -1388,6 +1397,7 @@
     q('#eng-pane-ph').hidden = tab !== 'ph';
     q('#eng-pane-wd').hidden = tab !== 'wd';
     q('#eng-pane-tn').hidden = tab !== 'tn';
+    store.set('tab', tab);
   }
 
   function openPanel(tab) {
@@ -1425,38 +1435,47 @@
   +     '<span class="eng-sep"></span>'
   +     '<button class="eng-btn" id="eng-ab" title="한 문장 무한 반복 (r)">A-B 반복</button>'
   +     '<button class="eng-btn" id="eng-hide" title="받아쓰기 연습 (h)">자막 가리기</button>'
-  +     '<button class="eng-btn on" id="eng-merge" title="잘린 자막을 문장 단위로 병합">문장 병합</button>'
-  +     '<button class="eng-btn" id="eng-phbtn" title="자주 쓰는 구문 추출">구문 추출</button>'
-  +     '<button class="eng-btn" id="eng-wdbtn" title="중급 이상 단어만 추출">단어 추출</button>'
-  +     '<button class="eng-btn" id="eng-tnbtn" title="시제별로 문장 모아보기">시제</button>'
+  +     '<button class="eng-btn" id="eng-extract" title="구문·단어·시제 추출">'
+  +       '추출<span class="eng-caret">▾</span></button>'
   +     '<span class="sp"></span>'
   +     '<span class="eng-chip" id="eng-status">자막을 불러오세요</span>'
-  +     '<span class="eng-sep"></span>'
-  +     '<button class="eng-btn" data-fs="-1" title="글자 작게">A−</button>'
-  +     '<button class="eng-btn" data-fs="1" title="글자 크게">A+</button>'
-  +     '<select class="eng-sel" id="eng-lead" title="자막을 클릭할 때 앞에 두는 여백">'
-  +       '<option value="0">여백 0초</option>'
-  +       '<option value="1">여백 1초</option>'
-  +       '<option value="2" selected>여백 2초</option>'
-  +       '<option value="3">여백 3초</option>'
-  +       '<option value="4">여백 4초</option>'
-  +     '</select>'
-  +     '<select class="eng-sel" id="eng-size" title="영상 크기">'
-  +       '<option value="s">영상 작게</option>'
-  +       '<option value="m" selected>영상 보통</option>'
-  +       '<option value="l">영상 크게</option>'
-  +     '</select>'
-  +     '<select class="eng-sel" id="eng-layout" title="영상과 자막 배치">'
-  +       '<option value="auto" selected>배치 자동</option>'
-  +       '<option value="split">좌우 분할</option>'
-  +       '<option value="stack">상하 배치</option>'
-  +     '</select>'
-  +     '<select class="eng-sel" id="eng-dict" title="단어 클릭 시 열 사전">'
-  +       '<option value="https://en.dictionary.cambridge.org/dictionary/english-korean/">Cambridge</option>'
-  +       '<option value="https://dict.naver.com/dict.search?query=">네이버</option>'
-  +       '<option value="https://www.merriam-webster.com/dictionary/">M-W</option>'
-  +       '<option value="https://www.ldoceonline.com/dictionary/">Longman</option>'
-  +     '</select>'
+  +     '<button class="eng-btn" id="eng-setbtn" title="표시 설정">'
+  +       '설정<span class="eng-caret">▾</span></button>'
+  /* ---- 설정 팝업 ---- */
+  +     '<div class="eng-pop" id="eng-pop" hidden>'
+  +       '<div class="eng-row"><span>자막 글자 크기</span>'
+  +         '<button class="eng-btn" data-fs="-1">A−</button>'
+  +         '<button class="eng-btn" data-fs="1">A+</button></div>'
+  +       '<div class="eng-row"><span>자막 클릭 시 시작점</span>'
+  +         '<select class="eng-sel" id="eng-lead">'
+  +           '<option value="0">그 지점부터</option>'
+  +           '<option value="1">1초 앞부터</option>'
+  +           '<option value="2" selected>2초 앞부터</option>'
+  +           '<option value="3">3초 앞부터</option>'
+  +           '<option value="4">4초 앞부터</option>'
+  +         '</select></div>'
+  +       '<div class="eng-row"><span>영상 크기</span>'
+  +         '<select class="eng-sel" id="eng-size">'
+  +           '<option value="s">작게</option>'
+  +           '<option value="m" selected>보통</option>'
+  +           '<option value="l">크게</option>'
+  +         '</select></div>'
+  +       '<div class="eng-row"><span>영상·자막 배치</span>'
+  +         '<select class="eng-sel" id="eng-layout">'
+  +           '<option value="auto" selected>자동</option>'
+  +           '<option value="split">좌우 분할</option>'
+  +           '<option value="stack">위아래</option>'
+  +         '</select></div>'
+  +       '<div class="eng-row"><span>단어 클릭 시 사전</span>'
+  +         '<select class="eng-sel" id="eng-dict">'
+  +           '<option value="https://en.dictionary.cambridge.org/dictionary/english-korean/">Cambridge</option>'
+  +           '<option value="https://dict.naver.com/dict.search?query=">네이버</option>'
+  +           '<option value="https://www.merriam-webster.com/dictionary/">M-W</option>'
+  +           '<option value="https://www.ldoceonline.com/dictionary/">Longman</option>'
+  +         '</select></div>'
+  +       '<div class="eng-row"><span>잘린 자막 문장으로 합치기</span>'
+  +         '<button class="eng-btn on" id="eng-merge">켬</button></div>'
+  +     '</div>'
   +   '</div>'
   + '</div>'
   + '<div id="eng-tx" class="eng-tx">'
@@ -1531,7 +1550,7 @@
   + '<input type="file" id="eng-fileinput" accept=".srt,.vtt,.txt" hidden>';
 
   var dragHandlers = [];
-  var onResize = null;
+  var onResize = null, onDocClick = null;
 
   function render(container) {
     injectCSS();
@@ -1626,6 +1645,7 @@
     q('#eng-merge').addEventListener('click', function (e) {
       merge = !merge;
       e.target.classList.toggle('on', merge);
+      e.target.textContent = merge ? '켬' : '끔';
       if (rawCues.length) renderCues();
     });
     q('#eng-ab').addEventListener('click', function () {
@@ -1634,10 +1654,30 @@
       paintAB();
       if (abArm) q('#eng-status').textContent = '반복할 자막 줄을 클릭하세요';
     });
-    q('#eng-phbtn').addEventListener('click', function () { openPanel('ph'); });
-    q('#eng-wdbtn').addEventListener('click', function () { openPanel('wd'); });
-    q('#eng-tnbtn').addEventListener('click', function () { openPanel('tn'); });
+    /* 추출: 하나의 버튼으로 묶고, 마지막에 보던 탭으로 엽니다 */
+    q('#eng-extract').addEventListener('click', function () {
+      var p = q('#eng-ph');
+      if (p.classList.contains('open')) p.classList.remove('open');
+      else openPanel(store.get('tab', 'ph'));
+    });
     q('#eng-tn').addEventListener('change', renderTenseList);
+
+    /* 설정 팝업 */
+    q('#eng-setbtn').addEventListener('click', function (e) {
+      e.stopPropagation();
+      var pop = q('#eng-pop');
+      pop.hidden = !pop.hidden;
+      q('#eng-setbtn').classList.toggle('on', !pop.hidden);
+    });
+    q('#eng-pop').addEventListener('click', function (e) { e.stopPropagation(); });
+    onDocClick = function () {
+      var pop = q('#eng-pop');
+      if (pop && !pop.hidden) {
+        pop.hidden = true;
+        q('#eng-setbtn').classList.remove('on');
+      }
+    };
+    document.addEventListener('click', onDocClick);
     q('#eng-phclose').addEventListener('click', function () { q('#eng-ph').classList.remove('open'); });
     Array.prototype.forEach.call(root.querySelectorAll('.eng-tabs .eng-btn'), function (b) {
       b.addEventListener('click', function () { showTab(b.getAttribute('data-tab')); });
@@ -1691,6 +1731,10 @@
       window.removeEventListener('resize', onResize);
       window.removeEventListener('orientationchange', onResize);
       onResize = null;
+    }
+    if (onDocClick) {
+      document.removeEventListener('click', onDocClick);
+      onDocClick = null;
     }
     if (player && player.destroy) { try { player.destroy(); } catch (e) {} }
     player = null; ready = false;
