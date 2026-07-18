@@ -366,7 +366,39 @@
     'argue with': ['Don\'t argue with the referee.', 'He argued with his editor.'],
     'differ from': ['This differs from the original.', 'Results differed from expectations.'],
     'object to': ['She objected to the wording.', 'They objected to the delay.'],
-    'approve of': ['His parents approved of the plan.', 'I don\'t approve of that.']
+    'approve of': ['His parents approved of the plan.', 'I don\'t approve of that.'],
+
+    /* --- 실제 강연·대화에서 자주 나오는데 빠져 있던 구동사 --- */
+    'pop out': ['A window popped out of nowhere.', 'The name just popped out at me.'],
+    'find out': ['I found out later that it was wrong.', 'Let me find out and call you back.'],
+    'screw up': ['I screwed up the timing.', 'Everyone screws up sometimes.'],
+    'fall out': ['They fell out over money.', 'The screw fell out of the hinge.'],
+    'stumble into': ['I stumbled into this job by accident.', 'She stumbled into the answer.'],
+    'stumble upon': ['We stumbled upon an old letter.', 'He stumbled upon the solution.'],
+    'graduate from': ['She graduated from college last year.', 'He never graduated from high school.'],
+    'drop out': ['He dropped out after one semester.', 'Two runners dropped out early.'],
+    'learn about': ['I learned about it from a friend.', 'We learn about history in school.'],
+    'think about': ['Let me think about it overnight.', 'She thought about quitting.'],
+    'apologize for': ['He apologized for the delay.', 'I want to apologize for yesterday.'],
+    'come back': ['She came back a week later.', 'The pain keeps coming back.'],
+    'meet with': ['I met with the team this morning.', 'He met with resistance.'],
+    'live with': ['You learn to live with it.', 'She lives with her sister.'],
+    'spend on': ['We spent too much on the launch.', 'He spends hours on details.'],
+    'side with': ['The board sided with the founder.', 'Don\'t side with either of them.'],
+    'move on': ['It\'s time to move on.', 'She moved on to a bigger role.'],
+    'start over': ['We had to start over from scratch.', 'You can always start over.'],
+    'get through': ['I barely got through the week.', 'We got through it together.'],
+    'run out of': ['We ran out of time.', 'They ran out of excuses.'],
+    'take off': ['The plane took off late.', 'Her career really took off.'],
+    'look back': ['Looking back, it makes sense.', 'She never looked back.'],
+    'turn around': ['He turned the company around.', 'Turn around and look.'],
+    'sign up': ['I signed up for the newsletter.', 'Sign up before Friday.'],
+    'give back': ['He wanted to give something back.', 'Give back what you borrowed.'],
+    'settle down': ['They settled down in Busan.', 'Settle down and listen.'],
+    'grow up': ['I grew up near the sea.', 'Kids grow up fast.'],
+    'get over': ['It took months to get over it.', 'She got over the loss.'],
+    'hand over': ['He handed over the keys.', 'They handed over control.'],
+    'pass away': ['His father passed away last spring.', 'She passed away peacefully.']
   };
 
   var IRREG = {
@@ -407,7 +439,27 @@
     seek: ['seek','seeks','sought','seeking'],
     win: ['win','wins','won','winning'],
     sit: ['sit','sits','sat','sitting'],
-    cost: ['cost','costs','costing']
+    cost: ['cost','costs','costing'],
+    fall: ['fall','falls','fell','fallen','falling'],
+    grow: ['grow','grows','grew','grown','growing'],
+    meet: ['meet','meets','met','meeting'],
+    eat: ['eat','eats','ate','eaten','eating'],
+    drive: ['drive','drives','drove','driven','driving'],
+    ride: ['ride','rides','rode','ridden','riding'],
+    rise: ['rise','rises','rose','risen','rising'],
+    shake: ['shake','shakes','shook','shaken','shaking'],
+    steal: ['steal','steals','stole','stolen','stealing'],
+    freeze: ['freeze','freezes','froze','frozen','freezing'],
+    hide: ['hide','hides','hid','hidden','hiding'],
+    blow: ['blow','blows','blew','blown','blowing'],
+    fly: ['fly','flies','flew','flown','flying'],
+    draw: ['draw','draws','drew','drawn','drawing'],
+    sing: ['sing','sings','sang','sung','singing'],
+    ring: ['ring','rings','rang','rung','ringing'],
+    sleep: ['sleep','sleeps','slept','sleeping'],
+    dig: ['dig','digs','dug','digging'],
+    shoot: ['shoot','shoots','shot','shooting'],
+    fight: ['fight','fights','fought','fighting']
   };
 
   /* 표제어의 첫 단어는 아래 목록에 없으면 전부 동사로 보고 활용형을 만듭니다.
@@ -416,16 +468,25 @@
   'in as so at on for a kind no instead rather used supposed might'
     .split(' ').forEach(function (w) { NON_VERB_HEAD[w] = 1; });
 
+  /* 끝소리가 '자음+모음+자음'인 짧은 동사는 자음을 겹칩니다:
+     pop→popped, drop→dropped, stop→stopped, plan→planned.
+     이 규칙이 없어서 poped·droped 가 만들어졌고 pop out 이 통째로 누락됐습니다. */
+  function dbl(v) {
+    return /^[a-z]*[^aeiou][aeiou][bdgklmnprt]$/.test(v) && v.length <= 5
+      ? v + v.slice(-1) : null;
+  }
+
   function forms(v) {
     if (IRREG[v]) return IRREG[v];
-    var f = {};
+    var f = {}, d = dbl(v);
     f[v] = 1;
     f[/[sxz]$|ch$|sh$|o$/.test(v) ? v + 'es'
       : /[^aeiou]y$/.test(v) ? v.slice(0, -1) + 'ies' : v + 's'] = 1;
     if (/[^aeiou]y$/.test(v)) f[v.slice(0, -1) + 'ied'] = 1;
     else if (/e$/.test(v)) f[v + 'd'] = 1;
+    else if (d) f[d + 'ed'] = 1;
     else f[v + 'ed'] = 1;
-    f[/e$/.test(v) ? v.slice(0, -1) + 'ing' : v + 'ing'] = 1;
+    f[/e$/.test(v) ? v.slice(0, -1) + 'ing' : (d ? d + 'ing' : v + 'ing')] = 1;
     return Object.keys(f);
   }
 
@@ -449,12 +510,63 @@
   var VERBS = 'get|go|come|take|put|make|look|turn|bring|run|set|give|pick|hold|break|call|carry|'
     + 'cut|figure|find|keep|move|pass|pay|point|pull|push|show|sort|stand|throw|try|work|write|'
     + 'check|clear|close|deal|drop|end|fill|hand|head|leave|open|play|reach|save|send|settle|'
-    + 'sign|speak|start|stay|step|stick|switch|talk|team|think|wake|walk|warm|wear|wind|wipe|wrap';
-  /* 'to' 는 일반 패턴에서 제외합니다 — 부정사 표지라서 "go to", "want to" 같은
-     공부할 가치 없는 조합이 대량으로 잡힙니다.
-     "belong to", "lead to" 처럼 쓸모 있는 것은 사전 표제어로 따로 있습니다. */
-  var PARTS = 'up|out|off|on|in|down|over|through|away|back|around|about|into|along|apart|aside|'
-    + 'forward|together|by|for|with|at|after|ahead|of|from|against|upon|toward|towards';
+    + 'sign|speak|start|stay|step|stick|switch|talk|team|think|wake|walk|warm|wear|wind|wipe|wrap|'
+    /* 실제 자막 점검에서 빠져 있던 동사들 */
+    + 'pop|screw|stumble|graduate|apologize|apologise|learn|live|spend|side|grow|hang|jump|kick|'
+    + 'knock|lay|let|lock|log|mess|note|pile|plug|point|print|read|ring|rip|roll|rule|rush|scale|'
+    + 'seek|sell|shake|shut|sit|slow|sneak|sort|split|spread|stack|stare|storm|strike|swap|sweep|'
+    + 'tear|tie|track|trade|type|use|wait|wash|watch|weigh|win|wipe|zoom|back|bail|bank|bear|beat|'
+    + 'blow|boil|bounce|branch|brush|build|burn|buy|catch|cheer|chop|clean|climb|count|cover|cross|'
+    + 'die|dig|dive|do|draw|dress|drive|eat|fade|fall|feel|fight|fit|fix|flip|float|fly|fold|'
+    + 'follow|freeze|hurry|iron|join|land|laugh|lean|lie|lift|light|line|listen|load|mark|match|'
+    + 'meet|melt|mix|order|pack|paint|park|phone|pin|plan|pour|press|pump|reply|rest|ride|rise|'
+    + 'round|scratch|scream|search|see|seem|serve|shoot|sing|sink|sleep|slide|smooth|sound|spell|'
+    + 'stir|stop|swing|tidy|touch|train|tune|wander|warn|wave|wear|wonder';
+
+  /* 일반 패턴은 지금까지 규칙 활용(-ed/-ing)만 읽어서, found out·came back·met with 처럼
+     불규칙 과거형이 통째로 누락됐습니다. 표면형 → 원형 표를 만들어 해결합니다. */
+  var VERBSET = {}, PARTSET = {}, SURF2BASE = {};
+  VERBS.split('|').forEach(function (v) { VERBSET[v] = 1; });
+  /* PARTSET 은 PARTS 정의 뒤에서 채웁니다 (아래 참조) */
+
+  Object.keys(IRREG).forEach(function (b) {
+    IRREG[b].forEach(function (f) { if (!SURF2BASE[f]) SURF2BASE[f] = b; });
+  });
+  /* IRREG 에 없는 흔한 불규칙형 보강 */
+  ('fell:fall fallen:fall grew:grow grown:grow blew:blow blown:blow drew:draw drawn:draw '
+  + 'threw:throw thrown:throw flew:fly flown:fly ate:eat eaten:eat drove:drive driven:drive '
+  + 'rode:ride ridden:ride rose:rise risen:rise sang:sing sung:sing sank:sink sunk:sink '
+  + 'shook:shake shaken:shake shot:shoot slept:sleep slid:slide swept:sweep swung:swing '
+  + 'tore:tear torn:tear woke:wake woken:wake wore:wear worn:wear wrote:write written:write '
+  + 'dug:dig dove:dive froze:freeze frozen:freeze knelt:kneel lit:light laid:lay lay:lie '
+  + 'beat:beat beaten:beat burnt:burn learnt:learn read:read fit:fit split:split spread:spread '
+  + 'struck:strike stuck:stick swam:swim').split(' ').forEach(function (pair) {
+    var kv = pair.split(':');
+    if (!SURF2BASE[kv[0]]) SURF2BASE[kv[0]] = kv[1];
+  });
+
+  /* 표면형에서 원형 추정 — 불규칙표를 먼저 보고, 없으면 규칙 어미를 벗깁니다 */
+  function verbBase(w) {
+    if (VERBSET[w]) return w;
+    if (SURF2BASE[w] && VERBSET[SURF2BASE[w]]) return SURF2BASE[w];
+    var cand = [];
+    if (/ied$/.test(w)) cand.push(w.slice(0, -3) + 'y');
+    if (/ing$/.test(w)) cand.push(w.slice(0, -3), w.slice(0, -3) + 'e');
+    if (/ed$/.test(w)) cand.push(w.slice(0, -2), w.slice(0, -1));
+    if (/es$/.test(w)) cand.push(w.slice(0, -2));
+    if (/s$/.test(w) && !/ss$/.test(w)) cand.push(w.slice(0, -1));
+    var dbl = w.replace(/([bdgklmnprt])\1(ed|ing)$/, '$1');
+    if (dbl !== w) cand.push(dbl);
+    for (var i = 0; i < cand.length; i++) if (VERBSET[cand[i]]) return cand[i];
+    return null;
+  }
+  /* 일반 패턴에 쓰는 불변화사는 '진짜 구동사를 만드는 것'으로 한정합니다.
+     of·for·with·to 같은 전치사를 넣으면 "turn of the century", "cover of",
+     "go to" 처럼 구동사가 아닌 명사구가 대량으로 딸려옵니다.
+     "consist of", "belong to", "apply for" 등은 사전 표제어로 따로 있습니다. */
+  var PARTS = 'up|out|off|on|in|down|over|through|away|back|around|into|along|apart|aside|'
+    + 'forward|together|ahead';
+  PARTS.split('|').forEach(function (p) { PARTSET[p] = 1; });
 
   /* 축약형을 풀어야 be 구문이 잡힙니다: "it's sort of" → "it is sort of" */
   function expand(s) {
@@ -488,13 +600,22 @@
       });
       hits.forEach(function (k) { add(k, i); });
 
-      var re = new RegExp('\\b(' + VERBS + ')(|s|ed|ing|d|es)?\\s+(' + PARTS + ')\\b', 'g');
-      var m;
-      while ((m = re.exec(low))) {
-        var base = m[1] + ' ' + m[3];
-        /* 이미 잡힌 표제어 안에 들어 있는 조합이면 건너뜀
-           ("be sort of" 가 잡혔는데 "sort of" 를 또 넣지 않도록) */
-        if (!BOOK[base] && !hits.some(function (k) { return k.indexOf(base) >= 0; })) add(base, i);
+      /* 사전에 없는 구동사도 포착.
+         정규식 대신 토큰을 훑으며 원형을 되돌리므로, 규칙 활용뿐 아니라
+         found out·came back·met with 같은 불규칙 과거형도 잡힙니다. */
+      var toks = low.trim().split(' ');
+      for (var t = 0; t < toks.length - 1; t++) {
+        if (!PARTSET[toks[t + 1]]) continue;
+        var vb = verbBase(toks[t]);
+        if (!vb) continue;
+        var base = vb + ' ' + toks[t + 1];
+        /* 이 줄에서 이미 잡힌 표제어에 포함된 조합이면 건너뜁니다.
+           BOOK 에 있다는 이유만으로 건너뛰지는 않습니다 — "spent too much on" 처럼
+           사이에 목적어가 끼어 표제어 매칭이 실패한 경우를 여기서 건집니다. */
+        if (hits.indexOf(base) < 0
+            && !hits.some(function (k) { return k !== base && k.indexOf(base) >= 0; })) {
+          add(base, i);
+        }
       }
     });
 
