@@ -37,7 +37,13 @@
   + '.eng-bar{display:flex;gap:4px;flex-wrap:wrap;align-items:center;padding:7px 0 0}'
   + '.eng-bar .sp{flex:1}'
   + '.eng-chip{font-size:.72rem;color:var(--muted);padding:0 2px}'
-  + '.eng-tx{padding:12px 0 60vh}'
+  /* 자막은 자기 영역 안에서만 스크롤 — 영상 뒤로 흘러가지 않도록.
+     높이(--engtxh)는 JS 가 실제 여백을 재서 넣습니다.
+     overscroll-behavior:contain → 끝까지 스크롤해도 페이지가 딸려 움직이지 않음 */
+  + '.eng-tx{padding:12px 2px 30vh 0;max-height:var(--engtxh,52vh);'
+    + 'overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}'
+  + '.eng-tx::-webkit-scrollbar{width:8px}'
+  + '.eng-tx::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}'
   + '.eng-cue{display:flex;gap:12px;padding:10px 12px;border-radius:10px;line-height:1.7;'
     + 'font-size:var(--efs);cursor:pointer;border-left:3px solid transparent;transition:background .12s}'
   + '.eng-cue:hover{background:var(--card)}'
@@ -76,9 +82,7 @@
      (기기별 실제 뷰포트가 제각각이라 고정 임계값은 빗나갑니다) */
   + '.eng.split .eng-body{display:flex;gap:16px;align-items:flex-start}'
   + '.eng.split .eng-stick{flex:0 0 var(--engcol,54%);min-width:0;padding-bottom:0}'
-  + '.eng.split .eng-tx{flex:1;min-width:0;padding:0 0 20px;'
-  +   'max-height:calc(100dvh - var(--header-h,52px) - 46px);'
-  +   'overflow-y:auto;-webkit-overflow-scrolling:touch}'
+  + '.eng.split .eng-tx{flex:1;min-width:0;padding:0 2px 30vh 0}'
   /* 분할일 때 영상 크기는 칸 너비가 결정 (화면 밖으로 나가지 않게 상한만 둠) */
   + '.eng.split .eng-ratio{height:calc(var(--engw,400px) * 0.5625);'
   +   'max-height:calc(100dvh - var(--header-h,52px) - 130px)}'
@@ -433,6 +437,43 @@
     var old = q('.eng-err');
     if (old) old.remove();
     player.loadVideoById(id);
+    autoFetchSubs(id);
+  }
+
+  /* ---------------------------------------------- 자막 자동 추출
+     같은 주소에서 subserver.py 가 돌고 있으면 yt-dlp 로 자막을 뽑아 바로 넣어줍니다.
+     서버가 없으면(예: GitHub Pages 그대로 접속) 조용히 드래그 방식으로 돌아갑니다.
+        200 → VTT 본문
+        204 → 이 영상에 영어 자막 없음
+        503 → 서버는 있는데 yt-dlp 가 없음
+        그 외/실패 → 로컬 서버가 없음                                        */
+  var fetching = false;
+
+  function autoFetchSubs(id) {
+    if (fetching) return;
+    var st = q('#eng-status');
+    if (!st) return;
+    fetching = true;
+    st.textContent = '자막 찾는 중…';
+
+    fetch('api/subs?v=' + encodeURIComponent(id), { cache: 'no-store' })
+      .then(function (r) {
+        if (r.status === 204) throw new Error('no-subs');
+        if (r.status === 503) throw new Error('no-ytdlp');
+        if (!r.ok) throw new Error('no-server');
+        return r.text();
+      })
+      .then(function (t) {
+        fetching = false;
+        useSubs(t);                       // 성공 → 상태줄은 useSubs 가 갱신
+      })
+      .catch(function (e) {
+        fetching = false;
+        st.textContent =
+          e.message === 'no-subs'  ? '이 영상에는 영어 자막이 없습니다.' :
+          e.message === 'no-ytdlp' ? 'yt-dlp 가 설치되어 있지 않습니다 (brew install yt-dlp)' :
+                                     '자막 파일을 드래그하세요 — 자동 추출은 로컬 서버에서만 됩니다';
+      });
   }
 
   /* ----------------------------------------------------------- 싱크 */
@@ -482,6 +523,18 @@
     if (!root) return;
     var v = root.querySelector('.eng-vid');
     if (v && v.clientWidth) root.style.setProperty('--engw', v.clientWidth + 'px');
+    syncHeight();
+  }
+
+  /* 자막 칸이 화면 아래 끝까지만 차지하도록 실제 높이를 계산.
+     → 페이지 자체는 스크롤되지 않고, 자막만 자기 영역에서 움직입니다. */
+  function syncHeight() {
+    if (!root) return;
+    var tx = q('#eng-tx');
+    if (!tx) return;
+    var top = tx.getBoundingClientRect().top;
+    var h = Math.max(140, window.innerHeight - top - 14);
+    root.style.setProperty('--engtxh', Math.round(h) + 'px');
   }
 
   var SIZES = {
@@ -557,6 +610,7 @@
     q('#eng-status').textContent =
       cues.length + '개 자막 · ' + S(cues.length ? cues[cues.length - 1].e : 0);
     buildPhrases();
+    requestAnimationFrame(syncHeight);
   }
 
   function setAB(i) {
@@ -659,9 +713,9 @@
   + '</div>'
   + '<div id="eng-tx" class="eng-tx">'
   +   '<div class="eng-empty">'
-  +     '유튜브 URL 을 넣고 <b>영상 로드</b> → 자막 파일(<b>.srt</b>/<b>.vtt</b>)을 여기에 드래그하세요.<br>'
-  +     '<span style="font-size:.85em">터미널에서 <code>yt-dlp --write-auto-sub --sub-langs en '
-  +     '--skip-download --convert-subs vtt &lt;URL&gt;</code> 로 자막을 뽑을 수 있습니다.</span>'
+  +     '유튜브 URL 을 넣고 <b>영상 로드</b> — 자막 파일(<b>.srt</b>/<b>.vtt</b>)을 여기에 드래그해도 됩니다.<br>'
+  +     '<span style="font-size:.85em">저장소 폴더에서 <code>python3 subserver.py</code> 를 켜고 '
+  +     '<b>localhost:8787</b> 로 접속하면 자막이 <b>자동으로</b> 붙습니다.</span>'
   +   '</div>'
   + '</div>'
   + '</div>'   /* .eng-body 닫기 */
