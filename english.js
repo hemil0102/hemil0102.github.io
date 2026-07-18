@@ -68,6 +68,11 @@
     + 'z-index:12;transform:translateX(100%);transition:transform .25s}'
   + '.eng-ph.open{transform:none}'
   + '.eng-ph h3{font-size:1rem;margin-bottom:6px}'
+  + '.eng-tabs{display:flex;gap:5px;margin-bottom:10px}'
+  + '.eng-lv{display:inline-block;min-width:22px;text-align:center;font-size:.68rem;'
+    + 'font-weight:700;padding:1px 5px;border-radius:4px;margin-right:6px;'
+    + 'background:var(--accent-light);color:var(--accent)}'
+  + '.eng-lv.c1{background:var(--accent);color:#fff}'
   + '.eng-note{font-size:.78rem;color:var(--muted);line-height:1.7;margin:8px 0 14px}'
   + '.eng-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;'
     + 'padding:11px;margin-bottom:9px;font-size:.83rem;line-height:1.7}'
@@ -339,11 +344,313 @@
       .slice(0, 60);
   }
 
+  /* ==========================================================================
+     단어 추출 — 빈도 기반 레벨 추정
+     A1/A2 = 기초, B1 = 중급, B2 = 중상급, 목록에 없으면 C1(고급)으로 봅니다.
+     CEFR 공식 등급이 아니라 빈도대 기반 추정치입니다.
+     ========================================================================== */
+  var LV_A = ('a about above across after again against all almost alone along already also '
+  + 'although always am among amount an and angry animal another answer any anyone anything '
+  + 'appear apple april are area arm around arrive art as ask at august aunt autumn away baby '
+  + 'back bad bag ball bank bath be beach beautiful because become bed bedroom been before '
+  + 'begin behind believe below beside best better between big bike bird birthday black blue '
+  + 'board boat body book boot bored boring born borrow both bottle bottom box boy bread break '
+  + 'breakfast bring brother brown build building bus business busy but buy by cake call camera '
+  + 'can car card care careful carry case cat catch center centre century certain chair chance '
+  + 'change cheap check cheese chicken child children chocolate choose church cinema city class '
+  + 'classroom clean clear climb clock close clothes cloud club coat coffee cold college color '
+  + 'colour come comfortable common company complete computer concert continue cook cool copy '
+  + 'corner correct cost could country couple course cousin cover cow crazy cream create cross '
+  + 'cry cup cut dad dance danger dangerous dark date daughter day dead dear december decide '
+  + 'deep degree delicious depend describe desk detail dictionary die difference different '
+  + 'difficult dinner direction dirty discuss dish do doctor dog dollar door double down draw '
+  + 'dream dress drink drive driver drop dry during each ear early earth east easy eat egg eight '
+  + 'either else email end enemy engine english enjoy enough enter equal especially even evening '
+  + 'event ever every everybody everyone everything everywhere exactly example excellent except '
+  + 'excited exciting excuse exercise expect expensive experience explain eye face fact factory '
+  + 'fail fall false family famous fantastic far farm fashion fast fat father favorite favourite '
+  + 'feel feeling female few field fight fill film final finally find fine finger finish fire '
+  + 'first fish fit five fix flat floor flower fly follow food foot football for foreign forest '
+  + 'forget fork form four free fresh friday friend friendly from front fruit full fun funny '
+  + 'furniture future game garden gas gate general get gift girl give glad glass go goal gold '
+  + 'good goodbye grandfather grandmother grass gray great green grey ground group grow guess '
+  + 'guest guitar guy hair half hall hand happen happy hard hat hate have he head health healthy '
+  + 'hear heart heat heavy hello help her here hers herself hi high hill him himself his history '
+  + 'hit hobby hold holiday home homework hope horse hospital hot hotel hour house how however '
+  + 'hundred hungry hurry hurt husband ice idea if ill important in include increase indeed '
+  + 'inside instead interest interested interesting international internet into introduce invite '
+  + 'is island it its itself jacket january job join joke journey juice july jump june just keep '
+  + 'key kill kind king kitchen knife know lady lake lamp land language large last late later '
+  + 'laugh law lazy lead learn leave left leg lemon lend length less lesson let letter level '
+  + 'library lie life light like line lion lip list listen little live living local lock lonely '
+  + 'long look lose lot loud love low lucky lunch machine magazine main make male man many map '
+  + 'march mark market marry match may maybe me meal mean meat medicine meet member memory men '
+  + 'menu message metal meter method middle might mile milk million mind mine minute mirror miss '
+  + 'mistake mix mobile modern moment monday money monkey month moon more morning most mother '
+  + 'mountain mouse mouth move movie much museum music must my myself name narrow national '
+  + 'nature near nearly necessary neck need neighbor neighbour neither nervous never new news '
+  + 'newspaper next nice night nine no noise none noon nor normal north nose not note nothing '
+  + 'notice november now number nurse object ocean october of off offer office often oil old on '
+  + 'once one onion only open opinion opposite or orange order other our ours ourselves out '
+  + 'outside over own page pain paint pair paper parent park part particular partner party pass '
+  + 'passenger past pay peace pen pencil people pepper perfect perhaps period person pet phone '
+  + 'photo piano pick picture piece pig pink place plan plane plant plastic plate play player '
+  + 'please pleasure pocket point police polite pool poor popular position possible post potato '
+  + 'practice prefer prepare present president press pretty price print private probably problem '
+  + 'produce product program project promise protect proud public pull purple purpose push put '
+  + 'quality quarter queen question quick quiet quite radio rain raise reach read ready real '
+  + 'realize really reason receive recent record red remember remove rent repeat reply report '
+  + 'rest restaurant result return rice rich ride right ring rise river road rock room round rule '
+  + 'run sad safe salad salt same sand saturday save say school science sea search season seat '
+  + 'second secret see seem sell send sentence september serious serve service set seven several '
+  + 'shall shape share sharp she sheep sheet shine ship shirt shoe shop short should shoulder '
+  + 'shout show shower shut sick side sign silver simple since sing single sister sit situation '
+  + 'six size skill skin skirt sky sleep slow small smell smile smoke snow so soap soccer social '
+  + 'sock soft some somebody someone something sometimes son song soon sorry sound soup south '
+  + 'space speak special speed spell spend spoon sport spring stand star start state station stay '
+  + 'steal step stick still stone stop store storm story straight strange street strong student '
+  + 'study stupid subject succeed such sudden sugar suggest suit summer sun sunday supermarket '
+  + 'sure surprise sweet swim table take talk tall taste taxi tea teach teacher team telephone '
+  + 'television tell temperature ten tennis terrible test than thank that the theater theatre '
+  + 'their theirs them themselves then there these they thick thin thing think third thirsty '
+  + 'this those though thought thousand three throat through throw thursday ticket tidy tie time '
+  + 'tired to today together toilet tomato tomorrow tonight too tooth top total touch tour towel '
+  + 'town toy traffic train travel tree trip trouble trousers true trust try tuesday turn twelve '
+  + 'twenty twice two type ugly umbrella uncle under understand university until up upon us use '
+  + 'useful usual usually vegetable very video view village visit voice wait wake walk wall want '
+  + 'war warm wash watch water way we weak wear weather wednesday week weekend weight welcome '
+  + 'well west wet what when where whether which while white who whole whom whose why wide wife '
+  + 'wild will win wind window wine winter wish with without woman women wonder wonderful wood '
+  + 'word work world worry worse worst would write wrong year yellow yes yesterday yet you young '
+  + 'your yours yourself zero').split(' ');
+
+  var LV_B1 = ('ability abroad absolutely accept accident according account achieve act action '
+  + 'active activity actual actually add addition admire admit advance advantage adventure '
+  + 'advertise advice affect afford afraid agency agree agreement ahead aim allow alternative '
+  + 'amazing ambition announce annoy anxious apologize apparently apply appointment appreciate '
+  + 'approach appropriate approve argue argument arrange arrest article ashamed aside aspect '
+  + 'assist assume atmosphere attack attempt attend attention attitude attract audience author '
+  + 'authority available average avoid award aware background balance ban basic basis battle '
+  + 'behave behavior belief benefit besides beyond bill bit blame blood bother brain branch brave '
+  + 'breath breathe brief brilliant broad budget burn bury calm campaign cancel candidate capable '
+  + 'capacity capital career careless cash cause ceiling celebrate challenge championship '
+  + 'character charge charity chase chat cheat cheer chemical chief circle citizen claim clerk '
+  + 'client climate collect column combine comment commercial commit committee communicate '
+  + 'community compare compete competition complain complex concentrate concern conclusion '
+  + 'condition conference confidence confident confirm conflict confuse connect connection '
+  + 'consider constant contact contain content contract contrast contribute control convenient '
+  + 'conversation convince cope count courage crash creative credit crime criminal crisis '
+  + 'criticize crowd cruel cultural culture curious current custom customer damage debate debt '
+  + 'decade decision declare decorate decrease defeat defend define definitely delay deliver '
+  + 'demand democracy demonstrate deny department deserve design desire despite destroy detect '
+  + 'determine develop device devote diet differ digital direct director disagree disappear '
+  + 'disappoint disaster discipline discount discover discovery disease dismiss display distance '
+  + 'distant distinguish distribute district disturb divide divorce document domestic donate '
+  + 'doubt drag drama dramatic due duty eager earn ease economic economy edge edit editor educate '
+  + 'education effect effective efficient effort elect election electricity element emergency '
+  + 'emotion emotional employ employee employer empty enable encourage engage engineer enormous '
+  + 'ensure entertain enthusiasm entire environment episode equipment error escape essential '
+  + 'establish estimate evaluate eventually evidence evil exact examine exchange exclude '
+  + 'executive exist existence expand expense experiment expert explore export expose express '
+  + 'expression extend extent external extra extreme fair faith fault favor fear feature fee '
+  + 'figure finance financial firm flight focus force forecast formal former fortune forward '
+  + 'frame frequent fuel function fund fundamental gain gather gender generation generous gentle '
+  + 'genuine goods government grade grant guarantee guard guide habit handle hang harm hardly '
+  + 'headline highlight hire honest honor horror host huge human humor ideal identify identity '
+  + 'ignore illegal image imagine immediate impact impress improve incident income indicate '
+  + 'individual industry influence inform initial injure innocent insist inspire install '
+  + 'instance instruction insurance intelligent intend intense interpret invent invest '
+  + 'investigate involve issue journal journalist judge junior justice knowledge label labor lack '
+  + 'launch layer leader league legal license limit link literature loan locate logic loyal '
+  + 'luxury maintain major manage manager manner manufacture margin mass master material '
+  + 'mathematics matter mature meanwhile measure media medical mental mention merely military '
+  + 'minor mission mixture mood moral motivate murder mutual native negative negotiate nerve '
+  + 'network neutral nowhere obey observe obtain obvious occasion occupy occur odd offend '
+  + 'operate opportunity oppose option organize origin original otherwise outcome output '
+  + 'overcome owe pace pack panel participate particularly path patient pattern perform '
+  + 'permanent permission persuade phase phenomenon physical pity plenty policy political '
+  + 'politics pollution portion positive possess potential pour poverty powerful practical praise '
+  + 'precise predict pregnant prejudice pressure prevent previous primary principle priority '
+  + 'prison procedure process profession professional profit progress prohibit promote proper '
+  + 'proportion propose prospect protest prove provide punish purchase pursue qualify quantity '
+  + 'quote race range rank rapid rare rate rather ratio react reasonable recall recognize '
+  + 'recommend recover reduce refer reflect reform refuse regard region register regret regular '
+  + 'reject relate relation relationship relative relax release relevant reliable relief '
+  + 'religion rely remain remark remind repair replace represent republic reputation request '
+  + 'require rescue research reserve resident resist resolve resource respect respond response '
+  + 'responsible restrict retain retire reveal review revolution reward risk role rough route '
+  + 'routine row royal rural sacrifice sample satisfy scale scene schedule scheme scope score '
+  + 'scream sector secure seek select senior sense sensitive separate sequence series settle '
+  + 'severe shadow shake shame shelter shift shock shortage sight signal significant silence '
+  + 'similar sincere site skilled slight slip smooth society software solution solve somewhat '
+  + 'sort source spare species specific spirit split spot spread stable staff stage standard '
+  + 'stare status steady steel stock strategy strengthen stress stretch strict strike structure '
+  + 'struggle style submit substance succeed success sufficient suffer suggestion suitable supply '
+  + 'support suppose surface surround survey survive suspect swear switch symbol sympathy system '
+  + 'tackle talent target task tax technical technique technology temporary tend tension term '
+  + 'terror theory therefore threat threaten thus tight tiny tone tool topic trace track trade '
+  + 'tradition transfer transform translate transport treat treatment tremendous trend trial '
+  + 'tribe trick trigger triumph tune typical ultimate unique unit unless unusual update upgrade '
+  + 'urban urge urgent usage valid valuable value van variety various vary vast venture version '
+  + 'via victim victory violence virtual virtue vision visual vital volume vote voyage wage '
+  + 'wander warn waste wave wealth weapon welfare wheel whereas widespread willing wisdom '
+  + 'withdraw witness worth wrap yield youth').split(' ');
+
+  var LV_B2 = ('abandon absorb abstract accompany accomplish accurate accuse acknowledge acquire '
+  + 'adapt adequate adjust administer adopt advocate aesthetic affair aggressive alter ambiguous '
+  + 'amend ample analyze ancestor anticipate apparatus appeal arbitrary architecture arise '
+  + 'articulate assemble assert assess asset assign assumption assure attain attribute autonomy '
+  + 'awkward barrier bias bid bind bizarre blend bond boost bore bounce boundary breach breakdown '
+  + 'brutal bulk bureaucracy burden capture carve cease chronic circulate cite civil clarify '
+  + 'clash cluster coherent coincide collapse collateral colleague commence commission commodity '
+  + 'compassion compel compensate compile complement compliment component comprehensive comprise '
+  + 'compromise conceal concede conceive concept conclude concrete condemn conduct confer confine '
+  + 'conform confront consensus consent consequence conserve considerable consistent constitute '
+  + 'constrain consult consume contemplate contemporary contempt contend contest continuous '
+  + 'contradict controversial convention converge convert convey conviction cooperate coordinate '
+  + 'corrupt counsel counter crucial crude cue cultivate cumulative curb currency deceive decent '
+  + 'decline dedicate deduce deem defect deficit definite deliberate delicate dense depict '
+  + 'deploy deprive derive descend designate despair destiny detain deteriorate deviate diagnose '
+  + 'diminish discard discourse discreet discrete discriminate disguise dispose dispute disrupt '
+  + 'dissolve diverse doctrine domain dominate drain drastic dubious dwell dynamic elaborate '
+  + 'elegant elevate eligible eloquent embrace emerge eminent empirical enact endeavor endorse '
+  + 'endure enhance enrich entail enterprise entity entitle equivalent erode erupt essence '
+  + 'esteem eternal ethic evident evoke evolve exaggerate exceed excerpt exclusive execute exempt '
+  + 'exert exhaust exhibit exotic explicit exploit extract fabric facilitate faculty fade '
+  + 'fascinate feasible federal fertile flaw flee flexible flourish fluctuate foster fragile '
+  + 'fragment framework fraud friction fulfill furthermore fusion generate genuine glance gleam '
+  + 'glimpse govern grasp grave grip gross halt hazard heritage hesitate hierarchy hollow hostile '
+  + 'humble hypothesis illustrate imitate immense immune imply impose impulse inclined '
+  + 'incorporate incur indigenous induce indulge inevitable infer inflict inherent inherit '
+  + 'inhibit initiate innovate input inquiry insight inspect instinct institute integral '
+  + 'integrate integrity intellectual intent interact interfere interim intermediate interval '
+  + 'intervene intimate intricate intrinsic intuition invoke ironic isolate jargon jeopardy '
+  + 'justify keen legacy legislate legitimate leverage liable liberal linger literal litigate '
+  + 'magnitude mandate manifest manipulate marginal mediate medium merge merit metaphor migrate '
+  + 'mimic minimal minimize modify momentum monitor monopoly morale motive mundane narrative '
+  + 'negligible nominal norm notion notorious novel nuance nurture obligation obscure offset '
+  + 'ongoing onset optimal orient outbreak outlook outset overlap overlook overwhelm paradigm '
+  + 'paradox parallel parameter passive peculiar penalty perceive peripheral perpetual persist '
+  + 'perspective pertinent pervasive plausible plunge poll ponder portray posture practitioner '
+  + 'preach precede precedent precision preclude predominant preliminary premise prescribe '
+  + 'preserve prestige presume prevail prevalent prime privilege probe proceed proclaim profound '
+  + 'prolong prominent prompt propaganda prone prosper provoke prudent quest quota radical random '
+  + 'ratify realm reap rebel recede reciprocal reckless reckon reconcile rectify redundant '
+  + 'refine refrain refute regime reign reinforce reiterate reluctant remedy remnant render '
+  + 'renew renowned repel replicate reproach resemble reside residual resilient resort restore '
+  + 'restrain retrieve revenue reverse revise revive rhetoric rigid rigorous ripple rival robust '
+  + 'sanction scarce scatter scenario sceptical scrutiny seize sequel setback shed shrink '
+  + 'simulate simultaneous skeptical slump sophisticated sovereign span sparse spectrum '
+  + 'speculate sphere spontaneous stagnant stake stark statute steer stem stimulate stipulate '
+  + 'strain stringent subordinate subsequent subside subsidy substantial substitute subtle '
+  + 'succession suffice summit superficial superior supplement suppress surge surpass surplus '
+  + 'susceptible sustain swift symptom synthesis tackle tangible tedious temper tempt tentative '
+  + 'terminate territory testify thereby thorough threshold thrive toll torment trait transcend '
+  + 'transition transmit transparent traumatic treaty tribute trivial turbulent ubiquitous '
+  + 'unanimous underlying undergo undermine undertake uniform unify unprecedented uphold utilize '
+  + 'utter vague validate vanish vein venture verify versatile vessel veto viable vibrant '
+  + 'vigorous vindicate violate virtually void volatile voluntary vulnerable warrant wary weary '
+  + 'whereby widespread withhold withstand yearn zeal').split(' ');
+
+  var LEVEL = {};
+  LV_A.forEach(function (w) { LEVEL[w] = 'A'; });
+  LV_B1.forEach(function (w) { if (!LEVEL[w]) LEVEL[w] = 'B1'; });
+  LV_B2.forEach(function (w) { if (!LEVEL[w]) LEVEL[w] = 'B2'; });
+
+  var RANK = { A: 0, B1: 1, B2: 2, C1: 3 };
+
+  /* 활용형 → 가능한 원형 후보들 */
+  function baseForms(w) {
+    var out = [w];
+    if (/ies$/.test(w) && w.length > 4) out.push(w.slice(0, -3) + 'y');
+    if (/es$/.test(w) && w.length > 3) out.push(w.slice(0, -2));
+    if (/s$/.test(w) && !/ss$|us$|is$/.test(w) && w.length > 3) out.push(w.slice(0, -1));
+    if (/ied$/.test(w) && w.length > 4) out.push(w.slice(0, -3) + 'y');
+    if (/ed$/.test(w) && w.length > 3) { out.push(w.slice(0, -2), w.slice(0, -1)); }
+    if (/ing$/.test(w) && w.length > 4) { out.push(w.slice(0, -3), w.slice(0, -3) + 'e'); }
+    if (/ly$/.test(w) && w.length > 4) out.push(w.slice(0, -2));
+    if (/ily$/.test(w) && w.length > 4) out.push(w.slice(0, -3) + 'y');   // happily → happy
+    if (/iest$/.test(w) && w.length > 5) out.push(w.slice(0, -4) + 'y');  // happiest → happy
+    if (/ier$/.test(w) && w.length > 4) out.push(w.slice(0, -3) + 'y');   // happier → happy
+    if (/est$/.test(w) && w.length > 4) out.push(w.slice(0, -3), w.slice(0, -2));
+    if (/er$/.test(w) && w.length > 4) out.push(w.slice(0, -2), w.slice(0, -1));
+    var dbl = w.replace(/([bdgklmnprt])\1(ed|ing)$/, '$1');
+    if (dbl !== w) out.push(dbl);
+    return out;
+  }
+
+  function wordLevel(w) {
+    var forms = baseForms(w), best = null;
+    for (var i = 0; i < forms.length; i++) {
+      var lv = LEVEL[forms[i]];
+      if (lv && (best === null || RANK[lv] < RANK[best])) best = lv;
+    }
+    return best || 'C1';
+  }
+
+  /* 자막에서 중급 이상 단어 뽑기. minLevel 이상만 남깁니다. */
+  function extractWords(cues, minLevel) {
+    var min = RANK[minLevel] != null ? RANK[minLevel] : RANK.B2;
+    var info = {};
+
+    cues.forEach(function (c, i) {
+      var toks = c.x.match(/[A-Za-z][A-Za-z'-]*/g) || [];
+      toks.forEach(function (tok, ti) {
+        var low = tok.toLowerCase().replace(/^'+|'+$/g, '');
+        if (low.length < 4) return;
+        if (!/^[a-z][a-z'-]*$/.test(low)) return;
+        if (!info[low]) info[low] = { w: low, n: 0, cap: 0, mid: 0, first: i };
+        var f = info[low];
+        f.n++;
+        if (/^[A-Z]/.test(tok)) { f.cap++; if (ti > 0) f.mid++; }
+      });
+    });
+
+    var out = [];
+    Object.keys(info).forEach(function (k) {
+      var f = info[k];
+      /* 문장 중간에서도 대문자로 자주 나오면 고유명사 */
+      if (f.mid / f.n > 0.5) return;
+      var lv = wordLevel(k);
+      /* 사전에 없는데 늘 대문자로만 나오면 이름·지명으로 봄 (Stanford, Pixar …) */
+      if (lv === 'C1' && f.cap === f.n) return;
+      if (RANK[lv] < min) return;
+      out.push({ word: k, level: lv, n: f.n, cue: f.first });
+    });
+
+    return out.sort(function (a, b) {
+      return RANK[b.level] - RANK[a.level] || b.n - a.n || a.word.localeCompare(b.word);
+    }).slice(0, 200);
+  }
+
+  /* ---------------------------------------------------------- CSV 내보내기 */
+  function csvCell(v) {
+    v = String(v == null ? '' : v);
+    return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  }
+
+  function toCSV(header, rows) {
+    /* BOM: Excel 에서 한글이 깨지지 않도록 */
+    return '﻿' + [header].concat(rows).map(function (r) {
+      return r.map(csvCell).join(',');
+    }).join('\r\n') + '\r\n';
+  }
+
+  function download(name, text) {
+    var blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 100);
+  }
+
   /* ------------------------------------------------------------- 상태 */
   var player = null, timer = null, ready = false;
   var rawCues = [], cues = [], nodes = [], cur = -1;
   var merge = true, ab = null, abArm = false;
-  var root = null;
+  var root = null, curVid = null;
 
   function S(t) {
     return Math.floor(t / 60) + ':' + ('0' + Math.floor(t % 60)).slice(-2);
@@ -436,6 +743,7 @@
     if (!ready || !id) return;
     var old = q('.eng-err');
     if (old) old.remove();
+    curVid = id;
     player.loadVideoById(id);
     autoFetchSubs(id);
   }
@@ -610,6 +918,7 @@
     q('#eng-status').textContent =
       cues.length + '개 자막 · ' + S(cues.length ? cues[cues.length - 1].e : 0);
     buildPhrases();
+    buildWords();
     requestAnimationFrame(syncHeight);
   }
 
@@ -656,6 +965,78 @@
     });
   }
 
+  /* ------------------------------------------------------- 단어 패널 */
+  function buildWords() {
+    if (!root) return;
+    var lvl = q('#eng-lvl') ? q('#eng-lvl').value : 'B2';
+    var list = extractWords(cues, lvl);
+    var box = q('#eng-wdlist');
+    if (!box) return;
+
+    box.innerHTML = list.length ? ''
+      : '<div class="eng-note">해당 난이도의 단어가 없습니다. 기준을 낮춰보세요.</div>';
+
+    list.forEach(function (f) {
+      var d = document.createElement('div');
+      d.className = 'eng-card';
+      d.innerHTML =
+        '<span class="eng-lv' + (f.level === 'C1' ? ' c1' : '') + '">' + f.level + '</span>'
+        + '<b>' + esch(f.word) + '</b> '
+        + '<span style="color:var(--muted)">×' + f.n + '</span>'
+        + '<div class="eng-src" data-i="' + f.cue + '">▸ ' + S(cues[f.cue].s) + ' '
+        + esch(cues[f.cue].x.slice(0, 60)) + '…</div>';
+      d.querySelector('.eng-src').addEventListener('click', function () {
+        player.seekTo(cues[f.cue].s, true);
+        player.playVideo();
+        nodes[f.cue].scrollIntoView({ block: 'center', behavior: 'smooth' });
+      });
+      box.appendChild(d);
+    });
+
+    var n = q('#eng-tab-wd');
+    if (n) n.textContent = '단어 추출' + (list.length ? ' (' + list.length + ')' : '');
+  }
+
+  /* ------------------------------------------------------- CSV 내보내기 */
+  function exportCSV() {
+    if (!cues.length) { alert('먼저 자막을 불러오세요.'); return; }
+    var tag = (curVid || 'subtitle');
+    var tab = root.querySelector('.eng-tabs .on').getAttribute('data-tab');
+
+    if (tab === 'wd') {
+      var lvl = q('#eng-lvl').value;
+      var rows = extractWords(cues, lvl).map(function (f) {
+        return [f.word, f.level, f.n, S(cues[f.cue].s),
+                cues[f.cue].s.toFixed(2), cues[f.cue].x];
+      });
+      download('words_' + tag + '_' + lvl + '.csv',
+        toCSV(['word', 'level', 'count', 'timestamp', 'seconds', 'context'], rows));
+    } else {
+      var prs = extractPhrases(cues).map(function (f) {
+        var i = f.hits[0];
+        var ex = BOOK[f.label] || [];
+        return [f.label, f.n, S(cues[i].s), cues[i].s.toFixed(2),
+                cues[i].x, ex[0] || '', ex[1] || ''];
+      });
+      download('phrases_' + tag + '.csv',
+        toCSV(['phrase', 'count', 'timestamp', 'seconds', 'context', 'example_1', 'example_2'],
+              prs));
+    }
+  }
+
+  function showTab(tab) {
+    Array.prototype.forEach.call(root.querySelectorAll('.eng-tabs .eng-btn'), function (b) {
+      b.classList.toggle('on', b.getAttribute('data-tab') === tab);
+    });
+    q('#eng-pane-ph').hidden = tab !== 'ph';
+    q('#eng-pane-wd').hidden = tab !== 'wd';
+  }
+
+  function openPanel(tab) {
+    showTab(tab);
+    q('#eng-ph').classList.add('open');
+  }
+
   function useSubs(text) {
     rawCues = parseSubs(text);
     if (!rawCues.length) {
@@ -684,10 +1065,11 @@
   +       '<option value="1" selected>1x</option><option value="1.25">1.25x</option>'
   +       '<option value="1.5">1.5x</option></select>'
   +     '<span class="eng-sep"></span>'
-  +     '<button class="eng-btn" id="eng-ab" title="한 문장 무한 반복 (r)">A-B</button>'
-  +     '<button class="eng-btn" id="eng-hide" title="자막 가리기 — 받아쓰기 연습 (h)">가리기</button>'
-  +     '<button class="eng-btn on" id="eng-merge" title="잘린 자막을 문장 단위로 병합">병합</button>'
-  +     '<button class="eng-btn" id="eng-phbtn" title="자주 쓰는 구문 추출">구문</button>'
+  +     '<button class="eng-btn" id="eng-ab" title="한 문장 무한 반복 (r)">A-B 반복</button>'
+  +     '<button class="eng-btn" id="eng-hide" title="받아쓰기 연습 (h)">자막 가리기</button>'
+  +     '<button class="eng-btn on" id="eng-merge" title="잘린 자막을 문장 단위로 병합">문장 병합</button>'
+  +     '<button class="eng-btn" id="eng-phbtn" title="자주 쓰는 구문 추출">구문 추출</button>'
+  +     '<button class="eng-btn" id="eng-wdbtn" title="중급 이상 단어만 추출">단어 추출</button>'
   +     '<span class="sp"></span>'
   +     '<span class="eng-chip" id="eng-status">자막을 불러오세요</span>'
   +     '<span class="eng-sep"></span>'
@@ -721,13 +1103,38 @@
   + '</div>'   /* .eng-body 닫기 */
   + '<div class="eng-ph" id="eng-ph">'
   +   '<button class="eng-btn" id="eng-phclose" style="float:right">닫기</button>'
-  +   '<h3>학습할 구문</h3>'
-  +   '<div class="eng-note">자막에 나온 구동사·연어를 빈도순으로 정리합니다. '
-  +     '항목을 클릭하면 해당 장면으로 이동합니다.</div>'
-  +   '<div id="eng-phlist"></div>'
-  +   '<button class="eng-btn" id="eng-prompt" style="width:100%;margin-top:10px">'
-  +     '전체 자막 + 분석 프롬프트 복사</button>'
-  +   '<div class="eng-note">복사한 내용을 Claude 에 붙여넣으면 더 깊은 해설과 예문을 받을 수 있습니다.</div>'
+  +   '<div class="eng-tabs">'
+  +     '<button class="eng-btn on" id="eng-tab-ph" data-tab="ph">구문 추출</button>'
+  +     '<button class="eng-btn" id="eng-tab-wd" data-tab="wd">단어 추출</button>'
+  +   '</div>'
+  /* --- 구문 탭 --- */
+  +   '<div id="eng-pane-ph">'
+  +     '<div class="eng-note">자막에 나온 구동사·연어를 빈도순으로 정리합니다. '
+  +       '항목을 클릭하면 해당 장면으로 이동합니다.</div>'
+  +     '<div id="eng-phlist"></div>'
+  +   '</div>'
+  /* --- 단어 탭 --- */
+  +   '<div id="eng-pane-wd" hidden>'
+  +     '<div class="eng-bar" style="padding:0 0 8px">'
+  +       '<span class="eng-chip">난이도</span>'
+  +       '<select class="eng-sel" id="eng-lvl" title="이 수준 이상만 추출">'
+  +         '<option value="B1">B1 이상 (중급)</option>'
+  +         '<option value="B2" selected>B2 이상 (중상급)</option>'
+  +         '<option value="C1">C1만 (고급)</option>'
+  +       '</select>'
+  +     '</div>'
+  +     '<div class="eng-note">기초 어휘(A1·A2)와 고유명사는 제외합니다. '
+  +       '레벨은 빈도 기반 <b>추정치</b>입니다.</div>'
+  +     '<div id="eng-wdlist"></div>'
+  +   '</div>'
+  +   '<div class="eng-note" style="margin-top:12px;padding-top:10px;'
+  +     'border-top:1px solid var(--border)">내보내기</div>'
+  +   '<div class="eng-bar" style="padding:0">'
+  +     '<button class="eng-btn" id="eng-csv">CSV 내려받기</button>'
+  +     '<button class="eng-btn" id="eng-prompt">자막 + 프롬프트 복사</button>'
+  +   '</div>'
+  +   '<div class="eng-note">CSV 는 구문·단어가 각각 별도 파일로 나옵니다. '
+  +     '프롬프트는 Claude 에 붙여넣으면 해설과 예문을 받을 수 있습니다.</div>'
   + '</div>'
   + '<input type="file" id="eng-fileinput" accept=".srt,.vtt,.txt" hidden>';
 
@@ -835,8 +1242,18 @@
       paintAB();
       if (abArm) q('#eng-status').textContent = '반복할 자막 줄을 클릭하세요';
     });
-    q('#eng-phbtn').addEventListener('click', function () { q('#eng-ph').classList.toggle('open'); });
+    q('#eng-phbtn').addEventListener('click', function () { openPanel('ph'); });
+    q('#eng-wdbtn').addEventListener('click', function () { openPanel('wd'); });
     q('#eng-phclose').addEventListener('click', function () { q('#eng-ph').classList.remove('open'); });
+    Array.prototype.forEach.call(root.querySelectorAll('.eng-tabs .eng-btn'), function (b) {
+      b.addEventListener('click', function () { showTab(b.getAttribute('data-tab')); });
+    });
+    q('#eng-lvl').addEventListener('change', function (e) {
+      store.set('lvl', e.target.value);
+      buildWords();
+    });
+    q('#eng-csv').addEventListener('click', exportCSV);
+    q('#eng-lvl').value = store.get('lvl', 'B2');
     q('#eng-prompt').addEventListener('click', function () {
       var body = cues.map(function (c) { return '[' + S(c.s) + '] ' + c.x; }).join('\n');
       var prompt = '아래는 영어 영상의 자막입니다. 영어 학습자(중급)를 위해 정리해 주세요.\n\n'
