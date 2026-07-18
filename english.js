@@ -1368,17 +1368,25 @@
     autoScroll(n);
   }
 
-  /* 가로 분할에서는 자막 칸이 따로 스크롤되므로, 기준 영역을 구분해서 판단 */
+  /* 자막 칸이 따로 스크롤될 때는 scrollTop 을 직접 계산합니다.
+     scrollIntoView({block:'center'}) 는 첫 줄을 굳이 가운데로 보내려고 위로 밀어
+     맨 앞 자막이 잘려 보였고, 창까지 함께 스크롤시켰습니다. */
   function autoScroll(n) {
     var box = q('#eng-tx');
     var inner = box && box.scrollHeight > box.clientHeight + 4 &&
                 getComputedStyle(box).overflowY === 'auto';
     var nr = n.getBoundingClientRect();
+
     if (inner) {
       var br = box.getBoundingClientRect();
       var pad = br.height * 0.2;
-      if (nr.top < br.top + pad || nr.bottom > br.bottom - pad)
-        n.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      if (nr.top < br.top + pad || nr.bottom > br.bottom - pad) {
+        var target = box.scrollTop + (nr.top - br.top) - (br.height / 2 - nr.height / 2);
+        /* 0 아래로는 내려가지 않으므로 첫 줄이 잘리지 않습니다 */
+        target = Math.max(0, Math.min(target, box.scrollHeight - box.clientHeight));
+        if (box.scrollTo) box.scrollTo({ top: target, behavior: 'smooth' });
+        else box.scrollTop = target;
+      }
     } else {
       if (nr.top < window.innerHeight * 0.5 || nr.bottom > window.innerHeight - 40)
         n.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -1472,6 +1480,8 @@
       box.appendChild(d);
       nodes.push(d);
     });
+
+    box.scrollTop = 0;          /* 새 자막은 항상 맨 앞부터 보이도록 */
 
     q('#eng-status').textContent =
       cues.length + '개 자막 · ' + S(cues.length ? cues[cues.length - 1].e : 0);
