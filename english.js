@@ -77,7 +77,19 @@
     + 'z-index:12;transform:translateX(100%);transition:transform .25s}'
   + '.eng-ph.open{transform:none}'
   + '.eng-ph h3{font-size:1rem;margin-bottom:6px}'
-  + '.eng-tabs{display:flex;gap:5px;margin-bottom:10px}'
+  /* 패널 머리말: 제목과 닫기를 한 줄에 두어 탭과 겹치지 않게 */
+  + '.eng-pophead{display:flex;align-items:center;gap:8px;margin-bottom:9px}'
+  + '.eng-pophead b{flex:1;font-size:.95rem}'
+  /* 탭은 3등분 고정 — 글자가 길어도 줄바꿈되지 않도록 */
+  + '.eng-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:10px}'
+  + '.eng-tabs .eng-btn{padding:5px 3px;font-size:.71rem;text-align:center;overflow:hidden;'
+    + 'text-overflow:ellipsis}'
+  + '.eng-n{opacity:.65;font-weight:400}'
+  /* 시제 카드: 시간과 문장을 한 줄에 (문장이 두 번 나오지 않게) */
+  + '.eng-t{color:var(--accent);font-weight:700;cursor:pointer;font-size:.78rem;'
+    + 'flex:0 0 auto;font-variant-numeric:tabular-nums}'
+  + '.eng-t:hover{text-decoration:underline}'
+  + '.eng-sent{font-size:.79rem;line-height:1.65;min-width:0}'
   + '.eng-lv{display:inline-block;min-width:22px;text-align:center;font-size:.68rem;'
     + 'font-weight:700;padding:1px 5px;border-radius:4px;margin-right:6px;'
     + 'background:var(--accent-light);color:var(--accent)}'
@@ -1281,9 +1293,9 @@
 
     hits.forEach(function (i) {
       box.appendChild(makeCard('tn', String(i),
-        '<b>' + S(cues[i].s) + '</b> <span style="color:var(--muted)">'
-        + esch(cues[i].x.slice(0, 40)) + (cues[i].x.length > 40 ? '…' : '') + '</span>',
-        i));
+        '<span class="eng-t">' + S(cues[i].s) + '</span> '
+        + '<span class="eng-sent">' + esch(cues[i].x) + '</span>',
+        i, '', false));
     });
     updateCount('tn');
   }
@@ -1363,8 +1375,11 @@
       c.closest('.eng-card').classList.toggle('off', !c.checked);
     });
     var tab = q('#eng-tab-' + pane);
-    var name = pane === 'wd' ? '단어 추출' : pane === 'tn' ? '시제' : '구문 추출';
-    if (tab) tab.textContent = name + (all.length ? ' (' + on + ')' : '');
+    var name = pane === 'wd' ? '단어 추출' : pane === 'tn' ? '시제 추출' : '구문 추출';
+    if (tab) {
+      tab.innerHTML = esch(name)
+        + (all.length ? ' <span class="eng-n">' + on + '</span>' : '');
+    }
   }
 
   function setAll(pane, on) {
@@ -1372,21 +1387,31 @@
     updateCount(pane);
   }
 
-  /* 카드 한 장 만들기 — 체크박스 + 제목줄 + 출처줄(+예문) */
-  function makeCard(pane, key, titleHTML, cueIdx, extraHTML) {
+  /* 카드 한 장 만들기.
+     showSrc=false 면 출처줄을 생략합니다 — 시제 탭처럼 제목이 이미 문장인 경우,
+     같은 문장이 두 번 나오는 것을 막습니다. */
+  function makeCard(pane, key, titleHTML, cueIdx, extraHTML, showSrc) {
     var d = document.createElement('div');
     d.className = 'eng-card';
     d.innerHTML =
       '<label class="eng-pick"><input type="checkbox" checked data-k="' + esch(key) + '">'
       + '<span>' + titleHTML + '</span></label>'
-      + '<div class="eng-src" data-i="' + cueIdx + '">▸ ' + S(cues[cueIdx].s) + ' '
-      + esch(cues[cueIdx].x.slice(0, 60)) + '…</div>'
+      + (showSrc === false ? ''
+          : '<div class="eng-src" data-i="' + cueIdx + '">▸ ' + S(cues[cueIdx].s) + ' '
+            + esch(cues[cueIdx].x.slice(0, 60)) + '…</div>')
       + (extraHTML || '');
+
     d.querySelector('input').addEventListener('change', function () { updateCount(pane); });
-    d.querySelector('.eng-src').addEventListener('click', function () {
+
+    function jump(e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
       seekCue(cues[cueIdx].s);
       if (nodes[cueIdx]) nodes[cueIdx].scrollIntoView({ block: 'center', behavior: 'smooth' });
-    });
+    }
+    var src = d.querySelector('.eng-src');
+    if (src) src.addEventListener('click', jump);
+    var t = d.querySelector('.eng-t');
+    if (t) t.addEventListener('click', jump);
     return d;
   }
 
@@ -1487,11 +1512,12 @@
   + '</div>'
   + '</div>'   /* .eng-body 닫기 */
   + '<div class="eng-ph" id="eng-ph">'
-  +   '<button class="eng-btn" id="eng-phclose" style="float:right">닫기</button>'
+  +   '<div class="eng-pophead"><b>추출</b>'
+  +     '<button class="eng-btn" id="eng-phclose">닫기</button></div>'
   +   '<div class="eng-tabs">'
   +     '<button class="eng-btn on" id="eng-tab-ph" data-tab="ph">구문 추출</button>'
   +     '<button class="eng-btn" id="eng-tab-wd" data-tab="wd">단어 추출</button>'
-  +     '<button class="eng-btn" id="eng-tab-tn" data-tab="tn">시제</button>'
+  +     '<button class="eng-btn" id="eng-tab-tn" data-tab="tn">시제 추출</button>'
   +   '</div>'
   /* --- 구문 탭 --- */
   +   '<div id="eng-pane-ph">'
