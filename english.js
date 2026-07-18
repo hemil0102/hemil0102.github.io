@@ -251,7 +251,78 @@
     'used to': ['I used to live in Busan.', 'There used to be a bakery here.'],
     'supposed to': ['You\'re supposed to sign here.', 'It was supposed to arrive yesterday.'],
     'might as well': ['We might as well start now.', 'You might as well ask.'],
-    'have to do with': ['It has to do with the timing.', 'What does that have to do with anything?']
+    'have to do with': ['It has to do with the timing.', 'What does that have to do with anything?'],
+
+    /* --- be + 형용사/명사 + 전치사 --- */
+    'be sort of': ['It\'s sort of a compromise.', 'I was sort of expecting that.'],
+    'be kind of': ['That\'s kind of the point.', 'She was kind of surprised.'],
+    'be able to': ['I wasn\'t able to reach him.', 'You\'ll be able to tell the difference.'],
+    'be going to': ['It\'s going to rain later.', 'I was going to call you.'],
+    'be supposed to': ['We\'re supposed to meet at six.', 'It was supposed to be simple.'],
+    'be aware of': ['Are you aware of the risk?', 'She wasn\'t aware of the change.'],
+    'be based on': ['The film is based on a true story.', 'It was based on old data.'],
+    'be interested in': ['I\'m interested in the results.', 'He wasn\'t interested in arguing.'],
+    'be worried about': ['She\'s worried about the deadline.', 'Don\'t be worried about it.'],
+    'be responsible for': ['You\'re responsible for the budget.', 'Who was responsible for this?'],
+    'be similar to': ['This is similar to the old model.', 'It was similar to what we expected.'],
+    'be different from': ['That\'s different from what I heard.', 'It was different from the plan.'],
+    'be full of': ['The room is full of people.', 'It was full of mistakes.'],
+    'be tired of': ['I\'m tired of waiting.', 'She was tired of explaining it.'],
+    'be afraid of': ['He\'s afraid of failing.', 'I was afraid of the answer.'],
+    'be proud of': ['We\'re proud of the team.', 'She was proud of her work.'],
+    'be good at': ['He\'s good at explaining things.', 'I was never good at math.'],
+    'be known for': ['The city is known for its food.', 'He was known for his patience.'],
+    'be made of': ['It\'s made of steel.', 'The frame was made of wood.'],
+    'be filled with': ['The page is filled with notes.', 'It was filled with errors.'],
+    'be involved in': ['She\'s involved in the project.', 'He was involved in the decision.'],
+    'be related to': ['That\'s related to the earlier issue.', 'It was related to timing.'],
+    'be due to': ['The delay is due to weather.', 'It was due to a misunderstanding.'],
+    'be likely to': ['Prices are likely to rise.', 'He was likely to refuse.'],
+    'be willing to': ['I\'m willing to try.', 'She was willing to help.'],
+    'be capable of': ['The tool is capable of more.', 'He was capable of better work.'],
+    'be famous for': ['The area is famous for its coffee.', 'She was famous for her speeches.'],
+    'be excited about': ['We\'re excited about the launch.', 'He was excited about the trip.'],
+    'be concerned about': ['They\'re concerned about costs.', 'I was concerned about safety.'],
+    'be committed to': ['We\'re committed to the plan.', 'She was committed to finishing.'],
+    'be exposed to': ['Students are exposed to real cases.', 'He was exposed to the idea early.'],
+    'be used to': ['I\'m used to the noise now.', 'She wasn\'t used to the cold.'],
+    'be out of': ['We\'re out of time.', 'The printer was out of paper.'],
+    'be short of': ['We\'re short of volunteers.', 'They were short of cash.'],
+    'be opposed to': ['He\'s opposed to the merger.', 'She was opposed to the idea.'],
+    'be keen on': ['I\'m not keen on the design.', 'He was keen on the plan.'],
+    'be fond of': ['She\'s fond of old films.', 'He was fond of that place.'],
+
+    /* --- 동사 + 전치사 --- */
+    'consist of': ['The course consists of six units.', 'It consisted of three parts.'],
+    'belong to': ['That belongs to her.', 'The rights belonged to the studio.'],
+    'refer to': ['He referred to an earlier study.', 'This refers to page ten.'],
+    'apply for': ['She applied for the grant.', 'I\'m applying for a visa.'],
+    'account for': ['That accounts for the gap.', 'Sales accounted for most of it.'],
+    'believe in': ['I believe in the approach.', 'He believed in second chances.'],
+    'insist on': ['She insisted on paying.', 'They insisted on a written reply.'],
+    'participate in': ['Everyone participated in the vote.', 'He participates in the forum.'],
+    'result in': ['The change resulted in delays.', 'It resulted in higher costs.'],
+    'result from': ['The error resulted from bad input.', 'Damage resulted from the storm.'],
+    'suffer from': ['He suffers from headaches.', 'The plan suffered from poor timing.'],
+    'succeed in': ['She succeeded in persuading them.', 'We succeeded in cutting costs.'],
+    'complain about': ['They complained about the noise.', 'He complained about the fee.'],
+    'concentrate on': ['Concentrate on one thing.', 'She concentrated on the details.'],
+    'benefit from': ['We benefited from the delay.', 'Students benefit from feedback.'],
+    'contribute to': ['That contributed to the problem.', 'She contributed to the report.'],
+    'lead to': ['This leads to confusion.', 'It led to a bigger change.'],
+    'adapt to': ['You adapt to the pace quickly.', 'They adapted to the new rules.'],
+    'react to': ['How did he react to the news?', 'Markets reacted to the report.'],
+    'respond to': ['She responded to my email.', 'He responded to the criticism.'],
+    'search for': ['I searched for an answer.', 'They\'re searching for a replacement.'],
+    'prepare for': ['We prepared for the worst.', 'She\'s preparing for the exam.'],
+    'stand for': ['What does that stand for?', 'He stood for fairness.'],
+    'depend on': ['It depends on the weather.', 'They depended on donations.'],
+    'agree with': ['I agree with you.', 'She agreed with the decision.'],
+    'agree on': ['We agreed on a date.', 'They never agreed on the price.'],
+    'argue with': ['Don\'t argue with the referee.', 'He argued with his editor.'],
+    'differ from': ['This differs from the original.', 'Results differed from expectations.'],
+    'object to': ['She objected to the wording.', 'They objected to the delay.'],
+    'approve of': ['His parents approved of the plan.', 'I don\'t approve of that.']
   };
 
   var IRREG = {
@@ -281,10 +352,11 @@
     leave: ['leave','leaves','left','leaving']
   };
 
-  var VERB_HEADS = {};
-  ('be have come take make get go run give bring put set hold stand break find keep pay wind '
-   + 'catch hang deal end figure point carry turn look work sort show check focus rely back')
-    .split(' ').forEach(function (v) { VERB_HEADS[v] = 1; });
+  /* 표제어의 첫 단어는 아래 목록에 없으면 전부 동사로 보고 활용형을 만듭니다.
+     (표제어를 추가할 때 동사 목록을 따로 관리하지 않아도 되도록) */
+  var NON_VERB_HEAD = {};
+  'in as so at on for a kind no instead rather used supposed might'
+    .split(' ').forEach(function (w) { NON_VERB_HEAD[w] = 1; });
 
   function forms(v) {
     if (IRREG[v]) return IRREG[v];
@@ -301,13 +373,19 @@
 
   function esc(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
+  /* be·동사와 나머지 사이에 끼어드는 부정어·부사를 허용해야
+     "was not able to", "is really interested in" 같은 형태가 잡힙니다. */
+  var MID = '(?:\\s+(?:not|never|really|just|still|always|quite|very|so|too|also|only|'
+    + 'already|probably|certainly|definitely|actually|generally|usually|often|sometimes|'
+    + 'even|almost|rather|pretty|totally|completely|absolutely))*';
+
   var PHRASE_RE = Object.keys(BOOK).map(function (key) {
     var w = key.split(' ');
-    var head = VERB_HEADS[w[0]]
-      ? '(?:' + forms(w[0]).map(esc).join('|') + ')'
-      : esc(w[0]);
+    var isVerb = !NON_VERB_HEAD[w[0]];
+    var head = isVerb ? '(?:' + forms(w[0]).map(esc).join('|') + ')' : esc(w[0]);
     var rest = w.slice(1).map(esc).join('\\s+');
-    return { key: key, re: new RegExp('\\b' + head + (rest ? '\\s+' + rest : '') + '\\b') };
+    var body = rest ? (isVerb ? MID : '') + '\\s+' + rest : '';
+    return { key: key, re: new RegExp('\\b' + head + body + '\\b') };
   });
 
   var VERBS = 'get|go|come|take|put|make|look|turn|bring|run|set|give|pick|hold|break|call|carry|'
@@ -315,7 +393,17 @@
     + 'check|clear|close|deal|drop|end|fill|hand|head|leave|open|play|reach|save|send|settle|'
     + 'sign|speak|start|stay|step|stick|switch|talk|team|think|wake|walk|warm|wear|wind|wipe|wrap';
   var PARTS = 'up|out|off|on|in|down|over|through|away|back|around|about|into|along|apart|aside|'
-    + 'forward|together|by|for|with|to|at|after|ahead';
+    + 'forward|together|by|for|with|to|at|after|ahead|of|from|against|upon|toward|towards';
+
+  /* 축약형을 풀어야 be 구문이 잡힙니다: "it's sort of" → "it is sort of" */
+  function expand(s) {
+    return s
+      .replace(/\bcan't\b/g, 'can not').replace(/\bwon't\b/g, 'will not')
+      .replace(/\bshan't\b/g, 'shall not').replace(/n't\b/g, ' not')
+      .replace(/'re\b/g, ' are').replace(/'ve\b/g, ' have')
+      .replace(/'ll\b/g, ' will').replace(/'m\b/g, ' am')
+      .replace(/'s\b/g, ' is').replace(/'d\b/g, ' would');
+  }
 
   function extractPhrases(cues) {
     var found = {};
@@ -326,7 +414,8 @@
     }
 
     cues.forEach(function (c, i) {
-      var low = ' ' + c.x.toLowerCase().replace(/[^a-z' ]/g, ' ').replace(/\s+/g, ' ') + ' ';
+      var low = ' ' + expand(c.x.toLowerCase())
+                        .replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ') + ' ';
 
       var hits = PHRASE_RE.filter(function (p) { return p.re.test(low); })
                           .map(function (p) { return p.key; });
@@ -339,7 +428,9 @@
       var m;
       while ((m = re.exec(low))) {
         var base = m[1] + ' ' + m[3];
-        if (!BOOK[base] && !hits.some(function (k) { return k.indexOf(base) === 0; })) add(base, i);
+        /* 이미 잡힌 표제어 안에 들어 있는 조합이면 건너뜀
+           ("be sort of" 가 잡혔는데 "sort of" 를 또 넣지 않도록) */
+        if (!BOOK[base] && !hits.some(function (k) { return k.indexOf(base) >= 0; })) add(base, i);
       }
     });
 
@@ -662,6 +753,125 @@
     }).slice(0, 200);
   }
 
+  /* ==========================================================================
+     시제 추출
+     문장을 정규식으로 훑어 시제를 판별합니다. 한 자막에 여러 절이 있으면
+     해당하는 시제가 모두 잡힙니다.
+     ========================================================================== */
+
+  /* 불규칙 과거분사 — 완료·수동 판별에 필요 */
+  var PP = ('been done gone seen taken given known thought told found made said come become '
+  + 'written spoken broken chosen driven eaten fallen forgotten grown hidden held kept left '
+  + 'lost meant met paid put read run sat sent shown shut sold sung stood stolen taught torn '
+  + 'understood worn won begun drunk swum flown blown thrown drawn brought bought caught '
+  + 'fought sought felt slept crept dealt built burnt learnt spent lent bent heard led fed '
+  + 'gotten got had lain laid risen ridden rung sunk struck stuck swept wept wound bitten '
+  + 'shot beaten hung sworn dug spun split spread set cut hurt let quit').split(' ');
+  var PPSET = {};
+  PP.forEach(function (w) { PPSET[w] = 1; });
+  function isPP(w) { return !!PPSET[w] || /ed$/.test(w); }
+
+  /* 불규칙 과거형 — 단순과거 판별용 */
+  var PAST = ('was were went took came saw said made got gave knew thought told found left '
+  + 'felt kept held brought bought caught taught ran sat stood spoke wrote drove ate fell '
+  + 'flew grew began broke chose drank drew threw wore won sent spent built met paid read '
+  + 'heard led lost sold sang swam rose rode rang sank struck stuck swept wept lay laid hid '
+  + 'bit shot understood became did had put let cut set cost hurt beat dug hung swore spun '
+  + 'slept crept dealt fought sought meant lent bent fed bled quit').split(' ');
+  var PASTSET = {};
+  PAST.forEach(function (w) { PASTSET[w] = 1; });
+
+  var BE_PRES = 'is|are|am';
+  var BE_PAST = 'was|were';
+  var HAVE_PRES = 'has|have';
+
+  /* 조동사와 분사 사이에 끼는 부사: "have ever made", "was never told" */
+  var ADV = '(?:\\s+(?:ever|never|already|just|always|recently|finally|actually|really|'
+    + 'still|not|barely|hardly|often|usually|probably|certainly|definitely|only|even|'
+    + 'nearly|almost|simply|clearly|largely|widely|generally))*';
+
+  /* 판별 순서가 중요합니다 — 긴 형태(완료진행)를 먼저 봅니다. */
+  var TENSES = [
+    ['future_perf_prog',  '미래완료진행',
+      new RegExp('\\b(?:will|shall)' + ADV + '\\s+have' + ADV + '\\s+been\\s+\\w+ing\\b')],
+    ['future_perf',       '미래완료',
+      new RegExp('\\b(?:will|shall)' + ADV + '\\s+have' + ADV + '\\s+(\\w+)\\b'), 1],
+    ['future_prog',       '미래진행',
+      new RegExp('\\b(?:will|shall)' + ADV + '\\s+be\\s+\\w+ing\\b')],
+    ['future',            '미래',
+      new RegExp('\\b(?:will|shall)' + ADV + '\\s+\\w+|\\b(?:' + BE_PRES
+        + ')\\s+going\\s+to\\s+\\w+')],
+    ['past_perf_prog',    '과거완료진행',
+      new RegExp('\\bhad' + ADV + '\\s+been\\s+\\w+ing\\b')],
+    ['past_perf',         '과거완료',
+      new RegExp('\\bhad' + ADV + '\\s+(\\w+)\\b'), 1],
+    ['pres_perf_prog',    '현재완료진행',
+      new RegExp('\\b(?:' + HAVE_PRES + ')' + ADV + '\\s+been\\s+\\w+ing\\b')],
+    ['pres_perf',         '현재완료',
+      new RegExp('\\b(?:' + HAVE_PRES + ')' + ADV + '\\s+(\\w+)\\b'), 1],
+    ['past_prog',         '과거진행',
+      new RegExp('\\b(?:' + BE_PAST + ')' + ADV + '\\s+\\w+ing\\b')],
+    ['pres_prog',         '현재진행',
+      new RegExp('\\b(?:' + BE_PRES + ')' + ADV + '\\s+\\w+ing\\b')],
+    ['passive',           '수동태',
+      new RegExp('\\b(?:' + BE_PRES + '|' + BE_PAST + '|be|been|being)' + ADV
+        + '\\s+(\\w+)\\b'), 1],
+    ['modal',             '조동사',
+      /\b(?:would|could|should|might|may|must|can)\s+(?:not\s+)?\w+/],
+    ['past',              '과거',         null],
+    ['present',           '현재',         null]
+  ];
+
+  var TENSE_LABEL = {};
+  TENSES.forEach(function (t) { TENSE_LABEL[t[0]] = t[1]; });
+
+  function detectTenses(text) {
+    var s = ' ' + expand(text.toLowerCase())
+                    .replace(/[^a-z ]/g, ' ').replace(/\s+/g, ' ') + ' ';
+    var found = {};
+
+    TENSES.forEach(function (t) {
+      var re = t[2];
+      if (!re) return;
+      var m = s.match(re);
+      if (!m) return;
+      /* 캡처가 있는 규칙(완료·수동)은 뒤에 오는 말이 과거분사여야 성립 */
+      if (t[3] != null) {
+        var w = m[t[3]];
+        if (!w || !isPP(w) || /ing$/.test(w)) return;
+      }
+      found[t[0]] = 1;
+    });
+
+    /* 단순과거: 완료·수동으로 이미 설명된 형태는 제외하고 과거형 동사를 찾음 */
+    if (!found.past_perf && !found.past_perf_prog) {
+      var toks = s.trim().split(' ');
+      for (var i = 0; i < toks.length; i++) {
+        var w = toks[i], prev = toks[i - 1] || '';
+        if (/^(has|have|had|is|are|am|was|were|be|been|being|will|would|could|should|might|may|must|can|to)$/.test(prev)) continue;
+        if (PASTSET[w] || (/ed$/.test(w) && w.length > 3)) { found.past = 1; break; }
+      }
+    }
+    /* 현재: 다른 시제가 하나도 없거나, 현재형 be/have 가 단독으로 쓰인 경우 */
+    if (!Object.keys(found).length) found.present = 1;
+    else if (!found.past && !found.future &&
+             new RegExp('\\b(?:' + BE_PRES + '|' + HAVE_PRES + '|do|does)\\b').test(s) &&
+             !found.pres_perf && !found.pres_prog) found.present = 1;
+
+    return Object.keys(found);
+  }
+
+  /* 시제별로 해당 자막 줄 모으기 */
+  function extractTenses(cues) {
+    var by = {};
+    cues.forEach(function (c, i) {
+      detectTenses(c.x).forEach(function (t) {
+        (by[t] = by[t] || []).push(i);
+      });
+    });
+    return by;
+  }
+
   /* ---------------------------------------------------------- CSV 내보내기 */
   function csvCell(v) {
     v = String(v == null ? '' : v);
@@ -778,6 +988,20 @@
     });
   }
 
+  /* 자막 시각으로 점프할 때 앞에 두는 여백(초).
+     자막 타임스탬프가 실제 발화보다 늦게 찍히는 데다 유튜브가 키프레임 단위로
+     점프해서, 그대로 이동하면 문장 첫머리가 잘립니다. */
+  function lead() {
+    var v = parseFloat(store.get('lead', '2'));
+    return isNaN(v) ? 2 : v;
+  }
+
+  function seekCue(sec, play) {
+    if (!player || !player.seekTo) return;
+    player.seekTo(Math.max(0, sec - lead()), true);
+    if (play !== false) player.playVideo();
+  }
+
   function loadVideo(id) {
     if (!ready || !id) return;
     var old = q('.eng-err');
@@ -828,7 +1052,7 @@
     if (!ready || !cues.length || !player || !player.getCurrentTime) return;
     var t = player.getCurrentTime();
 
-    if (ab && t >= ab.e) { player.seekTo(ab.s, true); return; }
+    if (ab && t >= ab.e) { seekCue(ab.s, false); return; }
 
     var lo = 0, hi = cues.length - 1, hit = -1;
     while (lo <= hi) {
@@ -946,8 +1170,7 @@
         }
         if (root.classList.contains('hide')) d.classList.toggle('rv');
         if (abArm) { setAB(i); return; }
-        player.seekTo(c.s, true);
-        player.playVideo();
+        seekCue(c.s);
       });
 
       box.appendChild(d);
@@ -958,6 +1181,7 @@
       cues.length + '개 자막 · ' + S(cues.length ? cues[cues.length - 1].e : 0);
     buildPhrases();
     buildWords();
+    buildTenses();
     requestAnimationFrame(syncHeight);
   }
 
@@ -965,7 +1189,7 @@
     ab = (ab && ab.i0 === i) ? null : { i0: i, i1: i, s: cues[i].s, e: cues[i].e };
     abArm = false;
     paintAB();
-    if (ab) { player.seekTo(ab.s, true); player.playVideo(); }
+    if (ab) { seekCue(ab.s); }
   }
 
   function paintAB() {
@@ -1016,6 +1240,45 @@
     updateCount('wd');
   }
 
+  /* ------------------------------------------------------- 시제 패널 */
+  var tenseIdx = {};
+
+  function buildTenses() {
+    if (!root) return;
+    tenseIdx = extractTenses(cues);
+
+    /* 자막에 실제로 나온 시제만, 정의 순서대로 셀렉트에 채웁니다 */
+    var sel = q('#eng-tn');
+    if (!sel) return;
+    var prev = sel.value;
+    var opts = TENSES.filter(function (t) { return (tenseIdx[t[0]] || []).length; })
+      .map(function (t) {
+        return '<option value="' + t[0] + '">' + t[1]
+             + ' (' + tenseIdx[t[0]].length + ')</option>';
+      });
+    sel.innerHTML = opts.length ? opts.join('') : '<option value="">— 없음 —</option>';
+    if (prev && tenseIdx[prev]) sel.value = prev;
+
+    renderTenseList();
+  }
+
+  function renderTenseList() {
+    var box = q('#eng-tnlist');
+    if (!box) return;
+    var key = q('#eng-tn').value;
+    var hits = tenseIdx[key] || [];
+    box.innerHTML = hits.length ? ''
+      : '<div class="eng-note">해당 시제의 문장이 없습니다.</div>';
+
+    hits.forEach(function (i) {
+      box.appendChild(makeCard('tn', String(i),
+        '<b>' + S(cues[i].s) + '</b> <span style="color:var(--muted)">'
+        + esch(cues[i].x.slice(0, 40)) + (cues[i].x.length > 40 ? '…' : '') + '</span>',
+        i));
+    });
+    updateCount('tn');
+  }
+
   /* ------------------------------------------------------- CSV 내보내기 */
   function exportCSV() {
     if (!cues.length) { alert('먼저 자막을 불러오세요.'); return; }
@@ -1026,6 +1289,20 @@
 
     if (!Object.keys(keep).length) {
       alert('내보낼 항목을 하나 이상 체크하세요.');
+      return;
+    }
+
+    if (tab === 'tn') {
+      var key = q('#eng-tn').value;
+      var label = TENSE_LABEL[key] || key;
+      var trows = (tenseIdx[key] || [])
+        .filter(function (i) { return keep[String(i)]; })
+        .map(function (i) {
+          return [label, S(cues[i].s), cues[i].s.toFixed(2), cues[i].x,
+                  detectTenses(cues[i].x).map(function (t) { return TENSE_LABEL[t]; }).join(' / ')];
+        });
+      download('tense_' + tag + '_' + key + '.csv',
+        toCSV(['tense', 'timestamp', 'seconds', 'sentence', 'all_tenses_in_line'], trows));
       return;
     }
 
@@ -1055,7 +1332,9 @@
   }
 
   /* ------------------------------------------------- 항목 선택 (구문·단어 공용) */
-  function listBox(pane) { return q(pane === 'wd' ? '#eng-wdlist' : '#eng-phlist'); }
+  function listBox(pane) {
+    return q(pane === 'wd' ? '#eng-wdlist' : pane === 'tn' ? '#eng-tnlist' : '#eng-phlist');
+  }
 
   function picks(pane) {
     var box = listBox(pane);
@@ -1075,8 +1354,8 @@
       c.closest('.eng-card').classList.toggle('off', !c.checked);
     });
     var tab = q('#eng-tab-' + pane);
-    if (tab) tab.textContent = (pane === 'wd' ? '단어 추출' : '구문 추출')
-      + (all.length ? ' (' + on + ')' : '');
+    var name = pane === 'wd' ? '단어 추출' : pane === 'tn' ? '시제' : '구문 추출';
+    if (tab) tab.textContent = name + (all.length ? ' (' + on + ')' : '');
   }
 
   function setAll(pane, on) {
@@ -1096,8 +1375,7 @@
       + (extraHTML || '');
     d.querySelector('input').addEventListener('change', function () { updateCount(pane); });
     d.querySelector('.eng-src').addEventListener('click', function () {
-      player.seekTo(cues[cueIdx].s, true);
-      player.playVideo();
+      seekCue(cues[cueIdx].s);
       if (nodes[cueIdx]) nodes[cueIdx].scrollIntoView({ block: 'center', behavior: 'smooth' });
     });
     return d;
@@ -1109,6 +1387,7 @@
     });
     q('#eng-pane-ph').hidden = tab !== 'ph';
     q('#eng-pane-wd').hidden = tab !== 'wd';
+    q('#eng-pane-tn').hidden = tab !== 'tn';
   }
 
   function openPanel(tab) {
@@ -1149,11 +1428,19 @@
   +     '<button class="eng-btn on" id="eng-merge" title="잘린 자막을 문장 단위로 병합">문장 병합</button>'
   +     '<button class="eng-btn" id="eng-phbtn" title="자주 쓰는 구문 추출">구문 추출</button>'
   +     '<button class="eng-btn" id="eng-wdbtn" title="중급 이상 단어만 추출">단어 추출</button>'
+  +     '<button class="eng-btn" id="eng-tnbtn" title="시제별로 문장 모아보기">시제</button>'
   +     '<span class="sp"></span>'
   +     '<span class="eng-chip" id="eng-status">자막을 불러오세요</span>'
   +     '<span class="eng-sep"></span>'
   +     '<button class="eng-btn" data-fs="-1" title="글자 작게">A−</button>'
   +     '<button class="eng-btn" data-fs="1" title="글자 크게">A+</button>'
+  +     '<select class="eng-sel" id="eng-lead" title="자막을 클릭할 때 앞에 두는 여백">'
+  +       '<option value="0">여백 0초</option>'
+  +       '<option value="1">여백 1초</option>'
+  +       '<option value="2" selected>여백 2초</option>'
+  +       '<option value="3">여백 3초</option>'
+  +       '<option value="4">여백 4초</option>'
+  +     '</select>'
   +     '<select class="eng-sel" id="eng-size" title="영상 크기">'
   +       '<option value="s">영상 작게</option>'
   +       '<option value="m" selected>영상 보통</option>'
@@ -1185,6 +1472,7 @@
   +   '<div class="eng-tabs">'
   +     '<button class="eng-btn on" id="eng-tab-ph" data-tab="ph">구문 추출</button>'
   +     '<button class="eng-btn" id="eng-tab-wd" data-tab="wd">단어 추출</button>'
+  +     '<button class="eng-btn" id="eng-tab-tn" data-tab="tn">시제</button>'
   +   '</div>'
   /* --- 구문 탭 --- */
   +   '<div id="eng-pane-ph">'
@@ -1215,6 +1503,21 @@
   +       '<span class="eng-cnt" id="eng-cnt-wd"></span>'
   +     '</div>'
   +     '<div id="eng-wdlist"></div>'
+  +   '</div>'
+  /* --- 시제 탭 --- */
+  +   '<div id="eng-pane-tn" hidden>'
+  +     '<div class="eng-bar" style="padding:0 0 8px">'
+  +       '<span class="eng-chip">시제</span>'
+  +       '<select class="eng-sel" id="eng-tn"></select>'
+  +     '</div>'
+  +     '<div class="eng-note">해당 시제가 쓰인 문장만 모아 보여줍니다. '
+  +       '시간표시를 클릭하면 그 장면으로 이동합니다.</div>'
+  +     '<div class="eng-bar" style="padding:0 0 8px">'
+  +       '<button class="eng-btn" data-all="tn">전체 선택</button>'
+  +       '<button class="eng-btn" data-none="tn">전체 해제</button>'
+  +       '<span class="eng-cnt" id="eng-cnt-tn"></span>'
+  +     '</div>'
+  +     '<div id="eng-tnlist"></div>'
   +   '</div>'
   +   '<div class="eng-note" style="margin-top:12px;padding-top:10px;'
   +     'border-top:1px solid var(--border)">내보내기</div>'
@@ -1333,6 +1636,8 @@
     });
     q('#eng-phbtn').addEventListener('click', function () { openPanel('ph'); });
     q('#eng-wdbtn').addEventListener('click', function () { openPanel('wd'); });
+    q('#eng-tnbtn').addEventListener('click', function () { openPanel('tn'); });
+    q('#eng-tn').addEventListener('change', renderTenseList);
     q('#eng-phclose').addEventListener('click', function () { q('#eng-ph').classList.remove('open'); });
     Array.prototype.forEach.call(root.querySelectorAll('.eng-tabs .eng-btn'), function (b) {
       b.addEventListener('click', function () { showTab(b.getAttribute('data-tab')); });
@@ -1349,6 +1654,8 @@
       });
     });
     q('#eng-lvl').value = store.get('lvl', 'B2');
+    q('#eng-lead').value = store.get('lead', '2');
+    q('#eng-lead').addEventListener('change', function (e) { store.set('lead', e.target.value); });
     q('#eng-prompt').addEventListener('click', function () {
       var body = cues.map(function (c) { return '[' + S(c.s) + '] ' + c.x; }).join('\n');
       var prompt = '아래는 영어 영상의 자막입니다. 영어 학습자(중급)를 위해 정리해 주세요.\n\n'
