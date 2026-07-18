@@ -89,7 +89,8 @@
   + '.eng-t{color:var(--accent);font-weight:700;cursor:pointer;font-size:.78rem;'
     + 'flex:0 0 auto;font-variant-numeric:tabular-nums}'
   + '.eng-t:hover{text-decoration:underline}'
-  + '.eng-sent{font-size:.79rem;line-height:1.65;min-width:0}'
+  + '.eng-sent{font-size:.79rem;line-height:1.65;min-width:0;'
+    + 'display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}'
   + '.eng-lv{display:inline-block;min-width:22px;text-align:center;font-size:.68rem;'
     + 'font-weight:700;padding:1px 5px;border-radius:4px;margin-right:6px;'
     + 'background:var(--accent-light);color:var(--accent)}'
@@ -102,8 +103,13 @@
   + '.eng-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;'
     + 'padding:11px;margin-bottom:9px;font-size:.83rem;line-height:1.7}'
   + '.eng-card b{color:var(--accent);font-size:.92rem}'
-  + '.eng-src{color:var(--muted);font-size:.76rem;margin-top:5px;cursor:pointer}'
+  /* 출처줄: 글자 수로 자르지 않고 2줄까지만 보이도록 */
+  + '.eng-src{color:var(--muted);font-size:.76rem;line-height:1.6;margin-top:5px;cursor:pointer;'
+    + 'display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}'
   + '.eng-src:hover{color:var(--accent)}'
+  /* 추출된 부분 하이라이트 */
+  + '.eng-hl{background:var(--accent);color:#fff;border-radius:3px;padding:0 2px;'
+    + 'font-weight:600}'
   + '.eng-ex{margin-top:7px;padding-left:10px;border-left:2px solid var(--border);'
     + 'color:var(--muted);font-size:.78rem}'
   + '@media(max-width:768px){.eng-cue .t{flex-basis:42px}}'
@@ -370,7 +376,21 @@
     hang: ['hang','hangs','hung','hanging'],
     deal: ['deal','deals','dealt','dealing'],
     think: ['think','thinks','thought','thinking'],
-    leave: ['leave','leaves','left','leaving']
+    leave: ['leave','leaves','left','leaving'],
+    lead: ['lead','leads','led','leading'],
+    lose: ['lose','loses','lost','losing'],
+    mean: ['mean','means','meant','meaning'],
+    feel: ['feel','feels','felt','feeling'],
+    send: ['send','sends','sent','sending'],
+    spend: ['spend','spends','spent','spending'],
+    build: ['build','builds','built','building'],
+    sell: ['sell','sells','sold','selling'],
+    buy: ['buy','buys','bought','buying'],
+    teach: ['teach','teaches','taught','teaching'],
+    seek: ['seek','seeks','sought','seeking'],
+    win: ['win','wins','won','winning'],
+    sit: ['sit','sits','sat','sitting'],
+    cost: ['cost','costs','costing']
   };
 
   /* 표제어의 첫 단어는 아래 목록에 없으면 전부 동사로 보고 활용형을 만듭니다.
@@ -413,8 +433,11 @@
     + 'cut|figure|find|keep|move|pass|pay|point|pull|push|show|sort|stand|throw|try|work|write|'
     + 'check|clear|close|deal|drop|end|fill|hand|head|leave|open|play|reach|save|send|settle|'
     + 'sign|speak|start|stay|step|stick|switch|talk|team|think|wake|walk|warm|wear|wind|wipe|wrap';
+  /* 'to' 는 일반 패턴에서 제외합니다 — 부정사 표지라서 "go to", "want to" 같은
+     공부할 가치 없는 조합이 대량으로 잡힙니다.
+     "belong to", "lead to" 처럼 쓸모 있는 것은 사전 표제어로 따로 있습니다. */
   var PARTS = 'up|out|off|on|in|down|over|through|away|back|around|about|into|along|apart|aside|'
-    + 'forward|together|by|for|with|to|at|after|ahead|of|from|against|upon|toward|towards';
+    + 'forward|together|by|for|with|at|after|ahead|of|from|against|upon|toward|towards';
 
   /* 축약형을 풀어야 be 구문이 잡힙니다: "it's sort of" → "it is sort of" */
   function expand(s) {
@@ -1234,7 +1257,8 @@
         f.hits[0],
         ex.length ? '<div class="eng-ex">' + ex.map(function (s) {
           return '<div>· ' + esch(s) + '</div>';
-        }).join('') + '</div>' : ''));
+        }).join('') + '</div>' : '',
+        true, dispRe(f.label)));
     });
     updateCount('ph');
   }
@@ -1255,7 +1279,8 @@
         '<span class="eng-lv' + (f.level === 'C1' ? ' c1' : '') + '">' + f.level + '</span>'
         + '<b>' + esch(f.word) + '</b> '
         + '<span style="color:var(--muted)">×' + f.n + '</span>',
-        f.cue));
+        f.cue, '', true,
+        new RegExp('\\b' + esc(f.word) + '\\b', 'gi')));
     });
 
     updateCount('wd');
@@ -1291,10 +1316,11 @@
     box.innerHTML = hits.length ? ''
       : '<div class="eng-note">해당 시제의 문장이 없습니다.</div>';
 
+    var hl = TENSE_HL[key];
     hits.forEach(function (i) {
       box.appendChild(makeCard('tn', String(i),
         '<span class="eng-t">' + S(cues[i].s) + '</span> '
-        + '<span class="eng-sent">' + esch(cues[i].x) + '</span>',
+        + '<span class="eng-sent">' + snippet(cues[i].x, hl) + '</span>',
         i, '', false));
     });
     updateCount('tn');
@@ -1352,6 +1378,84 @@
     }
   }
 
+  /* ==========================================================================
+     추출된 부분 하이라이트
+     원문(자막 그대로)에서 일치 구간을 찾아 <mark> 로 감싸고,
+     그 주변만 잘라 보여줍니다. 앞뒤로 2줄 정도면 충분하다는 요청에 맞춰
+     일치 지점을 가운데 두고 창을 잡습니다.
+     ========================================================================== */
+
+  /* 원문에는 축약형이 그대로 있으므로 be·have 는 '(s|re|m|ve|ll) 형태도 허용 */
+  var CONTR = "['’](?:s|re|m|ve|ll|d)";
+
+  function dispRe(key) {
+    var w = key.split(' ');
+    var rest = w.slice(1).map(esc).join('\\s+');
+    if (!rest) return new RegExp('\\b' + esc(w[0]) + '\\b', 'gi');
+
+    var headAlt;
+    if (NON_VERB_HEAD[w[0]]) {
+      headAlt = '\\b' + esc(w[0]) + '\\b';
+    } else {
+      headAlt = '(?:\\b(?:' + forms(w[0]).map(esc).join('|') + ')\\b|' + CONTR + ')';
+    }
+    /* 머리(be동사 등)는 없을 수도 있게 — 최소한 나머지 구문은 표시됩니다 */
+    return new RegExp('(?:' + headAlt + "\\s*(?:n['’]?t)?" + MID + '\\s+)?' + rest, 'gi');
+  }
+
+  var PPRE = '(?:\\w+ed|' + PP.join('|') + ')';
+  var HADV = "(?:\\s+(?:not|n['’]t|ever|never|already|just|really|still|always|recently|"
+    + 'finally|actually|only|even|probably|certainly|definitely))?';
+
+  var TENSE_HL = {
+    future_perf_prog: new RegExp("\\b(?:will|shall)\\s+have\\s+been\\s+\\w+ing\\b|" + CONTR + "l?\\s+have\\s+been\\s+\\w+ing\\b", 'gi'),
+    future_perf:      new RegExp('\\b(?:will|shall)' + HADV + '\\s+have' + HADV + '\\s+' + PPRE + '\\b', 'gi'),
+    future_prog:      /\b(?:will|shall)\s+be\s+\w+ing\b/gi,
+    future:           new RegExp("\\b(?:will|shall|won['’]t)" + HADV + '\\s+\\w+|\\b(?:is|are|am)\\s+going\\s+to\\s+\\w+|' + CONTR + '\\s+going\\s+to\\s+\\w+', 'gi'),
+    past_perf_prog:   /\bhad\s+been\s+\w+ing\b/gi,
+    past_perf:        new RegExp('\\bhad' + HADV + '\\s+' + PPRE + '\\b', 'gi'),
+    pres_perf_prog:   new RegExp('\\b(?:has|have)\\s+been\\s+\\w+ing\\b|' + CONTR + '\\s+been\\s+\\w+ing\\b', 'gi'),
+    pres_perf:        new RegExp('\\b(?:has|have)' + HADV + '\\s+' + PPRE + '\\b|' + CONTR + HADV + '\\s+' + PPRE + '\\b', 'gi'),
+    past_prog:        /\b(?:was|were)\s+(?:\w+\s+)?\w+ing\b/gi,
+    pres_prog:        new RegExp('\\b(?:is|are|am)\\s+(?:\\w+\\s+)?\\w+ing\\b|' + CONTR + '\\s+\\w+ing\\b', 'gi'),
+    passive:          new RegExp('\\b(?:is|are|am|was|were|be|been|being)' + HADV + '\\s+' + PPRE + '\\b', 'gi'),
+    modal:            /\b(?:would|could|should|might|may|must|can)\s+(?:not\s+)?\w+/gi,
+    past:             null,
+    present:          null
+  };
+
+  /* 일치 지점을 가운데 두고 앞뒤를 잘라 하이라이트한 HTML 을 돌려줍니다 */
+  function snippet(text, re, before, after) {
+    before = before == null ? 55 : before;
+    after = after == null ? 85 : after;
+
+    var m = null;
+    if (re) { re.lastIndex = 0; m = re.exec(text); }
+    if (!m || !m[0]) {
+      return esch(text.length > 150 ? text.slice(0, 150) + '…' : text);
+    }
+
+    var hitS = m.index, hitE = m.index + m[0].length;
+    var s = Math.max(0, hitS - before);
+    var e = Math.min(text.length, hitE + after);
+
+    /* 단어 중간에서 잘리지 않도록 공백까지 밀어줍니다 */
+    if (s > 0) {
+      var sp = text.indexOf(' ', s);
+      if (sp > -1 && sp < hitS) s = sp + 1;
+    }
+    if (e < text.length) {
+      var sp2 = text.lastIndexOf(' ', e);
+      if (sp2 > hitE) e = sp2;
+    }
+
+    return (s > 0 ? '… ' : '')
+      + esch(text.slice(s, hitS))
+      + '<mark class="eng-hl">' + esch(text.slice(hitS, hitE)) + '</mark>'
+      + esch(text.slice(hitE, e))
+      + (e < text.length ? ' …' : '');
+  }
+
   /* ------------------------------------------------- 항목 선택 (구문·단어 공용) */
   function listBox(pane) {
     return q(pane === 'wd' ? '#eng-wdlist' : pane === 'tn' ? '#eng-tnlist' : '#eng-phlist');
@@ -1390,7 +1494,7 @@
   /* 카드 한 장 만들기.
      showSrc=false 면 출처줄을 생략합니다 — 시제 탭처럼 제목이 이미 문장인 경우,
      같은 문장이 두 번 나오는 것을 막습니다. */
-  function makeCard(pane, key, titleHTML, cueIdx, extraHTML, showSrc) {
+  function makeCard(pane, key, titleHTML, cueIdx, extraHTML, showSrc, hlRe) {
     var d = document.createElement('div');
     d.className = 'eng-card';
     d.innerHTML =
@@ -1398,7 +1502,7 @@
       + '<span>' + titleHTML + '</span></label>'
       + (showSrc === false ? ''
           : '<div class="eng-src" data-i="' + cueIdx + '">▸ ' + S(cues[cueIdx].s) + ' '
-            + esch(cues[cueIdx].x.slice(0, 60)) + '…</div>')
+            + snippet(cues[cueIdx].x, hlRe) + '</div>')
       + (extraHTML || '');
 
     d.querySelector('input').addEventListener('change', function () { updateCount(pane); });
