@@ -25,8 +25,12 @@
     + 'border-radius:999px;padding:7px 12px;font:inherit;font-size:.85rem;cursor:pointer}'
   + '.eng-stick{position:sticky;top:calc(var(--header-h,52px) + 16px);z-index:5;'
     + 'background:var(--bg);padding-bottom:10px}'
-  + '.eng-ratio{position:relative;width:100%;padding-top:56.25%;background:#000;'
-    + 'border-radius:12px;overflow:hidden;border:1px solid var(--border)}'
+  /* 영상 크기: 화면 높이(--engvh)와 가용 폭(--engw) 중 작은 쪽을 따름.
+     → 세로/가로 어느 쪽에서도 자막 자리를 남겨둡니다. */
+  + '.eng-vid{display:flex;justify-content:center}'
+  + '.eng-ratio{position:relative;aspect-ratio:16/9;width:auto;max-width:100%;flex:0 0 auto;'
+    + 'height:min(var(--engvh,46vh),calc(var(--engw,700px) * 0.5625));'
+    + 'background:#000;border-radius:12px;overflow:hidden;border:1px solid var(--border)}'
   + '.eng-ratio iframe,.eng-ratio>div{position:absolute;inset:0;width:100%;height:100%}'
   + '.eng-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:10px 0 0}'
   + '.eng-bar .sp{flex:1}'
@@ -64,7 +68,18 @@
   + '.eng-src:hover{color:var(--accent)}'
   + '.eng-ex{margin-top:7px;padding-left:10px;border-left:2px solid var(--border);'
     + 'color:var(--muted);font-size:.78rem}'
-  + '@media(max-width:768px){.eng-cue .t{flex-basis:42px}}';
+  + '@media(max-width:768px){.eng-cue .t{flex-basis:42px}}'
+  /* ---- 가로 모드(낮은 화면): 영상 왼쪽 / 자막 오른쪽 좌우 분할 ---- */
+  + '@media (orientation:landscape) and (max-height:620px){'
+  +   '.eng-body{display:flex;gap:14px;align-items:flex-start}'
+  +   '.eng-stick{flex:0 0 var(--engcol,54%);min-width:0;top:0;padding-bottom:0}'
+  +   '.eng-tx{flex:1;min-width:0;padding:0 0 24px;max-height:calc(100dvh - 76px);'
+  +     'overflow-y:auto;-webkit-overflow-scrolling:touch}'
+  +   '.eng-ratio{height:min(var(--engvh,70vh),calc(var(--engw,400px) * 0.5625))}'
+  +   '.eng-load{margin-bottom:8px}'
+  +   '.eng-cue{padding:7px 9px;line-height:1.55}'
+  +   '.eng-bar{padding-top:7px}'
+  + '}';
 
   function injectCSS() {
     if (document.getElementById('eng-css')) return;
@@ -438,9 +453,44 @@
     var n = nodes[cur];
     if (!n) return;
     n.classList.add('act');
-    var r = n.getBoundingClientRect();
-    if (r.top < window.innerHeight * 0.5 || r.bottom > window.innerHeight - 40)
-      n.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    autoScroll(n);
+  }
+
+  /* 가로 분할에서는 자막 칸이 따로 스크롤되므로, 기준 영역을 구분해서 판단 */
+  function autoScroll(n) {
+    var box = q('#eng-tx');
+    var inner = box && box.scrollHeight > box.clientHeight + 4 &&
+                getComputedStyle(box).overflowY === 'auto';
+    var nr = n.getBoundingClientRect();
+    if (inner) {
+      var br = box.getBoundingClientRect();
+      var pad = br.height * 0.2;
+      if (nr.top < br.top + pad || nr.bottom > br.bottom - pad)
+        n.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    } else {
+      if (nr.top < window.innerHeight * 0.5 || nr.bottom > window.innerHeight - 40)
+        n.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  }
+
+  /* 영상 크기: 가용 폭을 재서 --engw 에 반영 (높이 상한 계산에 사용) */
+  function syncWidth() {
+    if (!root) return;
+    var v = root.querySelector('.eng-vid');
+    if (v && v.clientWidth) root.style.setProperty('--engw', v.clientWidth + 'px');
+  }
+
+  var SIZES = {
+    s: { vh: '32vh', col: '44%' },
+    m: { vh: '46vh', col: '54%' },
+    l: { vh: '62vh', col: '66%' }
+  };
+
+  function applySize(key) {
+    var z = SIZES[key] || SIZES.m;
+    root.style.setProperty('--engvh', z.vh);
+    root.style.setProperty('--engcol', z.col);
+    requestAnimationFrame(syncWidth);
   }
 
   /* --------------------------------------------------------- 렌더 */
@@ -545,8 +595,9 @@
   +   '<button class="eng-btn" id="eng-go">영상 로드</button>'
   +   '<button class="eng-btn" id="eng-file">자막 파일…</button>'
   + '</div>'
+  + '<div class="eng-body">'
   + '<div class="eng-stick">'
-  +   '<div class="eng-ratio"><div id="eng-player"></div></div>'
+  +   '<div class="eng-vid"><div class="eng-ratio"><div id="eng-player"></div></div></div>'
   +   '<div class="eng-bar">'
   +     '<button class="eng-btn" id="eng-play">▶︎ / ❚❚</button>'
   +     '<button class="eng-btn" data-seek="-5">↺ 5s</button>'
@@ -566,6 +617,12 @@
   +     '<span class="sp"></span>'
   +     '<button class="eng-btn" data-fs="-1">A−</button>'
   +     '<button class="eng-btn" data-fs="1">A+</button>'
+  +     '<span class="eng-chip">영상</span>'
+  +     '<select class="eng-sel" id="eng-size">'
+  +       '<option value="s">작게</option>'
+  +       '<option value="m" selected>보통</option>'
+  +       '<option value="l">크게</option>'
+  +     '</select>'
   +     '<select class="eng-sel" id="eng-dict">'
   +       '<option value="https://en.dictionary.cambridge.org/dictionary/english-korean/">Cambridge 영한</option>'
   +       '<option value="https://dict.naver.com/dict.search?query=">네이버 사전</option>'
@@ -581,6 +638,7 @@
   +     '--skip-download --convert-subs vtt &lt;URL&gt;</code> 로 자막을 뽑을 수 있습니다.</span>'
   +   '</div>'
   + '</div>'
+  + '</div>'   /* .eng-body 닫기 */
   + '<div class="eng-ph" id="eng-ph">'
   +   '<button class="eng-btn" id="eng-phclose" style="float:right">닫기</button>'
   +   '<h3>학습할 구문</h3>'
@@ -594,6 +652,7 @@
   + '<input type="file" id="eng-fileinput" accept=".srt,.vtt,.txt" hidden>';
 
   var dragHandlers = [];
+  var onResize = null;
 
   function render(container) {
     injectCSS();
@@ -607,6 +666,14 @@
 
     root.style.setProperty('--efs', store.get('fs', '17') + 'px');
     q('#eng-dict').value = store.get('dict', q('#eng-dict').options[0].value);
+
+    var sz = store.get('size', 'm');
+    q('#eng-size').value = SIZES[sz] ? sz : 'm';
+    applySize(q('#eng-size').value);
+    syncWidth();
+    onResize = function () { syncWidth(); };
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
 
     /* --- 입력 --- */
     q('#eng-go').addEventListener('click', function () {
@@ -660,6 +727,10 @@
       });
     });
     q('#eng-dict').addEventListener('change', function (e) { store.set('dict', e.target.value); });
+    q('#eng-size').addEventListener('change', function (e) {
+      applySize(e.target.value);
+      store.set('size', e.target.value);
+    });
     q('#eng-hide').addEventListener('click', function (e) {
       root.classList.toggle('hide');
       e.target.classList.toggle('on', root.classList.contains('hide'));
@@ -709,6 +780,11 @@
     timer = null;
     dragHandlers.forEach(function (h) { document.removeEventListener(h[0], h[1]); });
     dragHandlers = [];
+    if (onResize) {
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+      onResize = null;
+    }
     if (player && player.destroy) { try { player.destroy(); } catch (e) {} }
     player = null; ready = false;
     rawCues = []; cues = []; nodes = []; cur = -1; ab = null; abArm = false;
