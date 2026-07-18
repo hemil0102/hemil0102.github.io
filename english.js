@@ -73,6 +73,10 @@
     + 'font-weight:700;padding:1px 5px;border-radius:4px;margin-right:6px;'
     + 'background:var(--accent-light);color:var(--accent)}'
   + '.eng-lv.c1{background:var(--accent);color:#fff}'
+  + '.eng-pick{display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none}'
+  + '.eng-pick input{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;flex:0 0 auto}'
+  + '.eng-card.off{opacity:.4}'
+  + '.eng-cnt{font-size:.72rem;color:var(--muted);margin-left:auto}'
   + '.eng-note{font-size:.78rem;color:var(--muted);line-height:1.7;margin:8px 0 14px}'
   + '.eng-card{background:var(--bg);border:1px solid var(--border);border-radius:10px;'
     + 'padding:11px;margin-bottom:9px;font-size:.83rem;line-height:1.7}'
@@ -552,8 +556,33 @@
   + 'vigorous vindicate violate virtually void volatile voluntary vulnerable warrant wary weary '
   + 'whereby widespread withhold withstand yearn zeal').split(' ');
 
+  /* 위 목록에서 빠지기 쉬운 최빈출어 — be/have/do 변화형, 불규칙 과거형,
+     기초 파생명사. 없으면 was·were·went 같은 단어가 C1 으로 잘못 올라갑니다. */
+  var LV_A2 = ('was were been being am is are was had has have having do does did done doing '
+  + 'said says say went gone going goes got gotten gets made makes making took taken takes '
+  + 'came comes coming gave given gives knew known knows thought thinks told tells felt feels '
+  + 'left leaves kept keeps put puts saw seen sees found finds ran runs sat sits stood stands '
+  + 'brought brings bought buys sold sells paid pays read heard hears held holds lost loses '
+  + 'won wins sent sends spent spends built builds began begun begins broke broken breaks '
+  + 'chose chosen drove driven ate eaten fell fallen flew flown forgot forgotten grew grown '
+  + 'led lit meant rose risen sang sung spoke spoken stole stolen swam taught tore torn '
+  + 'understood wore worn wrote written became becomes drank drew drawn threw thrown woke '
+  + 'slept shown showed lay laid sought fought caught bit hid rode shot sank struck swung '
+  + 'death birth truth growth strength length depth youth wealth worth breath belief choice '
+  + 'proof loss gift sight speech thief theft sale service safety silence ability beauty '
+  + 'ago always never often sometimes usually perhaps however therefore thus otherwise '
+  + 'besides within without throughout during unless whether although though since until '
+  + 'while able unable much many more most less least own same other another such very quite '
+  + 'rather almost enough even still yet only just about above across along around behind '
+  + 'beyond down near off onto out over past through toward towards under upon these those '
+  + 'himself herself itself themselves ourselves yourself yourselves whom whose whatever '
+  + 'whenever wherever whoever anybody nobody everybody somewhere anywhere nowhere everywhere '
+  + 'ok okay yeah yes no hey oh ah um uh wow please thanks thank sorry hello goodbye bye')
+  .split(' ');
+
   var LEVEL = {};
   LV_A.forEach(function (w) { LEVEL[w] = 'A'; });
+  LV_A2.forEach(function (w) { LEVEL[w] = 'A'; });
   LV_B1.forEach(function (w) { if (!LEVEL[w]) LEVEL[w] = 'B1'; });
   LV_B2.forEach(function (w) { if (!LEVEL[w]) LEVEL[w] = 'B2'; });
 
@@ -597,8 +626,18 @@
       var toks = c.x.match(/[A-Za-z][A-Za-z'-]*/g) || [];
       toks.forEach(function (tok, ti) {
         var low = tok.toLowerCase().replace(/^'+|'+$/g, '');
+
+        /* 축약형은 앞말로 되돌립니다: don't→do, didn't→did, won't→will, it's→it */
+        var neg = low.match(/^([a-z]+)n't$/);
+        if (neg) {
+          low = neg[1] === 'wo' ? 'will' : neg[1] === 'ca' ? 'can' : neg[1];
+        } else {
+          low = low.replace(/'(s|re|ve|ll|d|m)$/, '');
+        }
+        if (low.indexOf("'") >= 0) return;      // 남은 아포스트로피는 단어로 안 봄
+
         if (low.length < 4) return;
-        if (!/^[a-z][a-z'-]*$/.test(low)) return;
+        if (!/^[a-z][a-z-]*$/.test(low)) return;
         if (!info[low]) info[low] = { w: low, n: 0, cap: 0, mid: 0, first: i };
         var f = info[low];
         f.n++;
@@ -941,28 +980,18 @@
   function buildPhrases() {
     var list = extractPhrases(cues);
     var box = q('#eng-phlist');
+    if (!box) return;
     box.innerHTML = list.length ? '' : '<div class="eng-note">추출된 구문이 없습니다.</div>';
     list.forEach(function (f) {
-      var ex = BOOK[f.label];
-      var d = document.createElement('div');
-      d.className = 'eng-card';
-      d.innerHTML = '<b>' + esch(f.label) + '</b> <span style="color:var(--muted)">×' + f.n + '</span>'
-        + f.hits.map(function (i) {
-            return '<div class="eng-src" data-i="' + i + '">▸ ' + S(cues[i].s) + ' '
-              + esch(cues[i].x.slice(0, 60)) + '…</div>';
-          }).join('')
-        + (ex ? '<div class="eng-ex">' + ex.map(function (s) {
-            return '<div>· ' + esch(s) + '</div>'; }).join('') + '</div>' : '');
-      Array.prototype.forEach.call(d.querySelectorAll('.eng-src'), function (s) {
-        s.addEventListener('click', function () {
-          var i = +s.getAttribute('data-i');
-          player.seekTo(cues[i].s, true);
-          player.playVideo();
-          nodes[i].scrollIntoView({ block: 'center', behavior: 'smooth' });
-        });
-      });
-      box.appendChild(d);
+      var ex = BOOK[f.label] || [];
+      box.appendChild(makeCard('ph', f.label,
+        '<b>' + esch(f.label) + '</b> <span style="color:var(--muted)">×' + f.n + '</span>',
+        f.hits[0],
+        ex.length ? '<div class="eng-ex">' + ex.map(function (s) {
+          return '<div>· ' + esch(s) + '</div>';
+        }).join('') + '</div>' : ''));
     });
+    updateCount('ph');
   }
 
   /* ------------------------------------------------------- 단어 패널 */
@@ -977,24 +1006,14 @@
       : '<div class="eng-note">해당 난이도의 단어가 없습니다. 기준을 낮춰보세요.</div>';
 
     list.forEach(function (f) {
-      var d = document.createElement('div');
-      d.className = 'eng-card';
-      d.innerHTML =
+      box.appendChild(makeCard('wd', f.word,
         '<span class="eng-lv' + (f.level === 'C1' ? ' c1' : '') + '">' + f.level + '</span>'
         + '<b>' + esch(f.word) + '</b> '
-        + '<span style="color:var(--muted)">×' + f.n + '</span>'
-        + '<div class="eng-src" data-i="' + f.cue + '">▸ ' + S(cues[f.cue].s) + ' '
-        + esch(cues[f.cue].x.slice(0, 60)) + '…</div>';
-      d.querySelector('.eng-src').addEventListener('click', function () {
-        player.seekTo(cues[f.cue].s, true);
-        player.playVideo();
-        nodes[f.cue].scrollIntoView({ block: 'center', behavior: 'smooth' });
-      });
-      box.appendChild(d);
+        + '<span style="color:var(--muted)">×' + f.n + '</span>',
+        f.cue));
     });
 
-    var n = q('#eng-tab-wd');
-    if (n) n.textContent = '단어 추출' + (list.length ? ' (' + list.length + ')' : '');
+    updateCount('wd');
   }
 
   /* ------------------------------------------------------- CSV 내보내기 */
@@ -1002,26 +1021,86 @@
     if (!cues.length) { alert('먼저 자막을 불러오세요.'); return; }
     var tag = (curVid || 'subtitle');
     var tab = root.querySelector('.eng-tabs .on').getAttribute('data-tab');
+    var keep = {};
+    selectedKeys(tab).forEach(function (k) { keep[k] = 1; });
+
+    if (!Object.keys(keep).length) {
+      alert('내보낼 항목을 하나 이상 체크하세요.');
+      return;
+    }
 
     if (tab === 'wd') {
       var lvl = q('#eng-lvl').value;
-      var rows = extractWords(cues, lvl).map(function (f) {
-        return [f.word, f.level, f.n, S(cues[f.cue].s),
-                cues[f.cue].s.toFixed(2), cues[f.cue].x];
-      });
+      var rows = extractWords(cues, lvl)
+        .filter(function (f) { return keep[f.word]; })
+        .map(function (f) {
+          return [f.word, f.level, f.n, S(cues[f.cue].s),
+                  cues[f.cue].s.toFixed(2), cues[f.cue].x];
+        });
       download('words_' + tag + '_' + lvl + '.csv',
         toCSV(['word', 'level', 'count', 'timestamp', 'seconds', 'context'], rows));
     } else {
-      var prs = extractPhrases(cues).map(function (f) {
-        var i = f.hits[0];
-        var ex = BOOK[f.label] || [];
-        return [f.label, f.n, S(cues[i].s), cues[i].s.toFixed(2),
-                cues[i].x, ex[0] || '', ex[1] || ''];
-      });
+      var prs = extractPhrases(cues)
+        .filter(function (f) { return keep[f.label]; })
+        .map(function (f) {
+          var i = f.hits[0];
+          var ex = BOOK[f.label] || [];
+          return [f.label, f.n, S(cues[i].s), cues[i].s.toFixed(2),
+                  cues[i].x, ex[0] || '', ex[1] || ''];
+        });
       download('phrases_' + tag + '.csv',
         toCSV(['phrase', 'count', 'timestamp', 'seconds', 'context', 'example_1', 'example_2'],
               prs));
     }
+  }
+
+  /* ------------------------------------------------- 항목 선택 (구문·단어 공용) */
+  function listBox(pane) { return q(pane === 'wd' ? '#eng-wdlist' : '#eng-phlist'); }
+
+  function picks(pane) {
+    var box = listBox(pane);
+    return box ? Array.prototype.slice.call(box.querySelectorAll('input[type=checkbox]')) : [];
+  }
+
+  function selectedKeys(pane) {
+    return picks(pane).filter(function (c) { return c.checked; })
+                      .map(function (c) { return c.getAttribute('data-k'); });
+  }
+
+  function updateCount(pane) {
+    var all = picks(pane), on = all.filter(function (c) { return c.checked; }).length;
+    var el = q('#eng-cnt-' + pane);
+    if (el) el.textContent = all.length ? '선택 ' + on + ' / ' + all.length : '';
+    all.forEach(function (c) {
+      c.closest('.eng-card').classList.toggle('off', !c.checked);
+    });
+    var tab = q('#eng-tab-' + pane);
+    if (tab) tab.textContent = (pane === 'wd' ? '단어 추출' : '구문 추출')
+      + (all.length ? ' (' + on + ')' : '');
+  }
+
+  function setAll(pane, on) {
+    picks(pane).forEach(function (c) { c.checked = on; });
+    updateCount(pane);
+  }
+
+  /* 카드 한 장 만들기 — 체크박스 + 제목줄 + 출처줄(+예문) */
+  function makeCard(pane, key, titleHTML, cueIdx, extraHTML) {
+    var d = document.createElement('div');
+    d.className = 'eng-card';
+    d.innerHTML =
+      '<label class="eng-pick"><input type="checkbox" checked data-k="' + esch(key) + '">'
+      + '<span>' + titleHTML + '</span></label>'
+      + '<div class="eng-src" data-i="' + cueIdx + '">▸ ' + S(cues[cueIdx].s) + ' '
+      + esch(cues[cueIdx].x.slice(0, 60)) + '…</div>'
+      + (extraHTML || '');
+    d.querySelector('input').addEventListener('change', function () { updateCount(pane); });
+    d.querySelector('.eng-src').addEventListener('click', function () {
+      player.seekTo(cues[cueIdx].s, true);
+      player.playVideo();
+      if (nodes[cueIdx]) nodes[cueIdx].scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
+    return d;
   }
 
   function showTab(tab) {
@@ -1109,8 +1188,13 @@
   +   '</div>'
   /* --- 구문 탭 --- */
   +   '<div id="eng-pane-ph">'
-  +     '<div class="eng-note">자막에 나온 구동사·연어를 빈도순으로 정리합니다. '
-  +       '항목을 클릭하면 해당 장면으로 이동합니다.</div>'
+  +     '<div class="eng-note">체크한 항목만 CSV 로 나갑니다. '
+  +       '시간표시를 클릭하면 해당 장면으로 이동합니다.</div>'
+  +     '<div class="eng-bar" style="padding:0 0 8px">'
+  +       '<button class="eng-btn" data-all="ph">전체 선택</button>'
+  +       '<button class="eng-btn" data-none="ph">전체 해제</button>'
+  +       '<span class="eng-cnt" id="eng-cnt-ph"></span>'
+  +     '</div>'
   +     '<div id="eng-phlist"></div>'
   +   '</div>'
   /* --- 단어 탭 --- */
@@ -1124,7 +1208,12 @@
   +       '</select>'
   +     '</div>'
   +     '<div class="eng-note">기초 어휘(A1·A2)와 고유명사는 제외합니다. '
-  +       '레벨은 빈도 기반 <b>추정치</b>입니다.</div>'
+  +       '레벨은 빈도 기반 <b>추정치</b>이고, 체크한 항목만 CSV 로 나갑니다.</div>'
+  +     '<div class="eng-bar" style="padding:0 0 8px">'
+  +       '<button class="eng-btn" data-all="wd">전체 선택</button>'
+  +       '<button class="eng-btn" data-none="wd">전체 해제</button>'
+  +       '<span class="eng-cnt" id="eng-cnt-wd"></span>'
+  +     '</div>'
   +     '<div id="eng-wdlist"></div>'
   +   '</div>'
   +   '<div class="eng-note" style="margin-top:12px;padding-top:10px;'
@@ -1253,6 +1342,12 @@
       buildWords();
     });
     q('#eng-csv').addEventListener('click', exportCSV);
+    Array.prototype.forEach.call(root.querySelectorAll('[data-all],[data-none]'), function (b) {
+      var on = b.hasAttribute('data-all');
+      b.addEventListener('click', function () {
+        setAll(b.getAttribute(on ? 'data-all' : 'data-none'), on);
+      });
+    });
     q('#eng-lvl').value = store.get('lvl', 'B2');
     q('#eng-prompt').addEventListener('click', function () {
       var body = cues.map(function (c) { return '[' + S(c.s) + '] ' + c.x; }).join('\n');
