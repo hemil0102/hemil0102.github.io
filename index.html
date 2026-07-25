@@ -421,6 +421,21 @@
   .main-card p { margin-bottom: 14px; }
   .main-card .links { justify-content: center; margin-top: 28px; }
   .list-head { color: var(--muted); font-size: 0.9rem; margin-bottom: 14px; }
+  .crumb-back {
+    background: none; border: none; padding: 0; cursor: pointer; font: inherit;
+    color: var(--logo-accent, var(--accent)); font-weight: 600;
+  }
+  .crumb-back:hover { text-decoration: underline; }
+  .folder-card .meta { display: flex; align-items: center; gap: 8px; }
+  .folder-ico {
+    display: inline-block; width: 15px; height: 12px; margin-right: 9px; vertical-align: -1px;
+    border-radius: 2px 3px 3px 3px; background: var(--logo-accent, var(--accent)); opacity: 0.85;
+    position: relative;
+  }
+  .folder-ico::before {
+    content: ""; position: absolute; left: 0; top: -3px; width: 7px; height: 3px;
+    border-radius: 2px 2px 0 0; background: inherit;
+  }
   .post-card {
     background: var(--card); border: 1px solid var(--border); border-radius: 12px;
     padding: 20px 24px; margin-bottom: 14px; cursor: pointer; transition: box-shadow .15s, transform .15s;
@@ -533,6 +548,7 @@
 
   var posts = [];        // {path, title, category}
   var activeCategory = 'All';
+  var activeGroup = null;    // 열려 있는 하위 폴더(책 등)
   var mSubmenu = null;       // 모바일 메뉴에서 열려 있는 하위 페이지: null | 'insights' | 'study'
   /* Study 하위 항목 — 여기에 추가하면 데스크톱/모바일 메뉴에 자동 반영 */
   var STUDY_ITEMS = [{ label: 'English', hash: '#/english' }];
@@ -548,6 +564,18 @@
   var $mInd = document.getElementById('m-ind');
   var $header = document.getElementById('header');
 
+  /* path 에서 카테고리와 하위 폴더(group)를 추출 — 폴더가 더 깊어져도 자동 대응 */
+  function normalizePost(p) {
+    var rel = p.path.indexOf(ROOT) === 0 ? p.path.slice(ROOT.length) : p.path;
+    var parts = rel.split('/');
+    return {
+      path: p.path,
+      title: p.title,
+      category: p.category || (parts.length > 1 ? parts[0] : '기타'),
+      group: parts.length > 2 ? parts.slice(1, -1).join('/') : ''
+    };
+  }
+
   function loadPosts() {
     return fetch(POSTS_URL)
       .then(function (r) {
@@ -557,6 +585,7 @@
       .then(function (list) {
         return list
           .filter(function (p) { return p && p.path && p.title; })
+          .map(normalizePost)
           .sort(function (a, b) { return a.title.localeCompare(b.title, 'ko'); });
       })
       .catch(function () {
@@ -590,7 +619,10 @@
         var parts = rel.split('/');
         var category = parts.length > 1 ? parts[0] : '기타';
         var file = parts[parts.length - 1].replace(/\.md$/i, '');
-        return { path: n.path, title: file, category: category };
+        return {
+          path: n.path, title: file, category: category,
+          group: parts.length > 2 ? parts.slice(1, -1).join('/') : ''
+        };
       })
       .sort(function (a, b) { return a.title.localeCompare(b.title, 'ko'); });
   }
@@ -603,6 +635,7 @@
 
   function selectCategory(cat) {
     activeCategory = cat;
+    activeGroup = null;
     closeDropdown();
     closeOverlay();
     if (location.hash !== '#/insights') location.hash = '#/insights';
@@ -1025,29 +1058,84 @@
   /* ---------- 본문 렌더링 ---------- */
 
   function renderList() {
-    var list = posts.filter(function (p) {
+    var scoped = posts.filter(function (p) {
       return activeCategory === 'All' || p.category === activeCategory;
     });
+    /* 폴더(그룹) 안을 보고 있는 경우 */
+    if (activeGroup) {
+      var inGroup = scoped.filter(function (p) { return p.group === activeGroup; });
+      var gHead = '<div class="list-head">' +
+        '<button class="crumb-back" type="button">&lsaquo; ' + escapeHtml(activeCategory) + '</button>' +
+        ' &rsaquo; ' + escapeHtml(activeGroup.split('/').pop()) + ' (' + inGroup.length + ')</div>';
+      var gHtml = gHead;
+      inGroup.forEach(function (p, i) {
+        gHtml += '<div class="post-card" data-i="' + i + '">' +
+          '<h3>' + escapeHtml(p.title) + '</h3>' +
+          '<div class="meta"><span class="badge">' + escapeHtml(p.category) + '</span></div></div>';
+      });
+      $main.innerHTML = inGroup.length ? gHtml : gHead + '<div class="status">해당하는 글이 없습니다.</div>';
+      var backBtn = $main.querySelector('.crumb-back');
+      if (backBtn) backBtn.addEventListener('click', function () { activeGroup = null; renderList(); });
+      Array.prototype.forEach.call($main.querySelectorAll('.post-card'), function (card) {
+        card.addEventListener('click', function () {
+          location.hash = '#/post/' + encodeURIComponent(inGroup[parseInt(card.getAttribute('data-i'), 10)].path);
+        });
+      });
+      window.scrollTo(0, 0);
+      return;
+    }
+
+    /* 폴더는 카드 하나로 묶고, 폴더 없는 글은 그대로 나열 */
+    var folders = [];   // {key, name, category, count}
+    var folderIdx = {};
+    var singles = [];
+    scoped.forEach(function (p) {
+      if (p.group) {
+        var key = p.category + '/' + p.group;
+        if (!(key in folderIdx)) {
+          folderIdx[key] = folders.length;
+          folders.push({ key: key, name: p.group.split('/').pop(), group: p.group, category: p.category, count: 0 });
+        }
+        folders[folderIdx[key]].count++;
+      } else {
+        singles.push(p);
+      }
+    });
+
     var head = '';
     if (activeCategory !== 'All') {
       head = '<div class="list-head">Insights &rsaquo; ' + escapeHtml(activeCategory) +
-        ' (' + list.length + ')</div>';
+        ' (' + scoped.length + ')</div>';
     }
-    if (!list.length) {
+    if (!scoped.length) {
       $main.innerHTML = head + '<div class="status">해당하는 글이 없습니다.</div>';
       return;
     }
     var html = head;
-    list.forEach(function (p, i) {
+    folders.forEach(function (f, i) {
+      html += '<div class="post-card folder-card" data-f="' + i + '">' +
+        '<h3><span class="folder-ico"></span>' + escapeHtml(f.name) + '</h3>' +
+        '<div class="meta"><span class="badge">' + escapeHtml(f.category) + '</span>' +
+        '글 ' + f.count + '개</div></div>';
+    });
+    singles.forEach(function (p, i) {
       html += '<div class="post-card" data-i="' + i + '">' +
         '<h3>' + escapeHtml(p.title) + '</h3>' +
         '<div class="meta"><span class="badge">' + escapeHtml(p.category) + '</span></div></div>';
     });
     $main.innerHTML = html;
-    Array.prototype.forEach.call($main.querySelectorAll('.post-card'), function (card) {
+    Array.prototype.forEach.call($main.querySelectorAll('.folder-card'), function (card) {
       card.addEventListener('click', function () {
-        var p = list[parseInt(card.getAttribute('data-i'), 10)];
-        location.hash = '#/post/' + encodeURIComponent(p.path);
+        var f = folders[parseInt(card.getAttribute('data-f'), 10)];
+        activeCategory = f.category;
+        activeGroup = f.group;
+        renderList();
+        updateNav();
+      });
+    });
+    Array.prototype.forEach.call($main.querySelectorAll('.post-card:not(.folder-card)'), function (card) {
+      card.addEventListener('click', function () {
+        location.hash = '#/post/' + encodeURIComponent(singles[parseInt(card.getAttribute('data-i'), 10)].path);
       });
     });
   }
