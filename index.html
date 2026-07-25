@@ -286,9 +286,9 @@
   .dropdown .cat-grid {
     display: grid; grid-auto-flow: column;
     grid-template-rows: repeat(4, auto);
-    grid-auto-columns: max-content;   /* 열 너비를 내용에 맞춤 */
+    grid-auto-columns: max-content;   /* 기본값 — JS가 가장 긴 항목 기준으로 통일 */
     justify-content: start;           /* 남는 공간을 나눠 갖지 않고 왼쪽 정렬 */
-    justify-items: start; column-gap: 8px;
+    justify-items: start; column-gap: 16px;
   }
   .dropdown h3 {
     font-size: 0.78rem; color: var(--logo-accent, var(--accent)); font-weight: 700;
@@ -756,6 +756,15 @@
     $dropdown.classList.add('open');
     $header.classList.add('dd-open');
     $header.setAttribute('data-dd', kind);
+    /* 모든 열 너비를 가장 긴 항목 기준으로 통일 */
+    var $grid = $dropdown.querySelector('.cat-grid');
+    if ($grid) {
+      var maxW = 0;
+      Array.prototype.forEach.call($grid.querySelectorAll('.cat-btn'), function (b) {
+        maxW = Math.max(maxW, b.offsetWidth);
+      });
+      if (maxW) $grid.style.gridAutoColumns = maxW + 'px';
+    }
     /* 캡슐 펼침이 끝난 뒤, 선택돼 있는 항목 위에 물방울 표시 (세로 모드와 동일) */
     setTimeout(function () {
       if (!$dropdown.classList.contains('open')) return;
