@@ -324,7 +324,7 @@
       0 2px 6px rgba(0, 0, 0, 0.07),
       0 8px 20px rgba(0, 0, 0, 0.06);
   }
-  #menu-btn::after, #overlay-close::after {
+  #menu-btn::after, #overlay-close::after, #back-btn::after {
     content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
     background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.06) 40%, rgba(255,255,255,0.03) 62%, rgba(255,255,255,0.28) 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -334,6 +334,48 @@
     pointer-events: none;
   }
   #overlay-wrap { position: relative; margin-top: 20px; }
+  /* 하위 페이지가 있는 항목의 > 표시 */
+  .m-link.has-sub { display: flex; align-items: center; justify-content: space-between; }
+  .m-link .chev {
+    width: 11px; height: 11px; flex: 0 0 auto; margin-right: 6px;
+    border-right: 2.5px solid currentColor; border-top: 2.5px solid currentColor;
+    transform: rotate(45deg); opacity: 0.45;
+    transition: opacity .2s ease, transform .25s cubic-bezier(.3,1.2,.4,1);
+  }
+  .m-link.has-sub:hover .chev { opacity: 1; transform: translateX(4px) rotate(45deg); }
+  /* 하위 페이지 제목 */
+  .m-title {
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--logo-accent, var(--accent)); opacity: 0.75; margin: 0 0 10px 16px;
+  }
+  /* 단계 전환 슬라이드 */
+  @keyframes navSlideIn { 0% { opacity: 0; transform: translateX(18px); } 100% { opacity: 1; transform: none; } }
+  @keyframes navSlideBack { 0% { opacity: 0; transform: translateX(-18px); } 100% { opacity: 1; transform: none; } }
+  #overlay-nav.slide-in { animation: navSlideIn .28s ease-out; }
+  #overlay-nav.slide-back { animation: navSlideBack .28s ease-out; }
+  /* 하위 페이지에서는 로고·팔레트를 감추고 뒤로 버튼 표시 */
+  #back-btn {
+    display: none; width: 34px; height: 34px; border-radius: 50%;
+    align-items: center; justify-content: center; cursor: pointer;
+    padding: 0; font-family: inherit; position: relative; border: none;
+    background: linear-gradient(160deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.05) 55%, rgba(255,255,255,0.14) 100%);
+    -webkit-backdrop-filter: blur(6px) saturate(170%);
+    backdrop-filter: blur(6px) saturate(170%);
+    box-shadow:
+      inset 0 1px 1.5px rgba(255, 255, 255, 0.45),
+      inset 0 -1px 1px rgba(0, 0, 0, 0.10),
+      0 2px 6px rgba(0, 0, 0, 0.07),
+      0 8px 20px rgba(0, 0, 0, 0.06);
+  }
+  .bb-chev {
+    width: 9px; height: 9px; margin-left: 3px;
+    border-left: 2.5px solid var(--header-text, #fff);
+    border-bottom: 2.5px solid var(--header-text, #fff);
+    transform: rotate(45deg);
+  }
+  body.submenu-open #back-btn { display: flex; }
+  body.submenu-open .header-inner .logo,
+  body.submenu-open .header-inner .theme-palette { display: none; }
   .m-link {
     display: block; color: var(--logo-accent, var(--text)); text-decoration: none;
     font-size: 1.25rem; font-weight: 700; padding: 8px 16px;
@@ -428,7 +470,7 @@
   footer { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 32px 0 48px; }
   footer a { color: var(--muted); }
 </style>
-<script src="theme.js?v=15"></script>
+<script src="theme.js?v=16"></script>
 <script src="english.js?v=17"></script>
 </head>
 <body>
@@ -436,6 +478,7 @@
 <div id="bottom-fade" aria-hidden="true"></div>
 <header id="header">
   <div class="header-inner">
+    <button id="back-btn" aria-label="뒤로"><span class="bb-chev"></span></button>
     <a class="logo" href="#/">Harry's <span>Insights</span></a>
     <nav class="topnav" id="topnav">
       <div class="glass-ind" id="nav-ind"></div>
@@ -479,8 +522,7 @@
 
   var posts = [];        // {path, title, category}
   var activeCategory = 'All';
-  var mInsightsOpen = false; // 모바일 메뉴에서 Insights 확장 여부
-  var mStudyOpen = false;    // 모바일 메뉴에서 Study 확장 여부
+  var mSubmenu = null;       // 모바일 메뉴에서 열려 있는 하위 페이지: null | 'insights' | 'study'
   /* Study 하위 항목 — 여기에 추가하면 데스크톱/모바일 메뉴에 자동 반영 */
   var STUDY_ITEMS = [{ label: 'English', hash: '#/english' }];
   var navInit = false;
@@ -767,31 +809,32 @@
 
   /* ---------- 모바일 오버레이 메뉴 ---------- */
 
+  /* 모바일 메뉴는 2단 페이지 구조: 루트 → (Insights/Study) 하위 페이지 */
   function renderOverlayNav() {
-    var counts = categoryCounts();
-    var cats = Object.keys(counts).sort();
-    var html =
-      '<a href="#/about" class="m-link" data-nav="about">About me</a>' +
-      '<a href="#/insights" class="m-link" data-nav="insights">Insights</a>';
-    if (mInsightsOpen) {
-      html += '<div class="m-sub">';
+    var html = '';
+    if (mSubmenu === 'insights') {
+      var counts = categoryCounts();
+      var cats = Object.keys(counts).sort();
+      html += '<p class="m-title">Insights</p>';
       html += '<button class="cat-btn" data-cat="All">모두 보기<span class="count">' + posts.length + '</span></button>';
       cats.forEach(function (c) {
         html += '<button class="cat-btn" data-cat="' + escapeAttr(c) + '">' + escapeHtml(c) +
           '<span class="count">' + counts[c] + '</span></button>';
       });
-      html += '</div>';
-    }
-    html += '<a href="#/english" class="m-link" data-nav="study">Study</a>';
-    if (mStudyOpen) {
-      html += '<div class="m-sub">';
+    } else if (mSubmenu === 'study') {
+      html += '<p class="m-title">Study</p>';
       STUDY_ITEMS.forEach(function (it) {
         html += '<button class="cat-btn" data-hash="' + escapeAttr(it.hash) + '">' +
           escapeHtml(it.label) + '</button>';
       });
-      html += '</div>';
+    } else {
+      html += '<a href="#/about" class="m-link" data-nav="about">About me</a>';
+      html += '<a href="#/insights" class="m-link has-sub" data-nav="insights">Insights<span class="chev"></span></a>';
+      html += '<a href="#/english" class="m-link has-sub" data-nav="study">Study<span class="chev"></span></a>';
     }
     $overlayNav.innerHTML = html;
+    document.body.classList.toggle('submenu-open', !!mSubmenu);
+
     Array.prototype.forEach.call($overlayNav.querySelectorAll('.m-link'), function (a) {
       if (hasHover) {
         a.addEventListener('mouseenter', function () { moveInd($mInd, a, true); });
@@ -800,38 +843,7 @@
         e.preventDefault();
         var navKey = a.getAttribute('data-nav');
         if (navKey === 'insights' || navKey === 'study') {
-          if (navKey === 'insights') { mInsightsOpen = !mInsightsOpen; mStudyOpen = false; }
-          else { mStudyOpen = !mStudyOpen; mInsightsOpen = false; }
-          var isOpen = navKey === 'insights' ? mInsightsOpen : mStudyOpen;
-          renderOverlayNav();
-          if (navKey === 'study') {
-            var t = isOpen ? $overlayNav.querySelector('[data-nav="study"]') : mActiveTarget();
-            clearTimeout($mInd._settle);
-            moveInd($mInd, null, false);
-            $mInd._settle = setTimeout(function () {
-              if (!$overlay.classList.contains('open')) return;
-              moveInd($mInd, isOpen ? $overlayNav.querySelector('[data-nav="study"]') : mActiveTarget(), false);
-            }, 400);
-            return;
-          }
-          if (routeNavKey() !== 'insights') {
-            /* About me 등 다른 화면: 위치가 안정적이므로 깜빡임 없이 물 흐르듯 이동
-               펼치면 Insights 위로, 접으면 현재 화면 메뉴로 */
-            var flowTarget = mInsightsOpen
-              ? $overlayNav.querySelector('[data-nav="insights"]')
-              : mActiveTarget();
-            clearTimeout($mInd._settle);
-            moveInd($mInd, flowTarget, true);
-          } else {
-            /* 카테고리 화면: 접기/펼치기로 레이아웃이 바뀌므로
-               숨겼다가 애니메이션이 끝난 뒤 정확한 위치에 표시 */
-            moveInd($mInd, null, false);
-            clearTimeout($mInd._settle);
-            $mInd._settle = setTimeout(function () {
-              if (!$overlay.classList.contains('open')) return;
-              moveInd($mInd, mActiveTarget(), false);
-            }, 400);
-          }
+          openSubmenu(navKey);   /* 펼치는 대신 하위 페이지로 이동 */
           return;
         }
         moveInd($mInd, a, true, true);
@@ -855,14 +867,30 @@
       });
     });
     if (hasHover) {
-      $overlayNav.onmouseleave = function () {
-        if (mInsightsOpen) {
-          moveInd($mInd, $overlayNav.querySelector('[data-nav="insights"]'), true);
-        } else {
-          positionMIndByRoute(true);
-        }
-      };
+      $overlayNav.onmouseleave = function () { moveInd($mInd, mActiveTarget(), true); };
     }
+  }
+
+  /* 하위 페이지 열기/닫기 — 물방울은 레이아웃이 바뀐 뒤 정확한 위치에 표시 */
+  function showOverlayLevel(animateFrom) {
+    renderOverlayNav();
+    $overlayNav.classList.remove('slide-in', 'slide-back');
+    void $overlayNav.offsetWidth;
+    $overlayNav.classList.add(animateFrom === 'back' ? 'slide-back' : 'slide-in');
+    moveInd($mInd, null, false);
+    clearTimeout($mInd._settle);
+    $mInd._settle = setTimeout(function () {
+      if (!$overlay.classList.contains('open')) return;
+      moveInd($mInd, mActiveTarget(), false);
+    }, 340);
+  }
+  function openSubmenu(kind) {
+    mSubmenu = kind;
+    showOverlayLevel('in');
+  }
+  function closeSubmenu() {
+    mSubmenu = null;
+    showOverlayLevel('back');
   }
 
   function positionMIndByRoute(animate) {
@@ -874,18 +902,20 @@
   /* 현재 화면에 해당하는 모바일 메뉴 요소(펼침 상태면 선택된 카테고리 버튼) */
   function mActiveTarget() {
     var found = null;
-    if (mInsightsOpen && routeNavKey() === 'insights') {
+    if (mSubmenu === 'insights') {
+      if (routeNavKey() !== 'insights') return null;
       Array.prototype.forEach.call($overlayNav.querySelectorAll('.cat-btn'), function (btn) {
         if (btn.getAttribute('data-cat') === activeCategory) found = btn;
       });
-      if (found) return found;
+      return found;
     }
-    if (mStudyOpen && routeNavKey() === 'study') {
+    if (mSubmenu === 'study') {
+      if (routeNavKey() !== 'study') return null;
       Array.prototype.forEach.call($overlayNav.querySelectorAll('.cat-btn'), function (btn) {
         var h = btn.getAttribute('data-hash');
         if (h && location.hash.indexOf(h) === 0) found = btn;
       });
-      if (found) return found;
+      return found;
     }
     var key = routeNavKey();
     return key ? $overlayNav.querySelector('[data-nav="' + key + '"]') : null;
@@ -911,9 +941,7 @@
   window.addEventListener('resize', setHeaderHeight);
 
   function openOverlay() {
-    /* 현재 화면에 해당하는 상위 메뉴를 펼친 채로 열고, 선택된 항목 위에 표시 */
-    mInsightsOpen = (routeNavKey() === 'insights');
-    mStudyOpen = (routeNavKey() === 'study');
+    mSubmenu = null; /* 항상 루트 단계에서 시작 */
     renderOverlayNav();
     $overlay.classList.add('open');
     document.body.classList.add('menu-open');
@@ -931,8 +959,9 @@
 
   function closeOverlay() {
     clearTimeout($mInd._settle);
+    mSubmenu = null;
     $overlay.classList.remove('open');
-    document.body.classList.remove('menu-open');
+    document.body.classList.remove('menu-open', 'submenu-open');
     $menuBtn.classList.remove('open');
     $menuBtn.setAttribute('aria-label', '메뉴 열기');
     document.body.style.overflow = '';
@@ -941,6 +970,10 @@
   $menuBtn.addEventListener('click', function () {
     if ($overlay.classList.contains('open')) closeOverlay();
     else openOverlay();
+  });
+
+  document.getElementById('back-btn').addEventListener('click', function () {
+    if (mSubmenu) closeSubmenu();
   });
 
   /* 로고 클릭 시 메인으로 이동하며 펼침 메뉴 닫기 */
