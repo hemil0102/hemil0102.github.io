@@ -286,7 +286,9 @@
   .dropdown .cat-grid {
     display: grid; grid-auto-flow: column;
     grid-template-rows: repeat(4, auto);
-    justify-items: start; column-gap: 24px;
+    grid-auto-columns: max-content;   /* 열 너비를 내용에 맞춤 */
+    justify-content: start;           /* 남는 공간을 나눠 갖지 않고 왼쪽 정렬 */
+    justify-items: start; column-gap: 8px;
   }
   .dropdown h3 {
     font-size: 0.78rem; color: var(--logo-accent, var(--accent)); font-weight: 700;
