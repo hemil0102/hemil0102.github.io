@@ -158,10 +158,9 @@
     THEMES.forEach(function (t) {
       var p = derive(t.base);
       var o = t.overrides || {};
-      var light = Object.assign({}, p.light, p.always, o.light || {});
+      /* 사이트는 항상 다크 모드로 고정 — 다크 팔레트만 사용 */
       var dark = Object.assign({}, p.dark, p.always, o.dark || {});
-      out += 'html[data-theme="' + t.id + '"] { ' + varsToCss(light) + ' }\n';
-      out += '@media (prefers-color-scheme: dark) { html[data-theme="' + t.id + '"] { ' + varsToCss(dark) + ' } }\n';
+      out += 'html[data-theme="' + t.id + '"] { ' + varsToCss(dark) + ' }\n';
     });
     /* 팔레트 UI */
     out += [

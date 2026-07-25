@@ -4,40 +4,29 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>About me — Harry's Insights</title>
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#000000">
 <style>
+  /* 사이트는 항상 다크 모드로 고정 */
   :root {
-    --bg: #fbf8f6;
-    --card: #ffffff;
-    --text: #2b1a1e;
-    --muted: #80716f;
-    --accent: #b3223f;
-    --accent-light: #fdeef1;
-    --border: #ebe3e1;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #181214;
-      --card: #241a1d;
-      --text: #eee7e8;
-      --muted: #ab9a9e;
-      --accent: #fb7185;
-      --accent-light: #361e25;
-      --border: #372a2e;
-    }
+    color-scheme: dark;
+    --bg: #181214;
+    --card: #241a1d;
+    --text: #eee7e8;
+    --muted: #ab9a9e;
+    --accent: #fb7185;
+    --accent-light: #361e25;
+    --border: #372a2e;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { background: #ffffff; }
-  @media (prefers-color-scheme: dark) { html { background: #000000; } }
+  html { background: #000000; }
   body {
     font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Segoe UI", Roboto, sans-serif;
-    background-color: #ffffff;
+    background-color: #000000;
     background-image: linear-gradient(var(--bg), var(--bg));
     color: var(--text);
     line-height: 1.7;
   }
-  @media (prefers-color-scheme: dark) { body { background-color: #000000; } }
   header {
     background: var(--card);
     border-bottom: 1px solid var(--border);
@@ -79,7 +68,7 @@
   footer { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 32px 0 48px; }
   footer a { color: var(--muted); }
 </style>
-<script src="theme.js?v=14"></script>
+<script src="theme.js?v=15"></script>
 </head>
 <body>
 <header>

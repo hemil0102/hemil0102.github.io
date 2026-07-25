@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#000000">
 <title>Harry's Insights</title>
 <meta name="description" content="경영, 기술, 인사이트 노트 아카이브">
 <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -14,49 +14,28 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.5/purify.min.js"></script>
 <style>
+  /* 사이트는 항상 다크 모드로 고정 */
   :root {
-    --bg: #fbf8f6;
-    --card: #ffffff;
-    --text: #2b1a1e;
-    --muted: #80716f;
-    --accent: #b3223f;
-    --accent-light: #fdeef1;
-    --border: #ebe3e1;
-    --code-bg: #f6f1f0;
-    --header-glass: rgba(255, 255, 255, 0.72);
-    --glass-fill: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(246,236,237,0.55));
-    --glass-border: rgba(0, 0, 0, 0.08);
-    --glass-inner: rgba(255, 255, 255, 0.9);
-    --glass-shadow: rgba(0, 0, 0, 0.14);
-    --tray-fill: rgba(0, 0, 0, 0.035);
-    --pill-fill: rgba(0, 0, 0, 0.045);
-    --rim: rgba(255, 255, 255, 0.95);
-    --rim-b: rgba(255, 255, 255, 0.45);
-    --sub-text: #5d4b4f;
-    --sysbar: #ffffff; /* 시스템(상태)바 색: 라이트=흰색 */
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #181214;
-      --card: #241a1d;
-      --text: #eee7e8;
-      --muted: #ab9a9e;
-      --accent: #fb7185;
-      --accent-light: #361e25;
-      --border: #372a2e;
-      --code-bg: #2e2327;
-      --header-glass: rgba(24, 17, 19, 0.72);
-      --glass-fill: linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.07));
-      --glass-border: rgba(255, 255, 255, 0.28);
-      --glass-inner: rgba(255, 255, 255, 0.35);
-      --glass-shadow: rgba(0, 0, 0, 0.55);
-      --tray-fill: rgba(255, 255, 255, 0.06);
-      --pill-fill: rgba(255, 255, 255, 0.09);
-      --rim: rgba(255, 255, 255, 0.55);
-      --rim-b: rgba(255, 255, 255, 0.18);
-      --sub-text: #d1c3c6;
-      --sysbar: #000000; /* 다크=검정 */
-    }
+    color-scheme: dark;
+    --bg: #181214;
+    --card: #241a1d;
+    --text: #eee7e8;
+    --muted: #ab9a9e;
+    --accent: #fb7185;
+    --accent-light: #361e25;
+    --border: #372a2e;
+    --code-bg: #2e2327;
+    --header-glass: rgba(24, 17, 19, 0.72);
+    --glass-fill: linear-gradient(135deg, rgba(255,255,255,0.22), rgba(255,255,255,0.07));
+    --glass-border: rgba(255, 255, 255, 0.28);
+    --glass-inner: rgba(255, 255, 255, 0.35);
+    --glass-shadow: rgba(0, 0, 0, 0.55);
+    --tray-fill: rgba(255, 255, 255, 0.06);
+    --pill-fill: rgba(255, 255, 255, 0.09);
+    --rim: rgba(255, 255, 255, 0.55);
+    --rim-b: rgba(255, 255, 255, 0.18);
+    --sub-text: #d1c3c6;
+    --sysbar: #000000;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   /* Safari가 상단 색을 페이지 배경에서 샘플링하는 경우 대비: html 배경 = 시스템바 색 */
@@ -449,7 +428,7 @@
   footer { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 32px 0 48px; }
   footer a { color: var(--muted); }
 </style>
-<script src="theme.js?v=14"></script>
+<script src="theme.js?v=15"></script>
 <script src="english.js?v=17"></script>
 </head>
 <body>
