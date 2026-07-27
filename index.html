@@ -577,7 +577,8 @@
   }
 
   function loadPosts() {
-    return fetch(POSTS_URL)
+    /* CDN·브라우저 캐시를 우회해 새 글이 바로 반영되게 함 */
+    return fetch(POSTS_URL + '?v=' + Date.now(), { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('posts.json 없음');
         return r.json();
