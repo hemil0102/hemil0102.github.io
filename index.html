@@ -462,6 +462,14 @@
 <script src="theme.js?v=17"></script>
 <script src="insights.js?v=1"></script>
 <script src="english.js?v=17"></script>
+<!-- Jerry(3D AI Human)가 Three.js를 동적 import 할 때 쓰는 경로 맵 -->
+<script type="importmap">
+{"imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script src="jerry.js?v=1"></script>
 </head>
 <body>
 <div id="top-fade" aria-hidden="true"></div>
@@ -476,6 +484,7 @@
       <a href="#/insights" data-nav="insights">Insights</a>
       <a href="#/projects" data-nav="projects">Projects</a>
       <a href="#/english" data-nav="study">Study</a>
+      <a href="#/jerry" data-nav="jerry">Jerry</a>
     </nav>
     <button id="menu-btn" aria-label="메뉴 열기"><span class="mb-bar"></span><span class="mb-bar"></span><span class="mb-bar"></span></button>
   </div>
@@ -593,6 +602,7 @@
     var h = location.hash;
     if (h === '#/about') return 'about';
     if (h === '#/projects') return 'projects';
+    if (h === '#/jerry') return 'jerry';
     if (h.indexOf('#/english') === 0) return 'study';
     if (h === '#/insights' || h.indexOf('#/post/') === 0) return 'insights';
     return null;
@@ -765,6 +775,7 @@
       html += '<a href="#/insights" class="m-link has-sub" data-nav="insights">Insights<span class="chev"></span></a>';
       html += '<a href="#/projects" class="m-link" data-nav="projects">Projects</a>';
       html += '<a href="#/english" class="m-link has-sub" data-nav="study">Study<span class="chev"></span></a>';
+      html += '<a href="#/jerry" class="m-link" data-nav="jerry">Jerry</a>';
     }
     $overlayNav.innerHTML = html;
     document.body.classList.toggle('submenu-open', !!mSubmenu);
@@ -1025,10 +1036,26 @@
       });
   }
 
+  function renderJerry() {
+    if (!window.JerryPage) {
+      $main.innerHTML = '<div class="status">jerry.js 를 불러오지 못했습니다.</div>';
+      return;
+    }
+    window.JerryPage.render($main);
+  }
+
   function route() {
     var h = location.hash;
     /* English 화면을 떠나면 플레이어와 타이머를 정리 */
     if (window.EnglishPage && h.indexOf('#/english') !== 0) window.EnglishPage.destroy();
+    /* Jerry 화면을 떠나면 3D 렌더러와 음성을 정리 */
+    if (window.JerryPage && h !== '#/jerry') window.JerryPage.destroy();
+    if (h === '#/jerry') {
+      renderJerry();
+      updateNav();
+      closeDropdown();
+      return;
+    }
     if (h.indexOf('#/english') === 0) {
       renderEnglish();
       updateNav();
