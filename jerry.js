@@ -23,10 +23,27 @@
     '목록·마크다운·이모지는 쓰지 마. 소리 내어 읽힐 문장이라는 걸 항상 기억해.\n' +
     '모르면 모른다고 솔직히 말하고, 따뜻하지만 담백하게 대화해.';
 
+  /* macOS/iOS 한국어 음성 중 남성 계열 우선순위 (Rocko 가 가장 소년스럽다).
+     브라우저마다 이름이 'Rocko' / 'Rocko (한국어(한국))' 로 달라서 부분 일치로 찾는다. */
+  var MALE_KO = ['Rocko', 'Eddy', 'Reed', 'Grandpa'];
+  var VOICE_PRESETS = {
+    boy:   { voice: 'Rocko', pitch: 1.30, rate: 1.06 },
+    man:   { voice: 'Eddy',  pitch: 1.00, rate: 1.02 },
+    woman: { voice: 'Yuna',  pitch: 1.05, rate: 1.05 }
+  };
+
   var cfg = Object.assign({
     key: '', model: 'claude-sonnet-5', voice: '', rate: 1.05, pitch: 1,
-    avatar: '', sys: DEFAULT_SYS, voiceOn: true
+    avatar: '', sys: DEFAULT_SYS, voiceOn: true, preset: 'boy', v: 2
   }, readCfg());
+
+  /* 예전 설정(v<2)은 여자 목소리가 기본이었으므로 한 번만 소년 목소리로 옮겨준다 */
+  if (cfg.v !== 2) {
+    var p = VOICE_PRESETS.boy;
+    cfg.voice = p.voice; cfg.pitch = p.pitch; cfg.rate = p.rate;
+    cfg.preset = 'boy'; cfg.v = 2;
+    saveCfg();
+  }
 
   function readCfg() {
     try { return JSON.parse(localStorage.getItem(LS) || '{}'); } catch (e) { return {}; }
@@ -410,9 +427,17 @@
         '</select></label>' +
         '<label>음성<select id="j-fvoice"></select></label>' +
       '</div>' +
+      '<label>목소리 톤 <span class="h">고르면 아래 음성·속도·음 높이가 함께 바뀝니다. ' +
+        '설정을 닫고 "입 테스트"로 들어보세요.</span>' +
+        '<select id="j-fpreset">' +
+          '<option value="boy">소년 (Rocko, 높은 톤)</option>' +
+          '<option value="man">남성 (Eddy)</option>' +
+          '<option value="woman">여성 (Yuna)</option>' +
+          '<option value="custom">직접 설정</option>' +
+        '</select></label>' +
       '<div class="row">' +
         '<label>말 속도<span class="h">0.7 ~ 1.4</span><input type="text" id="j-frate"></label>' +
-        '<label>음 높이<span class="h">0.7 ~ 1.3</span><input type="text" id="j-fpitch"></label>' +
+        '<label>음 높이<span class="h">0.7 ~ 2.0 (높을수록 어린 목소리)</span><input type="text" id="j-fpitch"></label>' +
       '</div>' +
       '<label>3D 아바타 URL <span class="h">비우면 기본 아바타 <code>vrm/jerry.vrm</code> 를 씁니다. ' +
         '<code>none</code> 을 입력하면 코드로 만든 3D 얼굴로 바뀝니다.<br>' +
@@ -460,15 +485,31 @@
         html += '<option value="' + v.name.replace(/"/g, '&quot;') + '">' + v.name + ' — ' + v.lang + '</option>';
       }
       sel.innerHTML = html;
-      sel.value = cfg.voice || '';
+      var cur = cfg.voice ? findVoice(cfg.voice, false) : null;   /* 'Rocko' → 'Rocko (한국어(한국))' 해석 */
+      sel.value = cur ? cur.name : '';
     }
     if ('speechSynthesis' in window) {
       speechSynthesis.onvoiceschanged = loadVoices;
       setTimeout(loadVoices, 250);
     }
+    function findVoice(token, koOnly) {
+      var i, v, t = String(token).toLowerCase();
+      for (i = 0; i < S.voices.length; i++) {           /* 이름 정확히 일치 */
+        if (S.voices[i].name === token) return S.voices[i];
+      }
+      for (i = 0; i < S.voices.length; i++) {           /* 부분 일치 (브라우저별 표기 차이 흡수) */
+        v = S.voices[i];
+        if (koOnly && !/^ko/i.test(v.lang)) continue;
+        if (v.name.toLowerCase().indexOf(t) >= 0) return v;
+      }
+      return null;
+    }
     function pickVoice() {
       var i, v;
-      if (cfg.voice) { for (i = 0; i < S.voices.length; i++) if (S.voices[i].name === cfg.voice) return S.voices[i]; }
+      if (cfg.voice) { v = findVoice(cfg.voice, false); if (v) return v; }
+      for (i = 0; i < MALE_KO.length; i++) {            /* 기본값: 남성 한국어 음성 */
+        v = findVoice(MALE_KO[i], true); if (v) return v;
+      }
       for (i = 0; i < S.voices.length; i++) { v = S.voices[i]; if (/^ko/i.test(v.lang)) return v; }
       for (i = 0; i < S.voices.length; i++) { v = S.voices[i]; if (/^en/i.test(v.lang)) return v; }
       return S.voices[0] || null;
@@ -671,9 +712,23 @@
       $('j-fpitch').value = cfg.pitch;
       $('j-favatar').value = cfg.avatar;
       $('j-fsys').value = cfg.sys;
+      $('j-fpreset').value = cfg.preset || 'custom';
       loadVoices();
       dlg.showModal();
     }
+    /* 톤 프리셋을 고르면 음성·속도·음 높이를 한 번에 채운다 */
+    $('j-fpreset').addEventListener('change', function () {
+      var p = VOICE_PRESETS[this.value];
+      if (!p) return;
+      var v = findVoice(p.voice, true);
+      if (v) $('j-fvoice').value = v.name;
+      $('j-frate').value = p.rate;
+      $('j-fpitch').value = p.pitch;
+    });
+    /* 값을 직접 만지면 프리셋은 '직접 설정' 으로 */
+    ['j-fvoice', 'j-frate', 'j-fpitch'].forEach(function (id) {
+      $(id).addEventListener('change', function () { $('j-fpreset').value = 'custom'; });
+    });
     $('j-setting').addEventListener('click', openCfg);
     $('j-close').addEventListener('click', function () { dlg.close(); });   /* 저장 없이 닫기 */
     dlg.addEventListener('click', function (e) {                            /* 바깥 클릭으로 닫기 */
@@ -694,6 +749,7 @@
       cfg.avatar = av;
       cfg.sys = $('j-fsys').value.trim() || DEFAULT_SYS;
       cfg.voice = $('j-fvoice').value;
+      cfg.preset = $('j-fpreset').value;
       saveCfg(); dlg.close();
       if (cfg.avatar !== prev) render($main);      /* 아바타가 바뀌면 씬을 다시 만든다 */
     });
