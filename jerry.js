@@ -502,6 +502,7 @@
         '<label>말 속도<span class="h">0.7 ~ 1.4</span><input type="text" id="j-frate"></label>' +
         '<label>음 높이<span class="h">0.7 ~ 2.0 (높을수록 어린 목소리)</span><input type="text" id="j-fpitch"></label>' +
       '</div>' +
+      '<button class="j-btn" id="j-vtest" type="button" style="margin-top:10px">🔊 이 설정으로 미리듣기</button>' +
       '<label>3D 아바타 URL <span class="h">비우면 기본 아바타 <code>vrm/jerry.vrm</code> 를 씁니다. ' +
         '<code>none</code> 을 입력하면 코드로 만든 3D 얼굴로 바뀝니다.<br>' +
         '<b>.vrm</b> (VRoid 애니메 스타일) 과 <b>.glb</b> 를 지원하며 확장자로 자동 판별합니다. ' +
@@ -543,12 +544,22 @@
       if (!S || !('speechSynthesis' in window)) return;   /* 페이지를 떠난 뒤 호출될 수 있음 */
       S.voices = speechSynthesis.getVoices();
       var sel = $('j-fvoice'); if (!sel) return;
-      var html = '<option value="">(자동 · 한국어 우선)</option>';
-      for (var i = 0; i < S.voices.length; i++) {
-        var v = S.voices[i];
-        html += '<option value="' + v.name.replace(/"/g, '&quot;') + '">' + v.name + ' — ' + v.lang + '</option>';
+      /* macOS 는 음성이 180개가 넘어 그대로 나열하면 못 고른다. 한국어를 맨 위로 묶는다 */
+      var ko = [], etc = [], i, v;
+      for (i = 0; i < S.voices.length; i++) {
+        (/^ko/i.test(S.voices[i].lang) ? ko : etc).push(S.voices[i]);
       }
-      sel.innerHTML = html;
+      function opts(list) {
+        var h = '';
+        for (var k = 0; k < list.length; k++) {
+          v = list[k];
+          h += '<option value="' + v.name.replace(/"/g, '&quot;') + '">' + v.name + ' — ' + v.lang + '</option>';
+        }
+        return h;
+      }
+      sel.innerHTML = '<option value="">(자동 · 남성 한국어 우선)</option>' +
+        (ko.length ? '<optgroup label="한국어 (' + ko.length + ')">' + opts(ko) + '</optgroup>' : '') +
+        (etc.length ? '<optgroup label="기타 언어 (' + etc.length + ')">' + opts(etc) + '</optgroup>' : '');
       var cur = cfg.voice ? findVoice(cfg.voice, false) : null;   /* 'Rocko' → 'Rocko (한국어(한국))' 해석 */
       sel.value = cur ? cur.name : '';
       /* 기기에 그 음성이 없으면 다른 게 선택되므로 실제 사용 음성을 보여준다 */
@@ -565,27 +576,34 @@
       speechSynthesis.onvoiceschanged = loadVoices;
       setTimeout(loadVoices, 250);
     }
+    /* ⚠ macOS 는 같은 이름의 음성이 14개 언어로 존재한다 (Rocko 독일어/영어/…/한국어).
+       언어를 안 따지고 이름만 맞추면 독일어 Rocko 가 걸리고, lang='de-DE' 로
+       한글을 읽히려다 브라우저가 시스템 기본 음성(여성)으로 되돌려 버린다.
+       → 반드시 언어 필터를 먼저 적용한다. */
     function findVoice(token, koOnly) {
-      var i, v, t = String(token).toLowerCase();
+      var i, v, t = String(token).toLowerCase(), partial = null;
       /* getVoices() 는 처음엔 빈 배열을 주는 브라우저가 있어 필요할 때 다시 읽는다 */
       if (!S.voices || !S.voices.length) {
         S.voices = ('speechSynthesis' in window ? speechSynthesis.getVoices() : []) || [];
       }
-      for (i = 0; i < S.voices.length; i++) {           /* 이름 정확히 일치 */
-        if (S.voices[i].name === token) return S.voices[i];
-      }
-      for (i = 0; i < S.voices.length; i++) {           /* 부분 일치 (브라우저별 표기 차이 흡수) */
+      for (i = 0; i < S.voices.length; i++) {
         v = S.voices[i];
         if (koOnly && !/^ko/i.test(v.lang)) continue;
-        if (v.name.toLowerCase().indexOf(t) >= 0) return v;
+        if (v.name === token) return v;                 /* 이름 완전 일치 우선 */
+        if (!partial && v.name.toLowerCase().indexOf(t) >= 0) partial = v;
       }
-      return null;
+      return partial;
     }
-    function pickVoice() {
-      var i, v;
-      if (cfg.voice) { v = findVoice(cfg.voice, false); if (v) return v; }
-      for (i = 0; i < MALE_KO.length; i++) {            /* 기본값: 남성 한국어 음성 */
-        v = findVoice(MALE_KO[i], true); if (v) return v;
+    function hasHangul(s) { return /[ㄱ-ㆎ가-힣]/.test(s || ''); }
+
+    function pickVoice(text) {
+      var i, v, needKo = (text === undefined) || hasHangul(text);
+      if (cfg.voice) {
+        v = findVoice(cfg.voice, needKo) || (needKo ? null : findVoice(cfg.voice, false));
+        if (v) return v;
+      }
+      if (needKo) {                                     /* 기본값: 남성 한국어 음성 */
+        for (i = 0; i < MALE_KO.length; i++) { v = findVoice(MALE_KO[i], true); if (v) return v; }
       }
       for (i = 0; i < S.voices.length; i++) { v = S.voices[i]; if (/^ko/i.test(v.lang)) return v; }
       for (i = 0; i < S.voices.length; i++) { v = S.voices[i]; if (/^en/i.test(v.lang)) return v; }
@@ -615,7 +633,7 @@
       }
       S.qBusy = true;
       var u = new SpeechSynthesisUtterance(s);
-      var v = pickVoice();
+      var v = pickVoice(s);                     /* 한글이면 반드시 한국어 음성으로 */
       if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'ko-KR';
       u.rate = parseFloat(cfg.rate) || 1;
       u.pitch = parseFloat(cfg.pitch) || 1;
@@ -801,6 +819,21 @@
       if (v) $('j-fvoice').value = v.name;
       $('j-frate').value = p.rate;
       $('j-fpitch').value = p.pitch;
+    });
+    /* 설정 창을 닫지 않고 지금 값 그대로 들어본다 */
+    $('j-vtest').addEventListener('click', function () {
+      if (!('speechSynthesis' in window)) return;
+      try { speechSynthesis.cancel(); } catch (e) {}
+      var sample = '안녕하세요, 저는 제리예요. 이 목소리 어때요?';
+      var name = $('j-fvoice').value;
+      var v = name ? findVoice(name, false) : pickVoice(sample);
+      var u = new SpeechSynthesisUtterance(sample);
+      if (v) { u.voice = v; u.lang = v.lang; } else u.lang = 'ko-KR';
+      u.rate = parseFloat($('j-frate').value) || 1;
+      u.pitch = parseFloat($('j-fpitch').value) || 1;
+      var now = $('j-vnow');
+      if (now && v) now.textContent = '실제 사용: ' + v.name + ' (' + v.lang + ')';
+      speechSynthesis.speak(u);
     });
     /* 값을 직접 만지면 프리셋은 '직접 설정' 으로 */
     ['j-fvoice', 'j-frate', 'j-fpitch'].forEach(function (id) {
