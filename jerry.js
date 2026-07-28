@@ -23,6 +23,14 @@
     '목록·마크다운·이모지는 쓰지 마. 소리 내어 읽힐 문장이라는 걸 항상 기억해.\n' +
     '모르면 모른다고 솔직히 말하고, 따뜻하지만 담백하게 대화해.';
 
+  var GESTURE_HINT =
+    '몸짓: 문장 앞에 대괄호 태그를 넣으면 네 3D 아바타가 실제로 그 동작을 한다.\n' +
+    '쓸 수 있는 태그는 [인사] [끄덕] [갸웃] [생각] [으쓱] [손짓] [기쁨] [놀람] [슬픔] 뿐이다.\n' +
+    '태그는 소리로 읽히지 않는다. 매 문장 넣지 말고, 정말 어울리는 곳에만 한두 개 써라.\n' +
+    '예) [인사] 안녕하세요, 반가워요. / [생각] 음, 그건 좀 어려운 질문인데요.';
+
+  DEFAULT_SYS = DEFAULT_SYS + '\n\n' + GESTURE_HINT;
+
   /* macOS/iOS 한국어 음성 중 남성 계열 우선순위 (Rocko 가 가장 소년스럽다).
      브라우저마다 이름이 'Rocko' / 'Rocko (한국어(한국))' 로 달라서 부분 일치로 찾는다. */
   var MALE_KO = ['Rocko', 'Eddy', 'Reed', 'Grandpa'];
@@ -52,6 +60,11 @@
     var p = VOICE_PRESETS.boy;
     cfg.voice = p.voice; cfg.pitch = p.pitch; cfg.rate = p.rate;
     cfg.preset = 'boy'; cfg.v = 2;
+    saveCfg();
+  }
+  /* 예전에 저장된 성격 문구에는 제스처 설명이 없으므로 뒤에 덧붙인다 (직접 쓴 내용은 보존) */
+  if (cfg.sys.indexOf('[끄덕]') < 0) {
+    cfg.sys = cfg.sys.trim() + '\n\n' + GESTURE_HINT;
     saveCfg();
   }
 
@@ -379,12 +392,21 @@
      좌우 방향·좌표계 규약을 가정하지 않고, 본의 부모 로컬 공간에서
      현재 팔이 향한 방향을 직접 재서 회전 부호를 정한다. */
   function relaxArms(hum) {
-    if (!hum || !hum.getNormalizedBoneNode) return;
+    var rig = { bones: {}, base: {}, sign: { left: 1, right: -1 } };
+    if (!hum || !hum.getNormalizedBoneNode) return rig;
+
+    ['head', 'neck', 'spine', 'chest', 'upperChest',
+     'leftShoulder', 'rightShoulder',
+     'leftUpperArm', 'leftLowerArm', 'leftHand',
+     'rightUpperArm', 'rightLowerArm', 'rightHand'].forEach(function (n) {
+      var b = hum.getNormalizedBoneNode(n);
+      if (b) rig.bones[n] = b;
+    });
+
     var DROP = 1.18;                       /* 수평에서 약 68도 아래 */
     ['left', 'right'].forEach(function (side) {
-      var up = hum.getNormalizedBoneNode(side + 'UpperArm');
-      var lo = hum.getNormalizedBoneNode(side + 'LowerArm');
-      var hand = hum.getNormalizedBoneNode(side + 'Hand') || lo;
+      var up = rig.bones[side + 'UpperArm'], lo = rig.bones[side + 'LowerArm'];
+      var hand = rig.bones[side + 'Hand'] || lo;
       if (!up || !hand || !up.parent) return;
       up.parent.updateWorldMatrix(true, false);
       var inv = new THREE.Matrix4().copy(up.parent.matrixWorld).invert();
@@ -394,9 +416,68 @@
       if (Math.abs(dx) < 1e-5) return;
       var cur = Math.atan2(-dy, Math.abs(dx));   /* 0 = T포즈, + = 이미 내려간 각도 */
       var sign = dx > 0 ? -1 : 1;                /* +X 로 뻗은 팔은 -Z 회전이 아래 */
+      rig.sign[side] = sign;
       up.rotation.z = sign * (DROP - cur);
       if (lo) lo.rotation.z = sign * 0.16;       /* 팔꿈치 살짝 굽힘 */
     });
+
+    /* 제스처는 이 기본 자세 위에 더해진다 */
+    for (var k in rig.bones) {
+      var r = rig.bones[k].rotation;
+      rig.base[k] = { x: r.x, y: r.y, z: r.z };
+    }
+    return rig;
+  }
+
+  /* ===================== 제스처 ===================== */
+  /* 별도 애니메이션 파일 없이 본을 직접 움직인다. VRM 휴머노이드 본 이름은
+     규격으로 정해져 있어 어떤 VRM 모델에서도 그대로 동작한다.
+     side:true 인 트랙은 좌우 팔 방향 부호(rig.sign)를 곱해 방향을 맞춘다. */
+  var GESTURES = {
+    끄덕:  { dur: 1000, t: [{ b: 'head', a: 'x', k: [[0,0],[.2,.20],[.4,-.04],[.6,.16],[.8,-.02],[1,0]] }] },
+    갸웃:  { dur: 1400, t: [{ b: 'head', a: 'z', k: [[0,0],[.25,.26],[.75,.26],[1,0]] },
+                            { b: 'head', a: 'x', k: [[0,0],[.25,-.08],[.75,-.08],[1,0]] }] },
+    인사:  { dur: 1800, side: 'right',
+             t: [{ b: 'rightUpperArm', a: 'z', s: 1, k: [[0,0],[.2,-.95],[.8,-.95],[1,0]] },
+                 { b: 'rightLowerArm', a: 'z', s: 1, k: [[0,0],[.2,-.55],[.35,-.20],[.5,-.55],[.65,-.20],[.8,-.55],[1,0]] },
+                 { b: 'head',          a: 'x', k: [[0,0],[.3,.10],[.8,.10],[1,0]] }] },
+    생각:  { dur: 2600, side: 'right',
+             t: [{ b: 'rightUpperArm', a: 'z', s: 1, k: [[0,0],[.25,-.55],[.8,-.55],[1,0]] },
+                 { b: 'rightLowerArm', a: 'z', s: 1, k: [[0,0],[.25,-1.15],[.8,-1.15],[1,0]] },
+                 { b: 'head',          a: 'z', k: [[0,0],[.25,.14],[.8,.14],[1,0]] },
+                 { b: 'head',          a: 'x', k: [[0,0],[.25,-.10],[.8,-.10],[1,0]] }] },
+    으쓱:  { dur: 1500,
+             t: [{ b: 'leftShoulder',  a: 'z', s: -1, k: [[0,0],[.3,-.20],[.7,-.20],[1,0]] },
+                 { b: 'rightShoulder', a: 'z', s: 1,  k: [[0,0],[.3,-.20],[.7,-.20],[1,0]] },
+                 { b: 'leftUpperArm',  a: 'z', s: -1, k: [[0,0],[.3,.28],[.7,.28],[1,0]] },
+                 { b: 'rightUpperArm', a: 'z', s: 1,  k: [[0,0],[.3,.28],[.7,.28],[1,0]] },
+                 { b: 'head',          a: 'x', k: [[0,0],[.3,-.10],[.7,-.10],[1,0]] }] },
+    손짓:  { dur: 1700, side: 'right',
+             t: [{ b: 'rightUpperArm', a: 'z', s: 1, k: [[0,0],[.25,-.42],[.75,-.42],[1,0]] },
+                 { b: 'rightLowerArm', a: 'y', s: 1, k: [[0,0],[.3,.45],[.55,.15],[.8,.40],[1,0]] }] },
+    기쁨:  { dur: 1600, e: 'happy',
+             t: [{ b: 'head',          a: 'x', k: [[0,0],[.15,-.14],[.35,.06],[.55,-.10],[1,0]] },
+                 { b: 'leftUpperArm',  a: 'z', s: -1, k: [[0,0],[.3,-.35],[.7,-.35],[1,0]] },
+                 { b: 'rightUpperArm', a: 'z', s: 1,  k: [[0,0],[.3,-.35],[.7,-.35],[1,0]] }] },
+    놀람:  { dur: 1400, e: 'surprised',
+             t: [{ b: 'head',  a: 'x', k: [[0,0],[.12,-.20],[.5,-.12],[1,0]] },
+                 { b: 'spine', a: 'x', k: [[0,0],[.12,-.07],[.5,-.04],[1,0]] }] },
+    슬픔:  { dur: 2000, e: 'sad',
+             t: [{ b: 'head',  a: 'x', k: [[0,0],[.3,.22],[.7,.22],[1,0]] },
+                 { b: 'spine', a: 'x', k: [[0,0],[.3,.06],[.7,.06],[1,0]] }] }
+  };
+  var GESTURE_RE = /\[(끄덕|갸웃|인사|생각|으쓱|손짓|기쁨|놀람|슬픔)\]/g;
+
+  function sampleKeys(k, p) {
+    if (p <= k[0][0]) return k[0][1];
+    for (var i = 1; i < k.length; i++) {
+      if (p <= k[i][0]) {
+        var t = (p - k[i - 1][0]) / (k[i][0] - k[i - 1][0] || 1);
+        t = t * t * (3 - 2 * t);                       /* smoothstep */
+        return k[i - 1][1] + (k[i][1] - k[i - 1][1]) * t;
+      }
+    }
+    return k[k.length - 1][1];
   }
 
   /* ===================== 3D : VRM (VRoid 등 애니메 스타일) ===================== */
@@ -419,14 +500,14 @@
       var rawHead = hum && (hum.getRawBoneNode ? hum.getRawBoneNode('head') : hum.getBoneNode('head'));
       var normHead = hum && hum.getNormalizedBoneNode ? hum.getNormalizedBoneNode('head') : null;
 
-      relaxArms(hum);                          /* T포즈 → 팔 내린 자세 */
+      var rig = relaxArms(hum);                /* T포즈 → 팔 내린 자세 + 제스처용 본 정보 */
       if (hum && hum.update) hum.update();     /* 정규화 본 → 실제 본에 반영 */
       vrm.scene.updateMatrixWorld(true);
 
       var v = new THREE.Vector3(0, 1.35, 0);
       if (rawHead) rawHead.getWorldPosition(v);
       frameHead(vrm.scene, camera, camTarget, v);
-      return { vrm: vrm, head: normHead };
+      return { vrm: vrm, head: normHead, rig: rig };
     });
   }
 
@@ -557,6 +638,7 @@
       renderer: null, scene: null, camera: null, root: null,
       proc: null, rpm: null, vrm: null, camTarget: null,
       speaking: false, tl: null, tlStart: 0, actx: null, audioSrc: null,
+      acts: [], emo: { happy: 0, sad: 0, angry: 0, surprised: 0, relaxed: 0 },
       mOpen: 0, mWide: 0.55, blink: 0, nextBlink: 0,
       look: { x: 0, y: 0 }, lookT: { x: 0, y: 0 },
       queue: [], qBusy: false, history: [], voices: [], rec: null, listening: false
@@ -646,6 +728,36 @@
     }
     /* exactMs 를 주면(클라우드 TTS 는 오디오 길이를 정확히 알 수 있다)
        타임라인을 실제 재생 시간에 맞춰 늘리거나 줄인다 → 립싱크가 훨씬 정확해진다 */
+    /* ---------- 제스처 재생 ---------- */
+    function addOff(off, bone, axis, v) {
+      if (!off[bone]) off[bone] = { x: 0, y: 0, z: 0 };
+      off[bone][axis] += v;
+    }
+    function poseOffsets(now, rig) {
+      var off = {};
+      for (var i = S.acts.length - 1; i >= 0; i--) {
+        var act = S.acts[i], p = (now - act.start) / act.def.dur;
+        if (p >= 1) { S.acts.splice(i, 1); continue; }
+        for (var j = 0; j < act.def.t.length; j++) {
+          var tr = act.def.t[j];
+          if (!rig.bones[tr.b]) continue;
+          var v = sampleKeys(tr.k, p);
+          if (tr.s) v *= tr.s * (rig.sign[/^right/.test(tr.b) ? 'right' : 'left'] || 1);
+          addOff(off, tr.b, tr.a, v);
+        }
+      }
+      return off;
+    }
+    function playGesture(name) {
+      var def = GESTURES[name];
+      if (!def || !S) return;
+      /* 같은 제스처가 겹쳐 쌓이지 않게 */
+      for (var i = 0; i < S.acts.length; i++) if (S.acts[i].name === name) return;
+      if (S.acts.length > 2) S.acts.shift();
+      S.acts.push({ name: name, def: def, start: performance.now() });
+      if (def.e) S.emo[def.e] = 0.85;                  /* 표정도 함께 */
+    }
+
     function startMouth(text, rate, exactMs) {
       var tl = buildTimeline(text, rate);
       if (exactMs && tl.length) {
@@ -718,14 +830,32 @@
       S.speaking = false; S.tl = null;
       setTimeout(function () { if (S && !S.speaking && !S.queue.length) capEl.textContent = ''; }, 1200);
     }
+    /* 문장에 섞인 [끄덕] 같은 태그를 뽑아내고, 읽을 텍스트에서는 지운다 */
     function enqueue(text) {
-      var s = String(text).replace(/\s+/g, ' ').trim();
-      if (!s) return;
-      S.queue.push(s); pump();
+      var raw = String(text), g = [], m;
+      GESTURE_RE.lastIndex = 0;
+      while ((m = GESTURE_RE.exec(raw))) g.push(m[1]);
+      /* 목록에 없는 태그를 만들어 쓰더라도 소리 내어 읽지는 않도록 */
+      var s = raw.replace(GESTURE_RE, ' ').replace(/\[[가-힣]{1,4}\]/g, ' ')
+                 .replace(/\s+/g, ' ').trim();
+      if (!s && !g.length) return;
+      S.queue.push({ text: s, g: g });
+      pump();
     }
     function pump() {
       if (!S || S.qBusy || !S.queue.length) return;
-      var s = S.queue.shift();
+      var item = S.queue.shift();
+      var s = item.text;
+      /* 이 문장을 말하기 시작하는 시점에 제스처를 건다 */
+      if (item.g.length) {
+        playGesture(item.g[0]);
+        for (var gi = 1; gi < item.g.length; gi++) {
+          (function (n, d) { setTimeout(function () { if (S) playGesture(n); }, d); })(item.g[gi], gi * 700);
+        }
+      } else if (s.length > 22 && Math.random() < 0.33) {
+        playGesture('끄덕');                      /* 태그가 없어도 가끔 고개를 끄덕여 준다 */
+      }
+      if (!s) { pump(); return; }
       if (!cfg.voiceOn || !('speechSynthesis' in window)) {   /* 음성 OFF → 입만 움직임 */
         S.qBusy = true; startMouth(s, cfg.rate);
         var dur = S.tl ? S.tl[S.tl.length - 1].t1 : 600;
@@ -832,7 +962,8 @@
               try { ev = JSON.parse(line.slice(5).trim()); } catch (e) { continue; }
               if (ev.type === 'content_block_delta' && ev.delta && ev.delta.text) {
                 full += ev.delta.text; buf += ev.delta.text;
-                el.textContent = full; logEl.scrollTop = logEl.scrollHeight;
+                el.textContent = full.replace(GESTURE_RE, '').replace(/ {2,}/g, ' ');
+                logEl.scrollTop = logEl.scrollHeight;
                 /* 문장이 끝나면 바로 말하기 시작 */
                 var m = buf.match(/^[\s\S]*?[.!?…。\n]["'”’)\]]?\s/);
                 if (m) { enqueue(m[0]); buf = buf.slice(m[0].length); }
@@ -876,7 +1007,7 @@
     });
     $('j-test').addEventListener('click', function () {
       ensureAudio(); stopAll();
-      enqueue('안녕하세요, 저는 제리입니다. 입 모양이 잘 맞는지 확인해 보세요.');
+      enqueue('[인사] 안녕하세요, 저는 제리입니다. 입 모양이 잘 맞는지 확인해 보세요.');
     });
 
     var btnVoice = $('j-voice');
@@ -1198,10 +1329,33 @@
               var vname = VRM_VIS[cv];
               if (vname) em.setValue(vname, Math.min(1, 0.30 + S.mOpen * 0.9));
               em.setValue('blink', bl);
+              /* 감정 표정: 목표값으로 천천히 수렴시켰다가 서서히 0으로 */
+              for (var e in S.emo) {
+                S.emo[e] = Math.max(0, S.emo[e] - dt * 0.35);
+                em.setValue(e, S.emo[e]);
+              }
             }
-            if (S.vrm.head) {
-              S.vrm.head.rotation.y = yaw * 0.75;
-              S.vrm.head.rotation.x = pit * 0.6;
+
+            var rig = S.vrm.rig, off = poseOffsets(now, rig);
+            /* 숨쉬기 + 무게중심 이동: 가만히 있어도 살아있어 보이게 */
+            var breath = Math.sin(t * 1.05) * 0.012;
+            var sway = Math.sin(t * 0.27) * 0.022;
+            addOff(off, 'spine', 'x', breath);
+            addOff(off, 'spine', 'z', sway);
+            addOff(off, 'chest', 'x', breath * 0.6);
+            /* 말할 때는 입 벌린 정도에 맞춰 고개가 미세하게 끄덕인다 */
+            if (S.speaking) {
+              addOff(off, 'head', 'x', S.mOpen * 0.045 + Math.sin(t * 6.1) * 0.012);
+              addOff(off, 'chest', 'y', Math.sin(t * 1.9) * 0.02);
+            }
+            addOff(off, 'head', 'y', yaw * 0.75);
+            addOff(off, 'head', 'x', pit * 0.6);
+
+            for (var bn in rig.base) {
+              var node = rig.bones[bn]; if (!node) continue;
+              var b = rig.base[bn], o = off[bn];
+              if (o) node.rotation.set(b.x + o.x, b.y + o.y, b.z + o.z);
+              else node.rotation.set(b.x, b.y, b.z);
             }
             S.vrm.vrm.update(dt);
           }
