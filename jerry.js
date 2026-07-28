@@ -562,14 +562,18 @@
         (etc.length ? '<optgroup label="기타 언어 (' + etc.length + ')">' + opts(etc) + '</optgroup>' : '');
       var cur = cfg.voice ? findVoice(cfg.voice, false) : null;   /* 'Rocko' → 'Rocko (한국어(한국))' 해석 */
       sel.value = cur ? cur.name : '';
-      /* 기기에 그 음성이 없으면 다른 게 선택되므로 실제 사용 음성을 보여준다 */
+      /* 기기에 그 음성이 없으면 다른 게 선택되므로 실제 사용 음성과 후보를 그대로 보여준다 */
       var now = $('j-vnow');
       if (now) {
         var used = pickVoice();
-        now.textContent = used
-          ? '실제 사용: ' + used.name + ' (' + used.lang + ') · 이 기기의 한국어 음성 '
-              + S.voices.filter(function (v) { return /^ko/i.test(v.lang); }).length + '개'
-          : '사용 가능한 음성을 찾지 못했습니다';
+        if (!used) { now.textContent = '사용 가능한 음성을 찾지 못했습니다'; return; }
+        var male = null;
+        for (var m = 0; m < MALE_KO.length && !male; m++) male = findVoice(MALE_KO[m], true);
+        var names = ko.map(function (x) { return x.name.split(' (')[0]; }).join(', ') || '없음';
+        now.innerHTML = '실제 사용: <b>' + used.name + '</b> (' + used.lang + ')<br>' +
+          '이 기기의 한국어 음성: ' + names +
+          (male ? '' : '<br>⚠️ 이 기기에는 <b>남성 한국어 음성이 없습니다</b>. ' +
+            '브라우저는 기본 설치된 음성만 쓸 수 있어서, 시스템에 추가로 받은 음성은 여기 나타나지 않습니다.');
       }
     }
     if ('speechSynthesis' in window) {
