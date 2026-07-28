@@ -426,7 +426,9 @@
     color: var(--logo-accent, var(--accent)); font-weight: 600;
   }
   .crumb-back:hover { text-decoration: underline; }
-  .folder-card .meta { display: flex; align-items: center; gap: 8px; }
+  .post-card .meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .post-card .meta .date { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .post-card .meta .cnt { color: var(--muted); }
   .folder-ico {
     display: inline-block; width: 15px; height: 12px; margin-right: 9px; vertical-align: -1px;
     border-radius: 2px 3px 3px 3px; background: var(--logo-accent, var(--accent)); opacity: 0.85;
@@ -445,7 +447,7 @@
   .post-card .meta { font-size: 0.82rem; color: var(--muted); }
   .badge {
     display: inline-block; background: var(--header-glass, var(--accent-light)); color: var(--logo-accent, var(--accent));
-    border-radius: 999px; padding: 2px 10px; font-size: 0.75rem; font-weight: 600; margin-right: 8px;
+    border-radius: 999px; padding: 2px 10px; font-size: 0.75rem; font-weight: 600;
   }
   article {
     background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 36px 40px;
@@ -572,8 +574,24 @@
       path: p.path,
       title: p.title,
       category: p.category || (parts.length > 1 ? parts[0] : '기타'),
-      group: parts.length > 2 ? parts.slice(1, -1).join('/') : ''
+      group: parts.length > 2 ? parts.slice(1, -1).join('/') : '',
+      date: p.date || ''
     };
+  }
+
+  /* 등록일 표기 (YYYY-MM-DD → YYYY.MM.DD) */
+  function dateHtml(d) {
+    return d ? '<span class="date">' + escapeHtml(d.replace(/-/g, '.')) + '</span>' : '';
+  }
+
+  /* 카테고리(가나다) → 등록일(최신순) → 제목 */
+  function sortPosts(list) {
+    return list.sort(function (a, b) {
+      var c = a.category.localeCompare(b.category, 'ko');
+      if (c) return c;
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1; // 최신이 위로
+      return a.title.localeCompare(b.title, 'ko');
+    });
   }
 
   function loadPosts() {
@@ -584,10 +602,9 @@
         return r.json();
       })
       .then(function (list) {
-        return list
+        return sortPosts(list
           .filter(function (p) { return p && p.path && p.title; })
-          .map(normalizePost)
-          .sort(function (a, b) { return a.title.localeCompare(b.title, 'ko'); });
+          .map(normalizePost));
       })
       .catch(function () {
         return fetchTree().then(buildPosts);
@@ -1072,7 +1089,8 @@
       inGroup.forEach(function (p, i) {
         gHtml += '<div class="post-card" data-i="' + i + '">' +
           '<h3>' + escapeHtml(p.title) + '</h3>' +
-          '<div class="meta"><span class="badge">' + escapeHtml(p.category) + '</span></div></div>';
+          '<div class="meta"><span class="badge">' + escapeHtml(p.category) + '</span>' +
+          dateHtml(p.date) + '</div></div>';
       });
       $main.innerHTML = inGroup.length ? gHtml : gHead + '<div class="status">해당하는 글이 없습니다.</div>';
       var backBtn = $main.querySelector('.crumb-back');
@@ -1087,7 +1105,7 @@
     }
 
     /* 폴더는 카드 하나로 묶고, 폴더 없는 글은 그대로 나열 */
-    var folders = [];   // {key, name, category, count}
+    var folders = [];   // {key, name, category, count, date}
     var folderIdx = {};
     var singles = [];
     scoped.forEach(function (p) {
@@ -1095,12 +1113,22 @@
         var key = p.category + '/' + p.group;
         if (!(key in folderIdx)) {
           folderIdx[key] = folders.length;
-          folders.push({ key: key, name: p.group.split('/').pop(), group: p.group, category: p.category, count: 0 });
+          folders.push({ key: key, name: p.group.split('/').pop(), group: p.group,
+            category: p.category, count: 0, date: p.date || '' });
         }
-        folders[folderIdx[key]].count++;
+        var f = folders[folderIdx[key]];
+        f.count++;
+        if ((p.date || '') > f.date) f.date = p.date || ''; // 폴더는 가장 최근 글 기준
       } else {
         singles.push(p);
       }
+    });
+    /* 폴더도 카테고리 → 최신순으로 정렬 */
+    folders.sort(function (a, b) {
+      var c = a.category.localeCompare(b.category, 'ko');
+      if (c) return c;
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return a.name.localeCompare(b.name, 'ko');
     });
 
     var head = '';
@@ -1117,12 +1145,13 @@
       html += '<div class="post-card folder-card" data-f="' + i + '">' +
         '<h3><span class="folder-ico"></span>' + escapeHtml(f.name) + '</h3>' +
         '<div class="meta"><span class="badge">' + escapeHtml(f.category) + '</span>' +
-        '글 ' + f.count + '개</div></div>';
+        '<span class="cnt">글 ' + f.count + '개</span>' + dateHtml(f.date) + '</div></div>';
     });
     singles.forEach(function (p, i) {
       html += '<div class="post-card" data-i="' + i + '">' +
         '<h3>' + escapeHtml(p.title) + '</h3>' +
-        '<div class="meta"><span class="badge">' + escapeHtml(p.category) + '</span></div></div>';
+        '<div class="meta"><span class="badge">' + escapeHtml(p.category) + '</span>' +
+        dateHtml(p.date) + '</div></div>';
     });
     $main.innerHTML = html;
     Array.prototype.forEach.call($main.querySelectorAll('.folder-card'), function (card) {
