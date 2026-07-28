@@ -269,6 +269,44 @@
     return { g: g, cavity: cavity, upperLip: upperLip, lowerLip: lowerLip, lids: lids, irises: irises };
   }
 
+  /* 모델 크기에 맞춰 얼굴을 화면에 채운다.
+     머리 높이 = (모델 최상단 - head 본) 을 기준으로 거리를 잡으므로
+     SD(2등신)든 실사 비율이든 같은 코드로 얼굴 클로즈업이 나온다. */
+  function frameHead(obj, camera, camTarget, headPos) {
+    var box = new THREE.Box3().setFromObject(obj);
+    var headH = box.max.y - headPos.y;
+    if (!(headH > 0.01)) headH = (box.max.y - box.min.y) * 0.25;
+    var t = Math.tan(camera.fov * Math.PI / 360);
+    var distV = (headH * 1.12) / (2 * t);                                  /* 세로로 머리가 들어갈 거리 */
+    var distH = (headH * 1.02) / (2 * t * Math.max(0.5, camera.aspect));   /* 좁은 화면에서 잘리지 않게 */
+    camTarget.set(headPos.x, headPos.y + headH * 0.45, headPos.z);
+    camera.position.set(camTarget.x, camTarget.y, headPos.z + Math.max(distV, distH));
+  }
+
+  /* T포즈(양팔 수평)를 자연스럽게 내린 자세로 바꾼다.
+     좌우 방향·좌표계 규약을 가정하지 않고, 본의 부모 로컬 공간에서
+     현재 팔이 향한 방향을 직접 재서 회전 부호를 정한다. */
+  function relaxArms(hum) {
+    if (!hum || !hum.getNormalizedBoneNode) return;
+    var DROP = 1.18;                       /* 수평에서 약 68도 아래 */
+    ['left', 'right'].forEach(function (side) {
+      var up = hum.getNormalizedBoneNode(side + 'UpperArm');
+      var lo = hum.getNormalizedBoneNode(side + 'LowerArm');
+      var hand = hum.getNormalizedBoneNode(side + 'Hand') || lo;
+      if (!up || !hand || !up.parent) return;
+      up.parent.updateWorldMatrix(true, false);
+      var inv = new THREE.Matrix4().copy(up.parent.matrixWorld).invert();
+      var a = up.getWorldPosition(new THREE.Vector3()).applyMatrix4(inv);
+      var b = hand.getWorldPosition(new THREE.Vector3()).applyMatrix4(inv);
+      var dx = b.x - a.x, dy = b.y - a.y;
+      if (Math.abs(dx) < 1e-5) return;
+      var cur = Math.atan2(-dy, Math.abs(dx));   /* 0 = T포즈, + = 이미 내려간 각도 */
+      var sign = dx > 0 ? -1 : 1;                /* +X 로 뻗은 팔은 -Z 회전이 아래 */
+      up.rotation.z = sign * (DROP - cur);
+      if (lo) lo.rotation.z = sign * 0.16;       /* 팔꿈치 살짝 굽힘 */
+    });
+  }
+
   /* ===================== 3D : VRM (VRoid 등 애니메 스타일) ===================== */
   function loadVRMAvatar(url, root, camera, camTarget, onProg) {
     return loadVRMMod().then(function () {
@@ -288,10 +326,14 @@
       var hum = vrm.humanoid;
       var rawHead = hum && (hum.getRawBoneNode ? hum.getRawBoneNode('head') : hum.getBoneNode('head'));
       var normHead = hum && hum.getNormalizedBoneNode ? hum.getNormalizedBoneNode('head') : null;
+
+      relaxArms(hum);                          /* T포즈 → 팔 내린 자세 */
+      if (hum && hum.update) hum.update();     /* 정규화 본 → 실제 본에 반영 */
+      vrm.scene.updateMatrixWorld(true);
+
       var v = new THREE.Vector3(0, 1.35, 0);
       if (rawHead) rawHead.getWorldPosition(v);
-      camTarget.set(v.x, v.y + 0.03, v.z);
-      camera.position.set(v.x, v.y + 0.04, v.z + 0.62);
+      frameHead(vrm.scene, camera, camTarget, v);
       return { vrm: vrm, head: normHead };
     });
   }
@@ -315,8 +357,7 @@
       o.updateMatrixWorld(true);
       var v = new THREE.Vector3(0, 1.6, 0);
       if (headBone) headBone.getWorldPosition(v);
-      camTarget.set(v.x, v.y + 0.02, v.z);
-      camera.position.set(v.x, v.y + 0.03, v.z + 0.68);
+      frameHead(o, camera, camTarget, v);
       return { o: o, morphs: morphs, headBone: headBone };
     });
   }
