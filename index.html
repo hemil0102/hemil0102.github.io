@@ -579,9 +579,13 @@
     };
   }
 
-  /* 등록일 표기 (YYYY-MM-DD → YYYY.MM.DD) */
+  /* 등록 시각 표기: "2026-07-25 23:32" → "2026.07.25 23:32 (KST)" */
   function dateHtml(d) {
-    return d ? '<span class="date">' + escapeHtml(d.replace(/-/g, '.')) + '</span>' : '';
+    if (!d) return '';
+    var parts = String(d).split(' ');
+    var text = parts[0].replace(/-/g, '.');
+    if (parts[1]) text += ' ' + parts[1] + ' (KST)';
+    return '<span class="date">' + escapeHtml(text) + '</span>';
   }
 
   /* 등록일 최신순 → 제목 */
@@ -1121,8 +1125,13 @@
         singles.push(p);
       }
     });
-    /* 폴더도 최신순으로 정렬 */
-    folders.sort(function (a, b) {
+    /* 폴더와 개별 글을 하나의 목록으로 합쳐 등록 시각 최신순 정렬 */
+    var items = folders.map(function (f, i) {
+      return { kind: 'folder', idx: i, date: f.date, name: f.name };
+    }).concat(singles.map(function (p, i) {
+      return { kind: 'post', idx: i, date: p.date, name: p.title };
+    }));
+    items.sort(function (a, b) {
       if (a.date !== b.date) return a.date < b.date ? 1 : -1;
       return a.name.localeCompare(b.name, 'ko');
     });
@@ -1137,17 +1146,20 @@
       return;
     }
     var html = head;
-    folders.forEach(function (f, i) {
-      html += '<div class="post-card folder-card" data-f="' + i + '">' +
-        '<h3><span class="folder-ico"></span>' + escapeHtml(f.name) + '</h3>' +
-        '<div class="meta"><span class="badge">' + escapeHtml(f.category) + '</span>' +
-        '<span class="cnt">글 ' + f.count + '개</span>' + dateHtml(f.date) + '</div></div>';
-    });
-    singles.forEach(function (p, i) {
-      html += '<div class="post-card" data-i="' + i + '">' +
-        '<h3>' + escapeHtml(p.title) + '</h3>' +
-        '<div class="meta"><span class="badge">' + escapeHtml(p.category) + '</span>' +
-        dateHtml(p.date) + '</div></div>';
+    items.forEach(function (it) {
+      if (it.kind === 'folder') {
+        var f = folders[it.idx];
+        html += '<div class="post-card folder-card" data-f="' + it.idx + '">' +
+          '<h3><span class="folder-ico"></span>' + escapeHtml(f.name) + '</h3>' +
+          '<div class="meta"><span class="badge">' + escapeHtml(f.category) + '</span>' +
+          '<span class="cnt">글 ' + f.count + '개</span>' + dateHtml(f.date) + '</div></div>';
+      } else {
+        var p = singles[it.idx];
+        html += '<div class="post-card" data-i="' + it.idx + '">' +
+          '<h3>' + escapeHtml(p.title) + '</h3>' +
+          '<div class="meta"><span class="badge">' + escapeHtml(p.category) + '</span>' +
+          dateHtml(p.date) + '</div></div>';
+      }
     });
     $main.innerHTML = html;
     Array.prototype.forEach.call($main.querySelectorAll('.folder-card'), function (card) {
