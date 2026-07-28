@@ -750,9 +750,15 @@
       if (avUrl) {
         hintEl.textContent = '아바타 불러오는 중…';
         var vrmMode = isVRM(avUrl);
-        var onProg = function (e) {                    /* 17MB 정도라 진행률을 보여준다 */
-          if (!e || !e.total || !hintEl) return;
-          hintEl.textContent = '아바타 불러오는 중… ' + Math.round(e.loaded / e.total * 100) + '%';
+        /* 진행 표시: 퍼센트가 아니라 받은 용량(MB)으로 보여준다.
+           서버가 gzip 으로 보내면 loaded 는 압축 해제된 크기,
+           total(Content-Length) 은 압축된 크기라서 비율이 100%를 넘어버린다.
+           (이 모델은 16.7MB / 9.0MB = 1.85 배 → 최대 185% 로 표시됐음) */
+        var onProg = function (e) {
+          if (!e || !hintEl || !e.loaded) return;
+          var mb = e.loaded / 1048576;
+          var totalMB = (e.total && e.total >= e.loaded) ? ' / ' + (e.total / 1048576).toFixed(1) + 'MB' : 'MB';
+          hintEl.textContent = '아바타 불러오는 중… ' + mb.toFixed(1) + totalMB;
         };
         ready = (vrmMode ? loadVRMAvatar : loadRPM)(avUrl, root, camera, camTarget, onProg)
           .then(function (r) {
