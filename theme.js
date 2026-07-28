@@ -19,7 +19,7 @@
     { id: 'purple', name: '보라', base: '#963D97' },
     { id: 'blue',   name: '파랑', base: '#009DDC' }
   ];
-  var DEFAULT_THEME = 'orange';
+  var DEFAULT_THEME = 'red';
   var STORAGE_KEY = 'harrys-color-theme';
 
   /* ---------- 색상 유틸 ---------- */
