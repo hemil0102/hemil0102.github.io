@@ -32,13 +32,15 @@
     woman: { voice: 'Yuna',  pitch: 1.05, rate: 1.05 }
   };
 
+  var stored = readCfg();
   var cfg = Object.assign({
     key: '', model: 'claude-sonnet-5', voice: '', rate: 1.05, pitch: 1,
     avatar: '', sys: DEFAULT_SYS, voiceOn: true, preset: 'boy', v: 2
-  }, readCfg());
+  }, stored);
 
-  /* 예전 설정(v<2)은 여자 목소리가 기본이었으므로 한 번만 소년 목소리로 옮겨준다 */
-  if (cfg.v !== 2) {
+  /* 예전 설정(v 없음)은 여자 목소리가 기본이었으므로 한 번만 소년 목소리로 옮겨준다.
+     ※ cfg.v 로 판단하면 기본값 2가 이미 병합돼 있어 절대 참이 되지 않는다 — stored 로 봐야 함 */
+  if (stored.v !== 2) {
     var p = VOICE_PRESETS.boy;
     cfg.voice = p.voice; cfg.pitch = p.pitch; cfg.rate = p.rate;
     cfg.preset = 'boy'; cfg.v = 2;
@@ -113,7 +115,8 @@
   '#j-cfg .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:22px}' +
   '#j-cfg .warn{background:var(--accent-light);border:1px solid var(--border);border-radius:12px;' +
     'padding:10px 12px;font-size:.79rem;color:var(--sub-text,var(--text));margin-top:14px}' +
-  '@media(max-width:700px){#j-log{max-height:28vh}#j-cap{bottom:40px;font-size:.88rem}}';
+  '@media(max-width:700px){#j-log{max-height:28vh}' +
+    '#j-cap{bottom:8px;font-size:.84rem;padding:6px 12px;max-width:96%;border-radius:12px}}';
 
   function injectCSS() {
     if (document.getElementById('jerry-style')) return;
@@ -290,6 +293,57 @@
     return { g: g, cavity: cavity, upperLip: upperLip, lowerLip: lowerLip, lids: lids, irises: irises };
   }
 
+  /* ===================== 아바타 파일 캐시 ===================== */
+  /* 17MB 를 매번 내려받지 않도록 Cache Storage 에 저장해 둔다.
+     (브라우저 HTTP 캐시는 용량 압박이나 max-age 만료로 쉽게 지워진다)
+     저장된 게 있으면 네트워크를 아예 건드리지 않는다. */
+  var AVATAR_CACHE = 'jerry-avatar-v1';
+
+  function readWithProgress(res, onProg) {
+    var total = +(res.headers.get('content-length') || 0);
+    if (!res.body || !res.body.getReader) return res.arrayBuffer();
+    var reader = res.body.getReader(), chunks = [], loaded = 0;
+    return (function step() {
+      return reader.read().then(function (r) {
+        if (r.done) {
+          var out = new Uint8Array(loaded), off = 0;
+          for (var i = 0; i < chunks.length; i++) { out.set(chunks[i], off); off += chunks[i].length; }
+          return out.buffer;
+        }
+        chunks.push(r.value); loaded += r.value.length;
+        if (onProg) onProg({ loaded: loaded, total: total });
+        return step();
+      });
+    })();
+  }
+
+  function download(url, onProg) {
+    return fetch(url).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return readWithProgress(res, onProg);
+    });
+  }
+
+  function fetchAvatarBuffer(url, onProg) {
+    if (!('caches' in window)) return download(url, onProg);      /* 비보안 컨텍스트 등 */
+    return caches.open(AVATAR_CACHE).then(function (c) {
+      return c.match(url).then(function (hit) {
+        if (hit) { if (onProg) onProg({ cached: true }); return hit.arrayBuffer(); }
+        return fetch(url).then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return c.put(url, res.clone())
+            .catch(function () {})                                 /* 용량 초과여도 로딩은 계속 */
+            .then(function () { return readWithProgress(res, onProg); });
+        });
+      });
+    }).catch(function () { return download(url, onProg); });
+  }
+
+  function clearAvatarCache() {
+    if (!('caches' in window)) return Promise.resolve();
+    return caches.delete(AVATAR_CACHE).catch(function () {});
+  }
+
   /* 모델 크기에 맞춰 얼굴을 화면에 채운다.
      머리 높이 = (모델 최상단 - head 본) 을 기준으로 거리를 잡으므로
      SD(2등신)든 실사 비율이든 같은 코드로 얼굴 클로즈업이 나온다. */
@@ -297,13 +351,20 @@
     var box = new THREE.Box3().setFromObject(obj);
     var headH = box.max.y - headPos.y;
     if (!(headH > 0.01)) headH = (box.max.y - box.min.y) * 0.25;
-    /* 세로 1.5배로 잡으면 얼굴이 화면 위쪽 70%를 차지하고
-       아래 30%는 몸통/여백이 되어 자막이 얼굴을 가리지 않는다 */
+    /* 턱이 화면 세로 몇 % 지점에 오게 할지 (아래 남는 공간이 자막 자리).
+       세로로 긴 화면(모바일)은 자막이 3줄까지 늘어나므로 더 위로 올린다. */
+    var a = camera.aspect || 1.6;
+    var chinF = a >= 1.5 ? 0.70 : (a <= 0.9 ? 0.55 : 0.55 + (a - 0.9) * (0.15 / 0.6));
+    var TOP_M = 0.03;                       /* 정수리 위 여백 */
+    var span = headH / (chinF - TOP_M);     /* 화면에 담을 세로 길이 */
     var t = Math.tan(camera.fov * Math.PI / 360);
-    var distV = (headH * 1.50) / (2 * t);
-    var distH = (headH * 1.35) / (2 * t * Math.max(0.5, camera.aspect));   /* 좁은 화면에서 잘리지 않게 */
-    camTarget.set(headPos.x, headPos.y + headH * 0.30, headPos.z);
-    camera.position.set(camTarget.x, camTarget.y, headPos.z + Math.max(distV, distH));
+    var distV = span / (2 * t);
+    var distH = (headH * 1.35) / (2 * t * Math.max(0.5, a));   /* 가로로 잘리지 않게 */
+    var dist = Math.max(distV, distH);
+    /* 실제 거리에 맞춰 정수리가 위 3% 에 오도록 타깃 높이 재계산 */
+    var half = dist * t;
+    camTarget.set(headPos.x, (headPos.y + headH) + 2 * half * TOP_M - half, headPos.z);
+    camera.position.set(camTarget.x, camTarget.y, headPos.z + dist);
   }
 
   /* T포즈(양팔 수평)를 자연스럽게 내린 자세로 바꾼다.
@@ -332,10 +393,10 @@
 
   /* ===================== 3D : VRM (VRoid 등 애니메 스타일) ===================== */
   function loadVRMAvatar(url, root, camera, camTarget, onProg) {
-    return loadVRMMod().then(function () {
+    return Promise.all([loadVRMMod(), fetchAvatarBuffer(url, onProg)]).then(function (r) {
       var loader = new GLTFLoader();
       loader.register(function (parser) { return new VRM.VRMLoaderPlugin(parser); });
-      return loader.loadAsync(url, onProg);
+      return loader.parseAsync(r[1], url.replace(/[^/]*$/, ''));
     }).then(function (gltf) {
       var vrm = gltf.userData.vrm;
       if (!vrm) throw new Error('VRM 데이터를 찾을 수 없습니다');
@@ -370,7 +431,9 @@
 
   /* ===================== 3D : Ready Player Me / 일반 GLB ===================== */
   function loadRPM(url, root, camera, camTarget, onProg) {
-    return new GLTFLoader().loadAsync(url, onProg).then(function (gltf) {
+    return fetchAvatarBuffer(url, onProg).then(function (buf) {
+      return new GLTFLoader().parseAsync(buf, url.replace(/[^/]*$/, ''));
+    }).then(function (gltf) {
       var o = gltf.scene, morphs = [], headBone = null;
       o.traverse(function (n) {
         if (n.isMesh) { n.frustumCulled = false; if (n.morphTargetDictionary) morphs.push(n); }
@@ -425,7 +488,7 @@
           '<option value="claude-haiku-4-5-20251001">claude-haiku-4-5 (빠르고 저렴)</option>' +
           '<option value="claude-opus-5">claude-opus-5 (최고 품질)</option>' +
         '</select></label>' +
-        '<label>음성<select id="j-fvoice"></select></label>' +
+        '<label>음성<select id="j-fvoice"></select><span class="h" id="j-vnow"></span></label>' +
       '</div>' +
       '<label>목소리 톤 <span class="h">고르면 아래 음성·속도·음 높이가 함께 바뀝니다. ' +
         '설정을 닫고 "입 테스트"로 들어보세요.</span>' +
@@ -449,7 +512,8 @@
       '<label>성격 (시스템 프롬프트)<textarea id="j-fsys" rows="4"></textarea></label>' +
       '<div class="warn">브라우저에서 API를 직접 호출하므로 <b>이 페이지를 여는 사람은 각자 자기 API 키를 입력해야</b> 합니다. ' +
         '키를 공유하고 싶다면 Cloudflare Worker 같은 프록시를 두는 편이 안전합니다.</div>' +
-      '<div class="actions"><button class="j-btn" id="j-clear">대화 초기화</button>' +
+      '<div class="actions"><button class="j-btn" id="j-cache">아바타 캐시 지우기</button>' +
+        '<button class="j-btn" id="j-clear">대화 초기화</button>' +
         '<button class="j-btn primary" id="j-save">저장</button></div>';
     document.body.appendChild(dlg);
 
@@ -487,6 +551,15 @@
       sel.innerHTML = html;
       var cur = cfg.voice ? findVoice(cfg.voice, false) : null;   /* 'Rocko' → 'Rocko (한국어(한국))' 해석 */
       sel.value = cur ? cur.name : '';
+      /* 기기에 그 음성이 없으면 다른 게 선택되므로 실제 사용 음성을 보여준다 */
+      var now = $('j-vnow');
+      if (now) {
+        var used = pickVoice();
+        now.textContent = used
+          ? '실제 사용: ' + used.name + ' (' + used.lang + ') · 이 기기의 한국어 음성 '
+              + S.voices.filter(function (v) { return /^ko/i.test(v.lang); }).length + '개'
+          : '사용 가능한 음성을 찾지 못했습니다';
+      }
     }
     if ('speechSynthesis' in window) {
       speechSynthesis.onvoiceschanged = loadVoices;
@@ -494,6 +567,10 @@
     }
     function findVoice(token, koOnly) {
       var i, v, t = String(token).toLowerCase();
+      /* getVoices() 는 처음엔 빈 배열을 주는 브라우저가 있어 필요할 때 다시 읽는다 */
+      if (!S.voices || !S.voices.length) {
+        S.voices = ('speechSynthesis' in window ? speechSynthesis.getVoices() : []) || [];
+      }
       for (i = 0; i < S.voices.length; i++) {           /* 이름 정확히 일치 */
         if (S.voices[i].name === token) return S.voices[i];
       }
@@ -753,6 +830,12 @@
       saveCfg(); dlg.close();
       if (cfg.avatar !== prev) render($main);      /* 아바타가 바뀌면 씬을 다시 만든다 */
     });
+    /* 같은 파일명으로 모델을 교체했을 때 등, 저장본을 버리고 다시 받게 한다 */
+    $('j-cache').addEventListener('click', function () {
+      var b = this;
+      b.disabled = true; b.textContent = '지우는 중…';
+      clearAvatarCache().then(function () { render($main); });
+    });
     $('j-clear').addEventListener('click', function () {
       S.history.length = 0; logEl.innerHTML = ''; stopAll(); dlg.close();
       bubble('sys', '대화를 초기화했습니다.');
@@ -810,16 +893,20 @@
            서버가 gzip 으로 보내면 loaded 는 압축 해제된 크기,
            total(Content-Length) 은 압축된 크기라서 비율이 100%를 넘어버린다.
            (이 모델은 16.7MB / 9.0MB = 1.85 배 → 최대 185% 로 표시됐음) */
+        var fromCache = false;
         var onProg = function (e) {
-          if (!e || !hintEl || !e.loaded) return;
+          if (!e || !hintEl) return;
+          if (e.cached) { fromCache = true; hintEl.textContent = '아바타 불러오는 중… (저장된 파일 사용)'; return; }
+          if (!e.loaded) return;
           var mb = e.loaded / 1048576;
           var totalMB = (e.total && e.total >= e.loaded) ? ' / ' + (e.total / 1048576).toFixed(1) + 'MB' : 'MB';
-          hintEl.textContent = '아바타 불러오는 중… ' + mb.toFixed(1) + totalMB;
+          hintEl.textContent = '아바타 내려받는 중… ' + mb.toFixed(1) + totalMB;
         };
         ready = (vrmMode ? loadVRMAvatar : loadRPM)(avUrl, root, camera, camTarget, onProg)
           .then(function (r) {
-            if (vrmMode) { S.vrm = r; hintEl.textContent = 'VRM 아바타'; }
-            else { S.rpm = r; hintEl.textContent = 'GLB 아바타'; }
+            var tag = fromCache ? ' · 저장된 파일 사용 (통신 없음)' : ' · 다음부터는 저장된 파일 사용';
+            if (vrmMode) { S.vrm = r; hintEl.textContent = 'VRM 아바타' + tag; }
+            else { S.rpm = r; hintEl.textContent = 'GLB 아바타' + tag; }
           }).catch(function (e) {
             hintEl.textContent = '아바타 로드 실패 (' + (e.message || e) + ') — 기본 얼굴 사용';
             S.proc = buildHead(root);
