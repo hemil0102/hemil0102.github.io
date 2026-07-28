@@ -77,11 +77,33 @@
 
   /* ===================== 스타일 (1회 주입) ===================== */
   var CSS = '' +
-  '#jerry-wrap{display:flex;flex-direction:column;gap:12px}' +
-  '#jerry-wrap .j-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}' +
-  '#jerry-wrap .j-head h1{font-size:1.35rem;font-weight:700;letter-spacing:-.01em}' +
-  '#jerry-wrap .j-head .j-sub{color:var(--muted);font-size:.85rem}' +
-  '#jerry-wrap .j-head .sp{margin-left:auto}' +
+  /* ── 전역 오버레이: 라우터 밖에 떠 있으므로 페이지를 옮겨도 살아있다 ── */
+  '#jerry-root{position:fixed;z-index:8;display:flex;flex-direction:column;align-items:center;' +
+    'pointer-events:none}' +
+  '#jerry-root>*{pointer-events:auto}' +
+  /* mini: 우하단 도우미 */
+  '#jerry-root.mini{right:16px;bottom:16px;width:190px}' +
+  '#jerry-root.mini #j-stage{width:190px;height:220px;border:none;background:none;' +
+    'filter:drop-shadow(0 12px 24px rgba(0,0,0,.5))}' +
+  '#jerry-root.mini #j-cap{position:static;transform:none;order:-1;margin-bottom:6px;max-width:270px}' +
+  '#jerry-root.mini #j-panel{display:none;width:320px;max-width:calc(100vw - 32px);' +
+    'order:-2;margin-bottom:8px;background:var(--card);border:1px solid var(--border);' +
+    'border-radius:16px;padding:10px}' +
+  '#jerry-root.mini.open #j-panel{display:block}' +
+  '#jerry-root.mini #j-tools{position:absolute;right:0;bottom:0;flex-direction:column}' +
+  '#jerry-root.mini #j-log{max-height:34vh}' +
+  '#jerry-root.mini #j-hint{display:none}' +
+  /* stage: Jerry 메뉴에서 크게 */
+  '#jerry-root.stage{left:0;right:0;bottom:0;top:auto;width:auto;padding:0 16px 14px;' +
+    'max-width:900px;margin:0 auto}' +
+  '#jerry-root.stage #j-stage{width:100%;height:clamp(240px,42vh,420px);' +
+    'border:1px solid var(--border);border-radius:20px;' +
+    'background:radial-gradient(120% 90% at 50% 0%,var(--accent-light) 0%,var(--card) 55%,var(--bg) 100%)}' +
+  '#jerry-root.stage #j-panel{display:block;width:100%;margin-top:8px}' +
+  '#jerry-root.stage #j-tools{position:static;margin-top:6px}' +
+  '#jerry-root.stage #j-cap{position:absolute;left:50%;transform:translateX(-50%);bottom:auto;' +
+    'top:calc(clamp(240px,42vh,420px) - 52px)}' +
+  '#j-tools{display:flex;gap:6px}' +
   '.j-btn{background:var(--header-glass,rgba(255,255,255,.06));border:1px solid var(--border);' +
     'color:var(--text);border-radius:999px;padding:7px 14px;font:inherit;font-size:.84rem;' +
     'font-weight:600;cursor:pointer;transition:.18s;white-space:nowrap}' +
@@ -89,19 +111,16 @@
   '.j-btn.on{background:var(--accent);border-color:transparent;color:#1a0d10}' +
   '.j-btn.primary{background:var(--accent);border-color:transparent;color:#1a0d10}' +
   '.j-btn:disabled{opacity:.45;cursor:default}' +
-  '#j-stage{position:relative;height:clamp(260px,50vh,470px);border-radius:14px;overflow:hidden;' +
-    'border:1px solid var(--border);background:radial-gradient(120% 90% at 50% 0%,' +
-    'var(--accent-light) 0%,var(--card) 55%,var(--bg) 100%)}' +
+  '#j-stage{position:relative;overflow:hidden;cursor:pointer}' +
   '#j-stage canvas{display:block;width:100%;height:100%}' +
   '#j-hint{position:absolute;left:12px;top:10px;font-size:.76rem;color:var(--muted);' +
     'background:rgba(0,0,0,.35);padding:4px 10px;border-radius:999px;transition:opacity .6s}' +
-  /* 자막은 얼굴 아래(화면 하단)에 고정. 밝은 아바타 위에서도 읽히도록 어두운 알약 배경 */
-  '#j-cap{position:absolute;left:50%;transform:translateX(-50%);bottom:12px;max-width:90%;' +
-    'text-align:center;font-size:.95rem;line-height:1.45;pointer-events:none;' +
-    'background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);' +
-    'padding:7px 16px;border-radius:14px;text-shadow:0 1px 6px rgba(0,0,0,.6)}' +
+  /* 말풍선: 밝은 아바타 위에서도 읽히도록 어두운 배경 */
+  '#j-cap{max-width:90%;text-align:center;font-size:.92rem;line-height:1.45;pointer-events:none;' +
+    'background:rgba(0,0,0,.62);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);' +
+    'padding:7px 14px;border-radius:14px;text-shadow:0 1px 6px rgba(0,0,0,.6)}' +
   '#j-cap:empty{display:none}' +
-  '#j-log{display:flex;flex-direction:column;gap:8px;max-height:32vh;overflow-y:auto;padding:2px}' +
+  '#j-log{display:flex;flex-direction:column;gap:8px;max-height:26vh;overflow-y:auto;padding:2px}' +
   '.j-msg{max-width:84%;padding:9px 14px;border-radius:16px;font-size:.92rem;' +
     'white-space:pre-wrap;word-break:break-word;border:1px solid var(--border)}' +
   '.j-msg.a{background:var(--card);border-bottom-left-radius:5px;align-self:flex-start}' +
@@ -136,8 +155,12 @@
   '#j-cfg .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:22px}' +
   '#j-cfg .warn{background:var(--accent-light);border:1px solid var(--border);border-radius:12px;' +
     'padding:10px 12px;font-size:.79rem;color:var(--sub-text,var(--text));margin-top:14px}' +
-  '@media(max-width:700px){#j-log{max-height:28vh}' +
-    '#j-cap{bottom:8px;font-size:.84rem;padding:6px 12px;max-width:96%;border-radius:12px}}';
+  '@media(max-width:700px){#j-log{max-height:24vh}' +
+    '#j-cap{font-size:.82rem;padding:6px 12px;max-width:96%;border-radius:12px}' +
+    '#jerry-root.mini{right:10px;bottom:10px;width:132px}' +
+    '#jerry-root.mini #j-stage{width:132px;height:158px}' +
+    '#jerry-root.mini #j-cap{max-width:min(240px,calc(100vw - 28px))}' +
+    '#jerry-root.mini #j-panel{width:min(320px,calc(100vw - 20px));position:fixed;right:10px;bottom:180px}}';
 
   function injectCSS() {
     if (document.getElementById('jerry-style')) return;
@@ -198,6 +221,48 @@
     }
     push('sil', 140, text.length);
     return out;
+  }
+
+  /* ===================== 페이지 안내 (모드 / 맥락) ===================== */
+  var mode = 'mini';                 /* mini = 구석 도우미, stage = Jerry 메뉴 */
+  var greeted = {};                  /* 같은 페이지에서 반복해서 말 걸지 않도록 */
+
+  /* 페이지별 역할과 첫 인사. API 호출 없이 즉시 나오므로 토큰이 들지 않는다. */
+  var PAGES = [
+    { m: /^#\/post\//, id: 'post', role: '지금 사용자가 글 한 편을 읽고 있다. 요약·설명·관련 질문을 도와라.',
+      hi: function () {
+        var t = document.querySelector('#main article h1');
+        return t ? '[손짓] "' + t.textContent.trim().slice(0, 24) + '" 읽고 계시네요. 요약해드릴까요?'
+                 : '[손짓] 글 읽는 중이시군요. 요약이 필요하면 말씀하세요.';
+      } },
+    { m: /^#\/about/, id: 'about', role: '하리(Harry)의 소개 페이지다. 이력과 관심사를 안내해라.',
+      hi: function () { return '[인사] 하리님 소개 페이지예요. 궁금한 점 물어보세요.'; } },
+    { m: /^#\/insights/, id: 'insights', role: '글 목록 페이지다. 주제를 찾아주고 어떤 글을 읽을지 추천해라.',
+      hi: function () {
+        var n = document.querySelectorAll('#main .post-card').length;
+        return n ? '[손짓] 글이 ' + n + '개 있어요. 어떤 주제 찾으세요?'
+                 : '[손짓] 글 목록이에요. 어떤 주제 찾으세요?';
+      } },
+    { m: /^#\/projects/, id: 'projects', role: '프로젝트 소개 페이지다. 각 프로젝트를 설명해라.',
+      hi: function () { return '[기쁨] 프로젝트 페이지예요! 뭐가 궁금하세요?'; } },
+    { m: /^#\/english/, id: 'study', role: '영어 학습 페이지다. 표현이나 단어 질문을 도와라.',
+      hi: function () { return '[끄덕] 영어 공부 중이시군요. 모르는 표현 물어보세요.'; } },
+    { m: /^#\/jerry/, id: 'jerry', role: '너 자신을 소개하는 페이지다.',
+      hi: function () { return '[인사] 안녕하세요! 저에 대해 궁금한 거 있으세요?'; } },
+    { m: /.*/, id: 'home', role: '홈 화면이다. 사이트를 어떻게 둘러볼지 안내해라.',
+      hi: function () { return '[인사] 안녕하세요, 저는 제리예요. 뭐부터 볼까요?'; } }
+  ];
+  function currentPage() {
+    var h = location.hash || '#/';
+    for (var i = 0; i < PAGES.length; i++) if (PAGES[i].m.test(h)) return PAGES[i];
+    return PAGES[PAGES.length - 1];
+  }
+  /* 화면에 실제로 보이는 텍스트를 같이 넘겨서 "이 글 요약해줘" 가 되게 한다 */
+  function pageContext() {
+    var p = currentPage(), main = document.getElementById('main');
+    var text = main ? (main.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 1800) : '';
+    return '\n\n[현재 페이지 정보]\n주소: ' + (location.hash || '#/') + '\n역할: ' + p.role +
+      (text ? '\n화면에 보이는 내용(발췌):\n' + text : '');
   }
 
   /* ===================== 페이지 상태 ===================== */
@@ -369,6 +434,7 @@
      머리 높이 = (모델 최상단 - head 본) 을 기준으로 거리를 잡으므로
      SD(2등신)든 실사 비율이든 같은 코드로 얼굴 클로즈업이 나온다. */
   function frameHead(obj, camera, camTarget, headPos) {
+    if (S) { S.frameObj = obj; S.headPos = headPos.clone ? headPos.clone() : headPos; }
     var box = new THREE.Box3().setFromObject(obj);
     var headH = box.max.y - headPos.y;
     if (!(headH > 0.01)) headH = (box.max.y - box.min.y) * 0.25;
@@ -538,29 +604,40 @@
   }
 
   /* ===================== 렌더 ===================== */
-  function render($main) {
+  /* 라우터와 무관하게 body 에 붙는 전역 오버레이.
+     mini = 화면 구석의 안내 도우미 / stage = Jerry 메뉴에서 크게 보는 모드 */
+  function render() {
     destroy();
     injectCSS();
 
-    $main.innerHTML =
-      '<div id="jerry-wrap">' +
-        '<div class="j-head">' +
-          '<h1>Jerry</h1>' +
-          '<span class="j-sub">3D AI Human</span>' +
-          '<div class="sp"></div>' +
-          '<button class="j-btn" id="j-test">입 테스트</button>' +
-          '<button class="j-btn" id="j-voice">🔊 음성 ON</button>' +
-          '<button class="j-btn" id="j-setting">설정</button>' +
-        '</div>' +
-        '<div id="j-stage"><canvas id="j-canvas"></canvas>' +
-          '<div id="j-cap"></div><div id="j-hint">3D 엔진 불러오는 중…</div></div>' +
+    var root = document.getElementById('jerry-root');
+    if (!root) {
+      root = document.createElement('div');
+      root.id = 'jerry-root';
+      document.body.appendChild(root);
+    }
+    root.className = mode;
+    root.innerHTML =
+      '<div id="j-stage">' +
+        '<canvas id="j-canvas"></canvas>' +
+        '<div id="j-hint">3D 엔진 불러오는 중…</div>' +
+      '</div>' +
+      '<div id="j-cap"></div>' +
+      '<div id="j-tools">' +
+        '<button class="j-btn" id="j-test" title="입 테스트">👄</button>' +
+        '<button class="j-btn" id="j-voice" title="음성 켜기/끄기">🔊</button>' +
+        '<button class="j-btn" id="j-setting" title="설정">⚙</button>' +
+        '<button class="j-btn" id="j-toggle" title="대화창 열기/닫기">💬</button>' +
+      '</div>' +
+      '<div id="j-panel">' +
         '<div id="j-log"></div>' +
         '<form id="j-form">' +
-          '<textarea id="j-input" rows="1" placeholder="Jerry에게 말 걸기…  (Enter 전송 / Shift+Enter 줄바꿈)"></textarea>' +
+          '<textarea id="j-input" rows="1" placeholder="제리에게 물어보기…"></textarea>' +
           '<button type="button" class="j-btn j-icon" id="j-mic" title="음성 입력">🎙</button>' +
           '<button type="submit" class="j-btn primary j-icon" id="j-send" title="전송">↑</button>' +
         '</form>' +
       '</div>';
+    var $main = root;
 
     var dlg = document.createElement('dialog');
     dlg.id = 'j-cfg';
@@ -639,6 +716,7 @@
       proc: null, rpm: null, vrm: null, camTarget: null,
       speaking: false, tl: null, tlStart: 0, actx: null, audioSrc: null,
       acts: [], emo: { happy: 0, sad: 0, angry: 0, surprised: 0, relaxed: 0 },
+      headPos: null, frameObj: null, resize: null,
       mOpen: 0, mWide: 0.55, blink: 0, nextBlink: 0,
       look: { x: 0, y: 0 }, lookT: { x: 0, y: 0 },
       queue: [], qBusy: false, history: [], voices: [], rec: null, listening: false
@@ -939,7 +1017,7 @@
         },
         body: JSON.stringify({
           model: cfg.model, max_tokens: 700, stream: true,
-          system: cfg.sys || DEFAULT_SYS,
+          system: (cfg.sys || DEFAULT_SYS) + pageContext(),
           messages: S.history.slice(-16)
         })
       }).then(function (res) {
@@ -1012,13 +1090,24 @@
 
     var btnVoice = $('j-voice');
     function syncVoiceBtn() {
-      btnVoice.textContent = cfg.voiceOn ? '🔊 음성 ON' : '🔇 음성 OFF';
+      btnVoice.textContent = cfg.voiceOn ? '🔊' : '🔇';
+      btnVoice.title = cfg.voiceOn ? '음성 끄기' : '음성 켜기';
       btnVoice.classList.toggle('on', cfg.voiceOn);
     }
     btnVoice.addEventListener('click', function () {
       cfg.voiceOn = !cfg.voiceOn; saveCfg(); syncVoiceBtn(); stopAll();
     });
     syncVoiceBtn();
+
+    /* 대화창 열고 닫기 — 아바타를 눌러도 열린다 */
+    function togglePanel(force) {
+      var r = document.getElementById('jerry-root');
+      var open = force === undefined ? !r.classList.contains('open') : force;
+      r.classList.toggle('open', open);
+      if (open) setTimeout(function () { var i = $('j-input'); if (i) i.focus(); }, 60);
+    }
+    $('j-toggle').addEventListener('click', function () { ensureAudio(); togglePanel(); });
+    $('j-stage').addEventListener('click', function () { ensureAudio(); togglePanel(true); });
 
     /* 마이크 (Chrome/Edge) */
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1186,12 +1275,19 @@
       bubble('sys', '대화를 초기화했습니다.');
     });
 
-    bubble('sys', 'Jerry — 3D AI Human');
+    /* 페이지 안내용 대사: 대화 기록에도 남기고 소리 내어 말한다 (API 호출 없음) */
+    S.say = function (line) {
+      if (!S || !S.alive) return;
+      var clean = String(line).replace(GESTURE_RE, ' ').replace(/\[[가-힣]{1,4}\]/g, ' ')
+                              .replace(/\s+/g, ' ').trim();
+      bubble('a', clean);
+      stopAll();
+      enqueue(line);
+    };
+
     if (!cfg.key) {
-      bubble('a', '안녕하세요, 저는 제리예요. 오른쪽 위 설정에서 API 키를 넣어주시면 바로 대화할 수 있어요. ' +
-        '그전에 "입 테스트"로 제 입이 잘 움직이는지 보셔도 좋아요.');
+      bubble('sys', '⚙ 설정에서 Anthropic API 키를 넣으면 대화할 수 있어요.');
     }
-    window.scrollTo(0, 0);
 
     /* ---------- 3D 씬 ---------- */
     loadMods().then(function () {
@@ -1219,7 +1315,10 @@
         if (!w || !h) return;
         renderer.setSize(w, h, false);
         camera.aspect = w / h; camera.updateProjectionMatrix();
+        /* mini ↔ stage 로 크기가 확 바뀌므로 카메라 구도를 다시 잡는다 */
+        if (S && S.headPos) frameHead(S.frameObj, camera, camTarget, S.headPos);
       }
+      S.resize = resize;
       S.ro = new ResizeObserver(resize); S.ro.observe(stage); resize();
 
       S.onMove = function (e) {
@@ -1405,5 +1504,54 @@
     S = null;
   }
 
-  window.JerryPage = { render: render, destroy: destroy };
+  /* ===================== 전역 동작 ===================== */
+  function setMode(next) {
+    if (mode === next) return;
+    mode = next;
+    var r = document.getElementById('jerry-root');
+    if (!r) return;
+    r.className = mode + (mode === 'mini' && r.classList.contains('open') ? ' open' : '');
+    if (mode === 'stage') r.classList.remove('open');
+    /* 레이아웃이 바뀐 뒤 카메라 구도를 다시 잡는다 */
+    setTimeout(function () { if (S && S.resize) S.resize(); }, 60);
+  }
+
+  /* 페이지가 바뀌면 그 페이지에 맞는 한마디. 같은 페이지에서는 한 번만. */
+  function greet() {
+    if (!S || !S.alive || !S.say) return;
+    var p = currentPage();
+    if (greeted[p.id]) return;
+    greeted[p.id] = true;
+    S.say(p.hi());
+  }
+
+  var routeTimer = null;
+  function onRoute() {
+    setMode(/^#\/jerry/.test(location.hash || '') ? 'stage' : 'mini');
+    clearTimeout(routeTimer);
+    /* 라우터가 본문을 그린 뒤에 읽어야 글 제목·개수를 알 수 있다 */
+    routeTimer = setTimeout(greet, 700);
+  }
+  window.addEventListener('hashchange', onRoute);
+
+  function boot() {
+    if (document.getElementById('jerry-root')) return;
+    mode = /^#\/jerry/.test(location.hash || '') ? 'stage' : 'mini';
+    render();
+    setTimeout(greet, 1400);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+
+  /* index.html 라우터용: Jerry 메뉴에서는 크게 보여주고, 떠나면 다시 구석으로 */
+  window.JerryPage = {
+    render: function ($main) {
+      $main.innerHTML = '<div class="status" style="padding:24px 0">제리는 항상 화면에 함께 있습니다. ' +
+        '아래에서 대화해 보세요.</div>';
+      setMode('stage');
+      if (!document.getElementById('jerry-root')) render();
+    },
+    destroy: function () { setMode('mini'); },
+    reload: function () { render(); }
+  };
 })();
