@@ -182,6 +182,15 @@
 
   function isVRM(url) { return /\.vrm(\?|#|$)/i.test(url || ''); }
 
+  /* 설정이 비어 있으면 저장소에 들어 있는 기본 아바타를 쓴다.
+     'none' 을 입력하면 코드로 만든 기본 3D 얼굴로 되돌아간다. */
+  var DEFAULT_AVATAR = 'vrm/jerry.vrm';
+  function avatarURL() {
+    var a = (cfg.avatar || '').trim();
+    if (/^(none|off|없음|기본)$/i.test(a)) return '';
+    return a || DEFAULT_AVATAR;
+  }
+
   /* ===================== 3D : 절차적 머리 ===================== */
   function buildHead(root) {
     var g = new THREE.Group();
@@ -261,11 +270,11 @@
   }
 
   /* ===================== 3D : VRM (VRoid 등 애니메 스타일) ===================== */
-  function loadVRMAvatar(url, root, camera, camTarget) {
+  function loadVRMAvatar(url, root, camera, camTarget, onProg) {
     return loadVRMMod().then(function () {
       var loader = new GLTFLoader();
       loader.register(function (parser) { return new VRM.VRMLoaderPlugin(parser); });
-      return loader.loadAsync(url);
+      return loader.loadAsync(url, onProg);
     }).then(function (gltf) {
       var vrm = gltf.userData.vrm;
       if (!vrm) throw new Error('VRM 데이터를 찾을 수 없습니다');
@@ -295,8 +304,8 @@
   };
 
   /* ===================== 3D : Ready Player Me / 일반 GLB ===================== */
-  function loadRPM(url, root, camera, camTarget) {
-    return new GLTFLoader().loadAsync(url).then(function (gltf) {
+  function loadRPM(url, root, camera, camTarget, onProg) {
+    return new GLTFLoader().loadAsync(url, onProg).then(function (gltf) {
       var o = gltf.scene, morphs = [], headBone = null;
       o.traverse(function (n) {
         if (n.isMesh) { n.frustumCulled = false; if (n.morphTargetDictionary) morphs.push(n); }
@@ -358,12 +367,13 @@
         '<label>말 속도<span class="h">0.7 ~ 1.4</span><input type="text" id="j-frate"></label>' +
         '<label>음 높이<span class="h">0.7 ~ 1.3</span><input type="text" id="j-fpitch"></label>' +
       '</div>' +
-      '<label>3D 아바타 URL <span class="h">비우면 기본 3D 얼굴을 씁니다. ' +
-        '<b>.vrm</b> (VRoid 애니메 스타일) 과 <b>.glb</b> (Ready Player Me 등) 를 지원하며, 확장자로 자동 판별합니다.<br>' +
-        'VRM 구하기: <a href="https://hub.vroid.com/en" target="_blank" rel="noopener">VRoid Hub ↗</a> ' +
-        '(무료 배포 모델 다운로드) · <a href="https://vroid.com/en/studio" target="_blank" rel="noopener">VRoid Studio ↗</a> ' +
-        '(직접 제작, 무료)<br>파일은 직접 열 수 없으니 저장소 폴더에 넣고 <code>vrm/이름.vrm</code> 처럼 상대 경로로 적으세요.</span>' +
-        '<input type="text" id="j-favatar" placeholder="vrm/jerry.vrm  또는  https://.../avatar.glb"></label>' +
+      '<label>3D 아바타 URL <span class="h">비우면 기본 아바타 <code>vrm/jerry.vrm</code> 를 씁니다. ' +
+        '<code>none</code> 을 입력하면 코드로 만든 3D 얼굴로 바뀝니다.<br>' +
+        '<b>.vrm</b> (VRoid 애니메 스타일) 과 <b>.glb</b> 를 지원하며 확장자로 자동 판별합니다. ' +
+        '새 모델은 저장소 <code>vrm/</code> 폴더에 넣고 <code>vrm/이름.vrm</code> 으로 적으세요.<br>' +
+        '모델 구하기: <a href="https://hub.vroid.com/en" target="_blank" rel="noopener">VRoid Hub ↗</a> · ' +
+        '<a href="https://vroid.com/en/studio" target="_blank" rel="noopener">VRoid Studio ↗</a> (직접 제작, 무료)</span>' +
+        '<input type="text" id="j-favatar" placeholder="vrm/jerry.vrm  (비우면 기본값)"></label>' +
       '<label>성격 (시스템 프롬프트)<textarea id="j-fsys" rows="4"></textarea></label>' +
       '<div class="warn">브라우저에서 API를 직접 호출하므로 <b>이 페이지를 여는 사람은 각자 자기 API 키를 입력해야</b> 합니다. ' +
         '키를 공유하고 싶다면 Cloudflare Worker 같은 프록시를 두는 편이 안전합니다.</div>' +
@@ -689,10 +699,15 @@
       window.addEventListener('pointermove', S.onMove);
 
       var ready = Promise.resolve();
-      if (cfg.avatar) {
+      var avUrl = avatarURL();
+      if (avUrl) {
         hintEl.textContent = '아바타 불러오는 중…';
-        var vrmMode = isVRM(cfg.avatar);
-        ready = (vrmMode ? loadVRMAvatar : loadRPM)(cfg.avatar, root, camera, camTarget)
+        var vrmMode = isVRM(avUrl);
+        var onProg = function (e) {                    /* 17MB 정도라 진행률을 보여준다 */
+          if (!e || !e.total || !hintEl) return;
+          hintEl.textContent = '아바타 불러오는 중… ' + Math.round(e.loaded / e.total * 100) + '%';
+        };
+        ready = (vrmMode ? loadVRMAvatar : loadRPM)(avUrl, root, camera, camTarget, onProg)
           .then(function (r) {
             if (vrmMode) { S.vrm = r; hintEl.textContent = 'VRM 아바타'; }
             else { S.rpm = r; hintEl.textContent = 'GLB 아바타'; }
