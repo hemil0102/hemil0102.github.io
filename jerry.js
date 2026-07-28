@@ -32,10 +32,18 @@
     woman: { voice: 'Yuna',  pitch: 1.05, rate: 1.05 }
   };
 
+  /* Google Cloud TTS 한국어 남성 음성 (키를 넣으면 실제 목록을 API 로 다시 받아온다).
+     Standard/WaveNet 은 월 400만 자까지 무료. */
+  var GOOGLE_MALE = [
+    'ko-KR-Standard-C', 'ko-KR-Standard-D',
+    'ko-KR-Wavenet-C', 'ko-KR-Wavenet-D', 'ko-KR-Neural2-C'
+  ];
+
   var stored = readCfg();
   var cfg = Object.assign({
     key: '', model: 'claude-sonnet-5', voice: '', rate: 1.05, pitch: 1,
-    avatar: '', sys: DEFAULT_SYS, voiceOn: true, preset: 'boy', v: 2
+    avatar: '', sys: DEFAULT_SYS, voiceOn: true, preset: 'boy', v: 2,
+    tts: 'browser', gkey: '', gvoice: 'ko-KR-Wavenet-C', grate: 1.0, gpitch: 5
   }, stored);
 
   /* 예전 설정(v 없음)은 여자 목소리가 기본이었으므로 한 번만 소년 목소리로 옮겨준다.
@@ -488,8 +496,30 @@
           '<option value="claude-haiku-4-5-20251001">claude-haiku-4-5 (빠르고 저렴)</option>' +
           '<option value="claude-opus-5">claude-opus-5 (최고 품질)</option>' +
         '</select></label>' +
-        '<label>음성<select id="j-fvoice"></select><span class="h" id="j-vnow"></span></label>' +
+        '<label id="j-vlabel">음성<select id="j-fvoice"></select><span class="h" id="j-vnow"></span></label>' +
       '</div>' +
+      '<label>음성 엔진<select id="j-ftts">' +
+        '<option value="browser">브라우저 기본 (무료 · 기기에 설치된 음성만)</option>' +
+        '<option value="google">Google Cloud TTS (남성·소년 목소리 가능)</option>' +
+      '</select></label>' +
+
+      '<div id="j-gwrap">' +
+        '<label>Google API 키' +
+          '<span class="h">console.cloud.google.com → <b>Cloud Text-to-Speech API</b> 사용 설정 → ' +
+          'API 및 서비스 → 사용자 인증 정보 → API 키 만들기. ' +
+          'Standard·WaveNet 음성은 <b>월 400만 자까지 무료</b>입니다(결제수단 등록은 필요).</span>' +
+          '<input type="password" id="j-fgkey" autocomplete="off" placeholder="AIza..."></label>' +
+        '<label>Google 음성 (한국어 남성)' +
+          '<select id="j-fgvoice"></select>' +
+          '<span class="h" id="j-gvnote"></span></label>' +
+        '<button class="j-btn" id="j-gload" type="button" style="margin-top:6px">음성 목록 새로 불러오기</button>' +
+        '<div class="row">' +
+          '<label>말 속도<span class="h">0.25 ~ 2.0</span><input type="text" id="j-fgrate"></label>' +
+          '<label>음 높이 (반음)<span class="h">-20 ~ 20 · 소년 톤은 +4 ~ +8</span><input type="text" id="j-fgpitch"></label>' +
+        '</div>' +
+      '</div>' +
+
+      '<div id="j-bwrap">' +
       '<label>목소리 톤 <span class="h">고르면 아래 음성·속도·음 높이가 함께 바뀝니다. ' +
         '설정을 닫고 "입 테스트"로 들어보세요.</span>' +
         '<select id="j-fpreset">' +
@@ -501,6 +531,7 @@
       '<div class="row">' +
         '<label>말 속도<span class="h">0.7 ~ 1.4</span><input type="text" id="j-frate"></label>' +
         '<label>음 높이<span class="h">0.7 ~ 2.0 (높을수록 어린 목소리)</span><input type="text" id="j-fpitch"></label>' +
+      '</div>' +
       '</div>' +
       '<button class="j-btn" id="j-vtest" type="button" style="margin-top:10px">🔊 이 설정으로 미리듣기</button>' +
       '<label>3D 아바타 URL <span class="h">비우면 기본 아바타 <code>vrm/jerry.vrm</code> 를 씁니다. ' +
@@ -525,7 +556,7 @@
       raf: 0, alive: true, dlg: dlg, ro: null, onMove: null,
       renderer: null, scene: null, camera: null, root: null,
       proc: null, rpm: null, vrm: null, camTarget: null,
-      speaking: false, tl: null, tlStart: 0,
+      speaking: false, tl: null, tlStart: 0, actx: null, audioSrc: null,
       mOpen: 0, mWide: 0.55, blink: 0, nextBlink: 0,
       look: { x: 0, y: 0 }, lookT: { x: 0, y: 0 },
       queue: [], qBusy: false, history: [], voices: [], rec: null, listening: false
@@ -613,9 +644,75 @@
       for (i = 0; i < S.voices.length; i++) { v = S.voices[i]; if (/^en/i.test(v.lang)) return v; }
       return S.voices[0] || null;
     }
-    function startMouth(text, rate) {
-      S.tl = buildTimeline(text, rate); S.tlStart = performance.now();
+    /* exactMs 를 주면(클라우드 TTS 는 오디오 길이를 정확히 알 수 있다)
+       타임라인을 실제 재생 시간에 맞춰 늘리거나 줄인다 → 립싱크가 훨씬 정확해진다 */
+    function startMouth(text, rate, exactMs) {
+      var tl = buildTimeline(text, rate);
+      if (exactMs && tl.length) {
+        var k = exactMs / (tl[tl.length - 1].t1 || exactMs);
+        for (var i = 0; i < tl.length; i++) { tl[i].t0 *= k; tl[i].t1 *= k; }
+      }
+      S.tl = tl; S.tlStart = performance.now();
       S.speaking = true; capEl.textContent = text;
+    }
+
+    /* ---------- Google Cloud TTS ---------- */
+    function ensureAudio() {
+      if (!S.actx) {
+        var C = window.AudioContext || window.webkitAudioContext;
+        if (C) S.actx = new C();
+      }
+      if (S.actx && S.actx.state === 'suspended') S.actx.resume();
+      return S.actx;
+    }
+    function decodeAudio(ab) {
+      return new Promise(function (res, rej) {
+        var p = S.actx.decodeAudioData(ab, res, rej);      /* Safari 는 콜백형만 되는 경우가 있다 */
+        if (p && p.then) p.then(res, rej);
+      });
+    }
+    function speakGoogle(text) {
+      var body = {
+        input: { text: text },
+        voice: { languageCode: 'ko-KR', name: cfg.gvoice },
+        audioConfig: {
+          audioEncoding: 'MP3',
+          pitch: parseFloat(cfg.gpitch) || 0,             /* 반음 단위 -20~20 */
+          speakingRate: parseFloat(cfg.grate) || 1
+        }
+      };
+      fetch('https://texttospeech.googleapis.com/v1/text:synthesize?key=' + encodeURIComponent(cfg.gkey), {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body)
+      }).then(function (r) {
+        return r.json().then(function (j) {
+          if (!r.ok) throw new Error((j.error && j.error.message) || ('HTTP ' + r.status));
+          return j;
+        });
+      }).then(function (j) {
+        var raw = atob(j.audioContent), n = raw.length, arr = new Uint8Array(n);
+        for (var i = 0; i < n; i++) arr[i] = raw.charCodeAt(i);
+        return decodeAudio(arr.buffer);
+      }).then(function (buf) {
+        if (!S || !S.alive) return;
+        var src = S.actx.createBufferSource();
+        src.buffer = buf; src.connect(S.actx.destination);
+        S.audioSrc = src;
+        startMouth(text, 1, buf.duration * 1000);
+        src.onended = function () {
+          if (!S) return;
+          S.audioSrc = null; stopMouth(); S.qBusy = false; pump();
+        };
+        src.start();
+      }).catch(function (e) {
+        if (!S) return;
+        bubble('sys', 'Google 음성 실패: ' + e.message + ' → 브라우저 음성으로 대체합니다.');
+        S.qBusy = false;
+        S.queue.unshift(text);
+        cfg.tts = 'browser';                              /* 이번 세션 동안만 되돌림 */
+        pump();
+      });
     }
     function stopMouth() {
       S.speaking = false; S.tl = null;
@@ -633,6 +730,12 @@
         S.qBusy = true; startMouth(s, cfg.rate);
         var dur = S.tl ? S.tl[S.tl.length - 1].t1 : 600;
         setTimeout(function () { if (!S) return; stopMouth(); S.qBusy = false; pump(); }, dur);
+        return;
+      }
+      if (cfg.tts === 'google' && cfg.gkey) {            /* 클라우드 음성 */
+        S.qBusy = true;
+        ensureAudio();
+        speakGoogle(s);
         return;
       }
       S.qBusy = true;
@@ -676,6 +779,10 @@
       if (!S) return;
       S.queue.length = 0;
       try { speechSynthesis.cancel(); } catch (e) {}
+      if (S.audioSrc) {                                  /* 클라우드 음성 재생 중단 */
+        try { S.audioSrc.onended = null; S.audioSrc.stop(); } catch (e) {}
+        S.audioSrc = null;
+      }
       S.qBusy = false; stopMouth();
     }
 
@@ -754,6 +861,7 @@
       var inp = $('j-input'), v = inp.value.trim();
       if (!v) return;
       inp.value = ''; inp.style.height = 'auto';
+      ensureAudio();                                     /* iOS 는 사용자 조작 시점에 오디오를 열어야 한다 */
       bubble('u', v); stopAll(); ask(v);
     });
     $('j-input').addEventListener('keydown', function (e) {
@@ -767,7 +875,7 @@
       e.target.style.height = Math.min(120, e.target.scrollHeight) + 'px';
     });
     $('j-test').addEventListener('click', function () {
-      stopAll();
+      ensureAudio(); stopAll();
       enqueue('안녕하세요, 저는 제리입니다. 입 모양이 잘 맞는지 확인해 보세요.');
     });
 
@@ -812,9 +920,60 @@
       $('j-favatar').value = cfg.avatar;
       $('j-fsys').value = cfg.sys;
       $('j-fpreset').value = cfg.preset || 'custom';
+      $('j-ftts').value = cfg.tts || 'browser';
+      $('j-fgkey').value = cfg.gkey;
+      $('j-fgrate').value = cfg.grate;
+      $('j-fgpitch').value = cfg.gpitch;
+      fillGoogleVoices(GOOGLE_MALE, cfg.gvoice);
+      syncEngine();
       loadVoices();
       dlg.showModal();
     }
+    /* 엔진에 따라 관련 없는 항목을 숨긴다 */
+    function syncEngine() {
+      var g = $('j-ftts').value === 'google';
+      $('j-gwrap').style.display = g ? '' : 'none';
+      $('j-bwrap').style.display = g ? 'none' : '';
+      $('j-vlabel').style.display = g ? 'none' : '';
+    }
+    $('j-ftts').addEventListener('change', syncEngine);
+
+    function fillGoogleVoices(names, selected) {
+      var sel = $('j-fgvoice'); if (!sel) return;
+      var h = '';
+      for (var i = 0; i < names.length; i++) {
+        h += '<option value="' + names[i] + '">' + names[i] + '</option>';
+      }
+      sel.innerHTML = h;
+      if (selected && names.indexOf(selected) < 0) {
+        sel.innerHTML = '<option value="' + selected + '">' + selected + '</option>' + h;
+      }
+      sel.value = selected || names[0];
+    }
+    /* 키가 있으면 실제 음성 목록을 받아 남성만 추린다 (이름이 바뀌어도 안전) */
+    function loadGoogleVoices() {
+      var note = $('j-gvnote'), key = ($('j-fgkey').value || '').trim();
+      if (!key) { note.textContent = 'API 키를 먼저 입력하세요.'; return; }
+      note.textContent = '목록 불러오는 중…';
+      fetch('https://texttospeech.googleapis.com/v1/voices?languageCode=ko-KR&key=' + encodeURIComponent(key))
+        .then(function (r) {
+          return r.json().then(function (j) {
+            if (!r.ok) throw new Error((j.error && j.error.message) || ('HTTP ' + r.status));
+            return j;
+          });
+        })
+        .then(function (j) {
+          var male = (j.voices || [])
+            .filter(function (v) { return v.ssmlGender === 'MALE'; })
+            .map(function (v) { return v.name; })
+            .sort();
+          if (!male.length) { note.textContent = '남성 음성을 찾지 못했습니다.'; return; }
+          fillGoogleVoices(male, $('j-fgvoice').value);
+          note.textContent = '한국어 남성 음성 ' + male.length + '개를 불러왔습니다.';
+        })
+        .catch(function (e) { note.textContent = '불러오기 실패: ' + e.message; });
+    }
+    $('j-gload').addEventListener('click', loadGoogleVoices);
     /* 톤 프리셋을 고르면 음성·속도·음 높이를 한 번에 채운다 */
     $('j-fpreset').addEventListener('change', function () {
       var p = VOICE_PRESETS[this.value];
@@ -826,9 +985,22 @@
     });
     /* 설정 창을 닫지 않고 지금 값 그대로 들어본다 */
     $('j-vtest').addEventListener('click', function () {
+      var sample = '안녕하세요, 저는 제리예요. 이 목소리 어때요?';
+      if ($('j-ftts').value === 'google') {              /* 저장 전 값으로 바로 시험 */
+        var back = { tts: cfg.tts, gkey: cfg.gkey, gvoice: cfg.gvoice, grate: cfg.grate, gpitch: cfg.gpitch };
+        cfg.tts = 'google';
+        cfg.gkey = $('j-fgkey').value.trim();
+        cfg.gvoice = $('j-fgvoice').value;
+        cfg.grate = parseFloat($('j-fgrate').value) || 1;
+        cfg.gpitch = parseFloat($('j-fgpitch').value) || 0;
+        if (!cfg.gkey) { $('j-gvnote').textContent = 'API 키를 먼저 입력하세요.'; Object.assign(cfg, back); return; }
+        ensureAudio(); stopAll();
+        S.qBusy = true; speakGoogle(sample);
+        return;
+      }
       if (!('speechSynthesis' in window)) return;
       try { speechSynthesis.cancel(); } catch (e) {}
-      var sample = '안녕하세요, 저는 제리예요. 이 목소리 어때요?';
+      ensureAudio();
       var name = $('j-fvoice').value;
       var v = name ? findVoice(name, false) : pickVoice(sample);
       var u = new SpeechSynthesisUtterance(sample);
@@ -864,6 +1036,11 @@
       cfg.sys = $('j-fsys').value.trim() || DEFAULT_SYS;
       cfg.voice = $('j-fvoice').value;
       cfg.preset = $('j-fpreset').value;
+      cfg.tts = $('j-ftts').value;
+      cfg.gkey = $('j-fgkey').value.trim();
+      cfg.gvoice = $('j-fgvoice').value;
+      cfg.grate = parseFloat($('j-fgrate').value) || 1;
+      cfg.gpitch = parseFloat($('j-fgpitch').value) || 0;
       saveCfg(); dlg.close();
       if (cfg.avatar !== prev) render($main);      /* 아바타가 바뀌면 씬을 다시 만든다 */
     });
