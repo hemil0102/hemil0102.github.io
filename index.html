@@ -427,7 +427,7 @@
   }
   .crumb-back:hover { text-decoration: underline; }
   .post-card .meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .post-card .meta .date { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .post-card .meta .date { color: var(--muted); font-variant-numeric: tabular-nums; margin-left: auto; }
   .post-card .meta .cnt { color: var(--muted); }
   .folder-ico {
     display: inline-block; width: 15px; height: 12px; margin-right: 9px; vertical-align: -1px;
@@ -584,11 +584,9 @@
     return d ? '<span class="date">' + escapeHtml(d.replace(/-/g, '.')) + '</span>' : '';
   }
 
-  /* 카테고리(가나다) → 등록일(최신순) → 제목 */
+  /* 등록일 최신순 → 제목 */
   function sortPosts(list) {
     return list.sort(function (a, b) {
-      var c = a.category.localeCompare(b.category, 'ko');
-      if (c) return c;
       if (a.date !== b.date) return a.date < b.date ? 1 : -1; // 최신이 위로
       return a.title.localeCompare(b.title, 'ko');
     });
@@ -1123,10 +1121,8 @@
         singles.push(p);
       }
     });
-    /* 폴더도 카테고리 → 최신순으로 정렬 */
+    /* 폴더도 최신순으로 정렬 */
     folders.sort(function (a, b) {
-      var c = a.category.localeCompare(b.category, 'ko');
-      if (c) return c;
       if (a.date !== b.date) return a.date < b.date ? 1 : -1;
       return a.name.localeCompare(b.name, 'ko');
     });
