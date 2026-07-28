@@ -53,10 +53,14 @@
     'border:1px solid var(--border);background:radial-gradient(120% 90% at 50% 0%,' +
     'var(--accent-light) 0%,var(--card) 55%,var(--bg) 100%)}' +
   '#j-stage canvas{display:block;width:100%;height:100%}' +
-  '#j-hint{position:absolute;left:12px;bottom:10px;font-size:.76rem;color:var(--muted);' +
+  '#j-hint{position:absolute;left:12px;top:10px;font-size:.76rem;color:var(--muted);' +
     'background:rgba(0,0,0,.35);padding:4px 10px;border-radius:999px;transition:opacity .6s}' +
-  '#j-cap{position:absolute;left:50%;transform:translateX(-50%);bottom:42px;max-width:88%;' +
-    'text-align:center;font-size:.95rem;text-shadow:0 2px 14px #000;pointer-events:none}' +
+  /* 자막은 얼굴 아래(화면 하단)에 고정. 밝은 아바타 위에서도 읽히도록 어두운 알약 배경 */
+  '#j-cap{position:absolute;left:50%;transform:translateX(-50%);bottom:12px;max-width:90%;' +
+    'text-align:center;font-size:.95rem;line-height:1.45;pointer-events:none;' +
+    'background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);' +
+    'padding:7px 16px;border-radius:14px;text-shadow:0 1px 6px rgba(0,0,0,.6)}' +
+  '#j-cap:empty{display:none}' +
   '#j-log{display:flex;flex-direction:column;gap:8px;max-height:32vh;overflow-y:auto;padding:2px}' +
   '.j-msg{max-width:84%;padding:9px 14px;border-radius:16px;font-size:.92rem;' +
     'white-space:pre-wrap;word-break:break-word;border:1px solid var(--border)}' +
@@ -276,10 +280,12 @@
     var box = new THREE.Box3().setFromObject(obj);
     var headH = box.max.y - headPos.y;
     if (!(headH > 0.01)) headH = (box.max.y - box.min.y) * 0.25;
+    /* 세로 1.5배로 잡으면 얼굴이 화면 위쪽 70%를 차지하고
+       아래 30%는 몸통/여백이 되어 자막이 얼굴을 가리지 않는다 */
     var t = Math.tan(camera.fov * Math.PI / 360);
-    var distV = (headH * 1.12) / (2 * t);                                  /* 세로로 머리가 들어갈 거리 */
-    var distH = (headH * 1.02) / (2 * t * Math.max(0.5, camera.aspect));   /* 좁은 화면에서 잘리지 않게 */
-    camTarget.set(headPos.x, headPos.y + headH * 0.45, headPos.z);
+    var distV = (headH * 1.50) / (2 * t);
+    var distH = (headH * 1.35) / (2 * t * Math.max(0.5, camera.aspect));   /* 좁은 화면에서 잘리지 않게 */
+    camTarget.set(headPos.x, headPos.y + headH * 0.30, headPos.z);
     camera.position.set(camTarget.x, camTarget.y, headPos.z + Math.max(distV, distH));
   }
 
