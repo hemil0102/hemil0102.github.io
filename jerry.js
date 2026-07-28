@@ -87,6 +87,7 @@
     'font:inherit;font-size:.88rem;outline:none}' +
   '#j-cfg input:focus,#j-cfg select:focus,#j-cfg textarea:focus{border-color:var(--accent)}' +
   '#j-cfg a{color:var(--accent)}' +
+  '#j-cfg code{background:rgba(0,0,0,.35);padding:1px 5px;border-radius:4px;font-size:.95em}' +
   '#j-cfg .row{display:flex;gap:10px}#j-cfg .row>*{flex:1}' +
   '#j-cfg .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:22px}' +
   '#j-cfg .warn{background:var(--accent-light);border:1px solid var(--border);border-radius:12px;' +
@@ -157,6 +158,7 @@
   /* ===================== 페이지 상태 ===================== */
   var S = null;          /* 활성 인스턴스 (없으면 null) */
   var THREE = null, GLTFLoader = null, modsPromise = null;
+  var VRM = null, vrmPromise = null;   /* @pixiv/three-vrm (VRM 아바타를 쓸 때만 로드) */
 
   function loadMods() {
     if (modsPromise) return modsPromise;
@@ -169,6 +171,16 @@
     });
     return modsPromise;
   }
+
+  function loadVRMMod() {
+    if (vrmPromise) return vrmPromise;
+    /* 988KB 원본 대신 155KB 압축본. three 만 외부 의존이라 importmap 으로 해결됨 */
+    vrmPromise = import('https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@3.5.4/lib/three-vrm.module.min.js')
+      .then(function (m) { VRM = m; });
+    return vrmPromise;
+  }
+
+  function isVRM(url) { return /\.vrm(\?|#|$)/i.test(url || ''); }
 
   /* ===================== 3D : 절차적 머리 ===================== */
   function buildHead(root) {
@@ -248,7 +260,41 @@
     return { g: g, cavity: cavity, upperLip: upperLip, lowerLip: lowerLip, lids: lids, irises: irises };
   }
 
-  /* ===================== 3D : Ready Player Me ===================== */
+  /* ===================== 3D : VRM (VRoid 등 애니메 스타일) ===================== */
+  function loadVRMAvatar(url, root, camera, camTarget) {
+    return loadVRMMod().then(function () {
+      var loader = new GLTFLoader();
+      loader.register(function (parser) { return new VRM.VRMLoaderPlugin(parser); });
+      return loader.loadAsync(url);
+    }).then(function (gltf) {
+      var vrm = gltf.userData.vrm;
+      if (!vrm) throw new Error('VRM 데이터를 찾을 수 없습니다');
+      try { VRM.VRMUtils.removeUnnecessaryVertices(gltf.scene); } catch (e) {}
+      try { VRM.VRMUtils.combineSkeletons(gltf.scene); } catch (e) {}
+      vrm.scene.traverse(function (o) { o.frustumCulled = false; });
+      VRM.VRMUtils.rotateVRM0(vrm);          /* VRM0.x 는 뒤를 보고 있으므로 180° 돌림 */
+      root.add(vrm.scene);
+      vrm.scene.updateMatrixWorld(true);
+
+      var hum = vrm.humanoid;
+      var rawHead = hum && (hum.getRawBoneNode ? hum.getRawBoneNode('head') : hum.getBoneNode('head'));
+      var normHead = hum && hum.getNormalizedBoneNode ? hum.getNormalizedBoneNode('head') : null;
+      var v = new THREE.Vector3(0, 1.35, 0);
+      if (rawHead) rawHead.getWorldPosition(v);
+      camTarget.set(v.x, v.y + 0.03, v.z);
+      camera.position.set(v.x, v.y + 0.04, v.z + 0.62);
+      return { vrm: vrm, head: normHead };
+    });
+  }
+
+  /* viseme → VRM 표준 표정 프리셋 */
+  var VRM_VIS = {
+    aa: 'aa', E: 'ee', I: 'ih', O: 'oh', U: 'ou',
+    SS: 'ih', CH: 'ih', DD: 'ih', nn: 'ih', RR: 'ih', FF: 'ih', TH: 'ih', kk: 'aa',
+    PP: null, sil: null
+  };
+
+  /* ===================== 3D : Ready Player Me / 일반 GLB ===================== */
   function loadRPM(url, root, camera, camTarget) {
     return new GLTFLoader().loadAsync(url).then(function (gltf) {
       var o = gltf.scene, morphs = [], headBone = null;
@@ -312,11 +358,12 @@
         '<label>말 속도<span class="h">0.7 ~ 1.4</span><input type="text" id="j-frate"></label>' +
         '<label>음 높이<span class="h">0.7 ~ 1.3</span><input type="text" id="j-fpitch"></label>' +
       '</div>' +
-      '<label>3D 아바타 GLB URL' +
-        '<span class="h">비우면 기본 3D 얼굴을 씁니다. ' +
-        '<a href="https://readyplayer.me/avatar" target="_blank" rel="noopener">Ready Player Me에서 아바타 만들기 ↗</a> ' +
-        '→ Download 로 나온 .glb 주소를 붙여넣으면 교체됩니다. (립싱크 옵션은 자동으로 붙습니다)</span>' +
-        '<input type="text" id="j-favatar" placeholder="https://models.readyplayer.me/xxxx.glb?morphTargets=Oculus%20Visemes,ARKit"></label>' +
+      '<label>3D 아바타 URL <span class="h">비우면 기본 3D 얼굴을 씁니다. ' +
+        '<b>.vrm</b> (VRoid 애니메 스타일) 과 <b>.glb</b> (Ready Player Me 등) 를 지원하며, 확장자로 자동 판별합니다.<br>' +
+        'VRM 구하기: <a href="https://hub.vroid.com/en" target="_blank" rel="noopener">VRoid Hub ↗</a> ' +
+        '(무료 배포 모델 다운로드) · <a href="https://vroid.com/en/studio" target="_blank" rel="noopener">VRoid Studio ↗</a> ' +
+        '(직접 제작, 무료)<br>파일은 직접 열 수 없으니 저장소 폴더에 넣고 <code>vrm/이름.vrm</code> 처럼 상대 경로로 적으세요.</span>' +
+        '<input type="text" id="j-favatar" placeholder="vrm/jerry.vrm  또는  https://.../avatar.glb"></label>' +
       '<label>성격 (시스템 프롬프트)<textarea id="j-fsys" rows="4"></textarea></label>' +
       '<div class="warn">브라우저에서 API를 직접 호출하므로 <b>이 페이지를 여는 사람은 각자 자기 API 키를 입력해야</b> 합니다. ' +
         '키를 공유하고 싶다면 Cloudflare Worker 같은 프록시를 두는 편이 안전합니다.</div>' +
@@ -330,7 +377,7 @@
     S = {
       raf: 0, alive: true, dlg: dlg, ro: null, onMove: null,
       renderer: null, scene: null, camera: null, root: null,
-      proc: null, rpm: null, camTarget: null,
+      proc: null, rpm: null, vrm: null, camTarget: null,
       speaking: false, tl: null, tlStart: 0,
       mOpen: 0, mWide: 0.55, blink: 0, nextBlink: 0,
       look: { x: 0, y: 0 }, lookT: { x: 0, y: 0 },
@@ -644,12 +691,15 @@
       var ready = Promise.resolve();
       if (cfg.avatar) {
         hintEl.textContent = '아바타 불러오는 중…';
-        ready = loadRPM(cfg.avatar, root, camera, camTarget).then(function (r) {
-          S.rpm = r; hintEl.textContent = 'Ready Player Me 아바타';
-        }).catch(function () {
-          hintEl.textContent = '아바타 로드 실패 — 기본 얼굴 사용';
-          S.proc = buildHead(root);
-        });
+        var vrmMode = isVRM(cfg.avatar);
+        ready = (vrmMode ? loadVRMAvatar : loadRPM)(cfg.avatar, root, camera, camTarget)
+          .then(function (r) {
+            if (vrmMode) { S.vrm = r; hintEl.textContent = 'VRM 아바타'; }
+            else { S.rpm = r; hintEl.textContent = 'GLB 아바타'; }
+          }).catch(function (e) {
+            hintEl.textContent = '아바타 로드 실패 (' + (e.message || e) + ') — 기본 얼굴 사용';
+            S.proc = buildHead(root);
+          });
       } else {
         S.proc = buildHead(root);
         hintEl.textContent = cfg.key ? '기본 3D 얼굴' : '설정에서 API 키를 넣으면 대화가 시작됩니다';
@@ -715,6 +765,21 @@
               P.irises[j].position.y = .10 - S.look.y * 0.016;
             }
           }
+          if (S.vrm) {
+            var em = S.vrm.vrm.expressionManager;
+            if (em) {
+              em.setValue('aa', 0); em.setValue('ih', 0); em.setValue('ou', 0);
+              em.setValue('ee', 0); em.setValue('oh', 0);
+              var vname = VRM_VIS[cv];
+              if (vname) em.setValue(vname, Math.min(1, 0.30 + S.mOpen * 0.9));
+              em.setValue('blink', bl);
+            }
+            if (S.vrm.head) {
+              S.vrm.head.rotation.y = yaw * 0.75;
+              S.vrm.head.rotation.x = pit * 0.6;
+            }
+            S.vrm.vrm.update(dt);
+          }
           if (S.rpm) {
             for (var v in VIS) setMorph('viseme_' + v, 0);
             setMorph('viseme_' + cv, Math.min(1, 0.35 + S.mOpen * 0.8));
@@ -743,6 +808,9 @@
     if (S.onMove) window.removeEventListener('pointermove', S.onMove);
     try { speechSynthesis.cancel(); } catch (e) {}
     if (S.rec) { try { S.rec.abort(); } catch (e) {} }
+    if (S.vrm && VRM && VRM.VRMUtils && VRM.VRMUtils.deepDispose) {
+      try { VRM.VRMUtils.deepDispose(S.vrm.vrm.scene); } catch (e) {}
+    }
     if (S.renderer) {
       try {
         S.renderer.dispose();
