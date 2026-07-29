@@ -86,9 +86,8 @@
     'padding:0 14px 12px;align-items:stretch}' +
   '#jerry-root.mini #j-dock{display:flex;gap:12px;align-items:flex-end}' +
   '#jerry-root.mini #j-tools{flex-direction:column;gap:9px;flex:0 0 auto;padding-bottom:4px}' +
-  '#jerry-root.mini #j-tools .j-btn{width:58px;height:42px;padding:0;border-radius:999px;' +
-    'font-size:.78rem;display:grid;place-items:center}' +
-  '#jerry-root.mini #j-test{display:none}' +
+  '#jerry-root.mini #j-tools .j-btn{width:50px;height:50px;padding:0;border-radius:50%;' +
+    'font-size:.72rem;line-height:1.15;display:grid;place-items:center}' +
   '#jerry-root.mini #j-body{flex:1;min-width:0;position:relative;padding-top:34px}' +
   '#jerry-root.mini #j-stage{position:absolute;left:10px;bottom:0;width:118px;height:150px;' +
     'border:none;background:none;filter:drop-shadow(0 10px 20px rgba(0,0,0,.45));z-index:2}' +
@@ -103,10 +102,12 @@
   '#jerry-root.mini #j-hint{display:none}' +
   '#jerry-root.mini #j-copy{display:block}' +
   /* 닫힘: 캐릭터만 남는다 */
-  '#jerry-root.mini.closed{max-width:none;padding:0 16px 14px;align-items:flex-end}' +
+  '#jerry-root.mini.closed{max-width:900px;padding:0 14px 12px;align-items:flex-start}' +
   '#jerry-root.mini.closed #j-tools,#jerry-root.mini.closed #j-panel,' +
     '#jerry-root.mini.closed #j-copy{display:none}' +
-  '#jerry-root.mini.closed #j-body{padding-top:0;flex:0 0 auto;width:118px;height:150px}' +
+  '#jerry-root.mini.closed #j-dock{justify-content:flex-start}' +
+  '#jerry-root.mini.closed #j-body{padding-top:0;flex:0 0 auto;width:118px;height:150px;' +
+    'margin-left:10px}' +
   '#jerry-root.mini.closed #j-stage{position:static;width:118px;height:150px}' +
   /* 대화 로그·입력 (원본 톤) */
   '#jerry-root.mini .j-msg{border:none;font-weight:600}' +
@@ -653,7 +654,6 @@
     root.innerHTML =
       '<div id="j-dock">' +
         '<div id="j-tools">' +
-          '<button class="j-btn" id="j-test" title="입 테스트">👄</button>' +
           '<button class="j-btn" id="j-voice" title="음성 켜기/끄기">음소거</button>' +
           '<button class="j-btn" id="j-toggle" title="대화 로그">로그</button>' +
           '<button class="j-btn" id="j-setting" title="설정">설정</button>' +
@@ -1125,11 +1125,6 @@
       e.target.style.height = 'auto';
       e.target.style.height = Math.min(120, e.target.scrollHeight) + 'px';
     });
-    $('j-test').addEventListener('click', function () {
-      ensureAudio(); stopAll();
-      enqueue('[인사] 안녕하세요, 저는 제리입니다. 입 모양이 잘 맞는지 확인해 보세요.');
-    });
-
     var btnVoice = $('j-voice');
     function syncVoiceBtn() {
       btnVoice.textContent = cfg.voiceOn ? '소리켬' : '음소거';
