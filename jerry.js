@@ -84,6 +84,13 @@
   /* ── mini: 화면 하단 도크 (원본 디자인) ── */
   '#jerry-root.mini{left:0;right:0;bottom:0;top:auto;width:auto;max-width:900px;margin:0 auto;' +
     'padding:0 14px 12px;align-items:stretch}' +
+  /* 위젯 뒤를 넓게 덮는 블러 — 뒤 콘텐츠가 비쳐 어지럽지 않게 */
+  '#jerry-root.mini::before{content:"";position:fixed;left:0;right:0;bottom:0;height:330px;' +
+    'pointer-events:none;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);' +
+    '-webkit-mask-image:linear-gradient(to top,#000 0,#000 58%,transparent 100%);' +
+    'mask-image:linear-gradient(to top,#000 0,#000 58%,transparent 100%);' +
+    'background:linear-gradient(to top,var(--bg) 0%,transparent 88%)}' +
+  '#jerry-root.mini.closed::before{height:210px}' +
   '#jerry-root.mini #j-dock{display:flex;gap:12px;align-items:flex-end}' +
   '#jerry-root.mini #j-tools{flex-direction:column;gap:9px;flex:0 0 auto;padding-bottom:4px}' +
   '#jerry-root.mini #j-tools .j-btn{width:40px;height:40px;padding:0;border-radius:50%;' +
@@ -91,11 +98,11 @@
   '#jerry-root.mini #j-hide{font-size:.68rem;font-weight:700}' +
   /* 꺼져 있는 기능은 회색 톤으로 */
   '#jerry-root.mini .j-btn.off{background:rgba(255,255,255,.07);color:#8b8085;opacity:.75}' +
-  '#jerry-root.mini #j-body{flex:1;min-width:0;position:relative;padding-top:34px}' +
-  '#jerry-root.mini #j-stage{position:absolute;left:10px;bottom:0;width:118px;height:150px;' +
+  '#jerry-root.mini #j-body{flex:1;min-width:0;position:relative;padding-top:46px}' +
+  '#jerry-root.mini #j-stage{position:absolute;left:8px;bottom:0;width:146px;height:186px;' +
     'border:none;background:none;filter:drop-shadow(0 10px 20px rgba(0,0,0,.45));z-index:2}' +
-  '#jerry-root.mini #j-panel{display:block;background:#000;border:none;border-radius:46px;' +
-    'padding:18px 24px 16px 138px}' +
+  '#jerry-root.mini #j-panel{display:block;background:var(--card);' +
+    'border:1px solid var(--border);border-radius:44px;padding:16px 24px 14px 166px}' +
   '#jerry-root.mini #j-name{display:block}' +
   '#jerry-root.mini #j-cap{position:static;transform:none;max-width:none;text-align:left;' +
     'background:none;backdrop-filter:none;padding:0;border-radius:0;color:#fff;font-weight:600;' +
@@ -111,22 +118,25 @@
   '#jerry-root.mini.closed #j-tools,#jerry-root.mini.closed #j-panel,' +
     '#jerry-root.mini.closed #j-copy{display:none}' +
   '#jerry-root.mini.closed #j-dock{justify-content:flex-start}' +
-  '#jerry-root.mini.closed #j-body{padding-top:0;flex:0 0 auto;width:118px;height:150px;' +
-    'margin-left:10px}' +
-  '#jerry-root.mini.closed #j-stage{position:static;width:118px;height:150px}' +
+  '#jerry-root.mini.closed #j-body{padding-top:0;flex:0 0 auto;width:146px;height:186px;' +
+    'margin-left:8px}' +
+  '#jerry-root.mini.closed #j-stage{position:static;width:146px;height:186px}' +
   /* 대화 로그·입력 (원본 톤) */
   '#jerry-root.mini .j-msg{border:none;font-weight:600}' +
-  '#jerry-root.mini .j-msg.u{background:var(--logo-accent,#C0392B);color:#fff}' +
+  '#jerry-root.mini .j-msg.u{background:var(--accent-light);color:var(--btn-text,var(--accent))}' +
   '#jerry-root.mini .j-msg.a{background:rgba(255,255,255,.10);color:#fff}' +
   '#jerry-root.mini .j-msg.sys{color:#9a9095}' +
-  '#jerry-root.mini #j-form{margin-top:14px;align-items:center;gap:10px}' +
-  '#jerry-root.mini #j-input{min-height:44px;height:44px;border:none;border-radius:999px;' +
-    'background:var(--logo-accent,#C0392B);color:#fff;font-weight:600;text-align:center;' +
-    'padding:11px 18px}' +
-  '#jerry-root.mini #j-input::placeholder{color:rgba(255,255,255,.86);font-weight:600}' +
-  '#jerry-root.mini #j-mic{background:rgba(255,255,255,.10);border:none;color:#fff}' +
-  '#jerry-root.mini #j-send{width:56px;height:44px;border-radius:999px;' +
-    'background:var(--logo-accent,#C0392B);color:#fff;font-weight:700;font-size:.9rem}' +
+  '#jerry-root.mini #j-form{margin-top:12px;align-items:center;gap:8px}' +
+  '#jerry-root.mini #j-input{min-height:36px;height:36px;border:none;border-radius:999px;' +
+    'background:var(--accent-light);color:var(--btn-text,var(--accent));font-weight:600;' +
+    'text-align:center;padding:7px 16px;font-size:.9rem}' +
+  '#jerry-root.mini #j-input::placeholder{color:var(--btn-text,var(--accent));' +
+    'opacity:.8;font-weight:600}' +
+  '#jerry-root.mini #j-mic{width:36px;height:36px;background:var(--accent-light);border:none;' +
+    'color:var(--btn-text,var(--accent))}' +
+  '#jerry-root.mini #j-send{width:52px;height:36px;border-radius:999px;border:none;' +
+    'background:var(--accent-light);color:var(--btn-text,var(--accent));' +
+    'font-weight:700;font-size:.86rem}' +
   '#j-name{display:none;margin:0 0 10px;color:#fff;font-size:1.18rem;font-weight:700}' +
   '#j-copy{display:none;color:var(--muted);font-size:.68rem;line-height:1.5;text-align:right;' +
     'margin:9px 6px 0}' +
