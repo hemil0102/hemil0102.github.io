@@ -50,7 +50,7 @@
   var stored = readCfg();
   var cfg = Object.assign({
     key: '', model: 'claude-sonnet-5', voice: '', rate: 1.05, pitch: 1,
-    avatar: '', sys: DEFAULT_SYS, voiceOn: true, preset: 'boy', v: 2,
+    avatar: '', sys: DEFAULT_SYS, voiceOn: false, preset: 'boy', v: 2,
     tts: 'browser', gkey: '', gvoice: 'ko-KR-Wavenet-C', grate: 1.0, gpitch: 5
   }, stored);
 
@@ -81,18 +81,49 @@
   '#jerry-root{position:fixed;z-index:8;display:flex;flex-direction:column;align-items:center;' +
     'pointer-events:none}' +
   '#jerry-root>*{pointer-events:auto}' +
-  /* mini: 우하단 도우미 */
-  '#jerry-root.mini{right:16px;bottom:16px;width:190px}' +
-  '#jerry-root.mini #j-stage{width:190px;height:220px;border:none;background:none;' +
-    'filter:drop-shadow(0 12px 24px rgba(0,0,0,.5))}' +
-  '#jerry-root.mini #j-cap{position:static;transform:none;order:-1;margin-bottom:6px;max-width:270px}' +
-  '#jerry-root.mini #j-panel{display:none;width:320px;max-width:calc(100vw - 32px);' +
-    'order:-2;margin-bottom:8px;background:var(--card);border:1px solid var(--border);' +
-    'border-radius:16px;padding:10px}' +
-  '#jerry-root.mini.open #j-panel{display:block}' +
-  '#jerry-root.mini #j-tools{position:absolute;right:0;bottom:0;flex-direction:column}' +
-  '#jerry-root.mini #j-log{max-height:34vh}' +
+  /* ── mini: 화면 하단 도크 (원본 디자인) ── */
+  '#jerry-root.mini{left:0;right:0;bottom:0;top:auto;width:auto;max-width:900px;margin:0 auto;' +
+    'padding:0 14px 12px;align-items:stretch}' +
+  '#jerry-root.mini #j-dock{display:flex;gap:12px;align-items:flex-end}' +
+  '#jerry-root.mini #j-tools{flex-direction:column;gap:9px;flex:0 0 auto;padding-bottom:4px}' +
+  '#jerry-root.mini #j-tools .j-btn{width:58px;height:42px;padding:0;border-radius:999px;' +
+    'font-size:.78rem;display:grid;place-items:center}' +
+  '#jerry-root.mini #j-test{display:none}' +
+  '#jerry-root.mini #j-body{flex:1;min-width:0;position:relative;padding-top:34px}' +
+  '#jerry-root.mini #j-stage{position:absolute;left:10px;bottom:0;width:118px;height:150px;' +
+    'border:none;background:none;filter:drop-shadow(0 10px 20px rgba(0,0,0,.45));z-index:2}' +
+  '#jerry-root.mini #j-panel{display:block;background:#000;border:none;border-radius:46px;' +
+    'padding:18px 24px 16px 138px}' +
+  '#jerry-root.mini #j-name{display:block}' +
+  '#jerry-root.mini #j-cap{position:static;transform:none;max-width:none;text-align:left;' +
+    'background:none;backdrop-filter:none;padding:0;border-radius:0;color:#fff;font-weight:600;' +
+    'font-size:.95rem;text-shadow:none}' +
+  '#jerry-root.mini #j-log{display:none;max-height:30vh;margin-top:12px}' +
+  '#jerry-root.mini.logopen #j-log{display:flex}' +
   '#jerry-root.mini #j-hint{display:none}' +
+  '#jerry-root.mini #j-copy{display:block}' +
+  /* 닫힘: 캐릭터만 남는다 */
+  '#jerry-root.mini.closed{max-width:none;padding:0 16px 14px;align-items:flex-end}' +
+  '#jerry-root.mini.closed #j-tools,#jerry-root.mini.closed #j-panel,' +
+    '#jerry-root.mini.closed #j-copy{display:none}' +
+  '#jerry-root.mini.closed #j-body{padding-top:0;flex:0 0 auto;width:118px;height:150px}' +
+  '#jerry-root.mini.closed #j-stage{position:static;width:118px;height:150px}' +
+  /* 대화 로그·입력 (원본 톤) */
+  '#jerry-root.mini .j-msg{border:none;font-weight:600}' +
+  '#jerry-root.mini .j-msg.u{background:var(--logo-accent,#C0392B);color:#fff}' +
+  '#jerry-root.mini .j-msg.a{background:rgba(255,255,255,.10);color:#fff}' +
+  '#jerry-root.mini .j-msg.sys{color:#9a9095}' +
+  '#jerry-root.mini #j-form{margin-top:14px;align-items:center;gap:10px}' +
+  '#jerry-root.mini #j-input{min-height:44px;height:44px;border:none;border-radius:999px;' +
+    'background:var(--logo-accent,#C0392B);color:#fff;font-weight:600;text-align:center;' +
+    'padding:11px 18px}' +
+  '#jerry-root.mini #j-input::placeholder{color:rgba(255,255,255,.86);font-weight:600}' +
+  '#jerry-root.mini #j-mic{background:rgba(255,255,255,.10);border:none;color:#fff}' +
+  '#jerry-root.mini #j-send{width:56px;height:44px;border-radius:999px;' +
+    'background:var(--logo-accent,#C0392B);color:#fff;font-weight:700;font-size:.9rem}' +
+  '#j-name{display:none;margin:0 0 10px;color:#fff;font-size:1.18rem;font-weight:700}' +
+  '#j-copy{display:none;color:var(--muted);font-size:.68rem;line-height:1.5;text-align:right;' +
+    'margin:9px 6px 0}' +
   /* stage: Jerry 메뉴에서 크게 */
   '#jerry-root.stage{left:0;right:0;bottom:0;top:auto;width:auto;padding:0 16px 14px;' +
     'max-width:900px;margin:0 auto}' +
@@ -101,6 +132,8 @@
     'background:radial-gradient(120% 90% at 50% 0%,var(--accent-light) 0%,var(--card) 55%,var(--bg) 100%)}' +
   '#jerry-root.stage #j-panel{display:block;width:100%;margin-top:8px}' +
   '#jerry-root.stage #j-tools{position:static;margin-top:6px}' +
+  '#jerry-root.stage #j-hide{display:none}' +
+  '#jerry-root.stage #j-body{width:100%}' +
   '#jerry-root.stage #j-cap{position:absolute;left:50%;transform:translateX(-50%);bottom:auto;' +
     'top:calc(clamp(240px,42vh,420px) - 52px)}' +
   '#j-tools{display:flex;gap:6px}' +
@@ -618,25 +651,34 @@
     }
     root.className = mode;
     root.innerHTML =
-      '<div id="j-stage">' +
-        '<canvas id="j-canvas"></canvas>' +
-        '<div id="j-hint">3D 엔진 불러오는 중…</div>' +
+      '<div id="j-dock">' +
+        '<div id="j-tools">' +
+          '<button class="j-btn" id="j-test" title="입 테스트">👄</button>' +
+          '<button class="j-btn" id="j-voice" title="음성 켜기/끄기">음소거</button>' +
+          '<button class="j-btn" id="j-toggle" title="대화 로그">로그</button>' +
+          '<button class="j-btn" id="j-setting" title="설정">설정</button>' +
+          '<button class="j-btn" id="j-hide" title="닫기">닫기</button>' +
+        '</div>' +
+        '<div id="j-body">' +
+          '<div id="j-stage">' +
+            '<canvas id="j-canvas"></canvas>' +
+            '<div id="j-hint">3D 엔진 불러오는 중…</div>' +
+          '</div>' +
+          '<div id="j-panel">' +
+            '<p id="j-name">Jerry</p>' +
+            '<div id="j-cap"></div>' +
+            '<div id="j-log"></div>' +
+            '<form id="j-form">' +
+              '<textarea id="j-input" rows="1" placeholder="제리에게 뭐든 물어보세요."></textarea>' +
+              '<button type="button" class="j-btn j-icon" id="j-mic" title="음성 입력">🎙</button>' +
+              '<button type="submit" class="j-btn primary" id="j-send" title="전송">OK</button>' +
+            '</form>' +
+          '</div>' +
+        '</div>' +
       '</div>' +
-      '<div id="j-cap"></div>' +
-      '<div id="j-tools">' +
-        '<button class="j-btn" id="j-test" title="입 테스트">👄</button>' +
-        '<button class="j-btn" id="j-voice" title="음성 켜기/끄기">🔊</button>' +
-        '<button class="j-btn" id="j-setting" title="설정">⚙</button>' +
-        '<button class="j-btn" id="j-toggle" title="대화창 열기/닫기">💬</button>' +
-      '</div>' +
-      '<div id="j-panel">' +
-        '<div id="j-log"></div>' +
-        '<form id="j-form">' +
-          '<textarea id="j-input" rows="1" placeholder="제리에게 물어보기…"></textarea>' +
-          '<button type="button" class="j-btn j-icon" id="j-mic" title="음성 입력">🎙</button>' +
-          '<button type="submit" class="j-btn primary j-icon" id="j-send" title="전송">↑</button>' +
-        '</form>' +
-      '</div>';
+      '<p id="j-copy">VRM 모델 © 원저작자 (라이선스 표기 예정) · Jerry © Yehroei Ho 2026<br>' +
+        '대화 로그 및 내용은 로컬 저장소, 캐시 또는 서버에 수집 및 저장되지 않습니다.</p>';
+
     var $main = root;
 
     var dlg = document.createElement('dialog');
@@ -1090,24 +1132,33 @@
 
     var btnVoice = $('j-voice');
     function syncVoiceBtn() {
-      btnVoice.textContent = cfg.voiceOn ? '🔊' : '🔇';
+      btnVoice.textContent = cfg.voiceOn ? '소리켬' : '음소거';
       btnVoice.title = cfg.voiceOn ? '음성 끄기' : '음성 켜기';
-      btnVoice.classList.toggle('on', cfg.voiceOn);
+      btnVoice.classList.toggle('on', !cfg.voiceOn);
     }
     btnVoice.addEventListener('click', function () {
       cfg.voiceOn = !cfg.voiceOn; saveCfg(); syncVoiceBtn(); stopAll();
     });
     syncVoiceBtn();
 
-    /* 대화창 열고 닫기 — 아바타를 눌러도 열린다 */
+    /* 로그 펼치기 (위로 열림) */
     function togglePanel(force) {
       var r = document.getElementById('jerry-root');
-      var open = force === undefined ? !r.classList.contains('open') : force;
-      r.classList.toggle('open', open);
-      if (open) setTimeout(function () { var i = $('j-input'); if (i) i.focus(); }, 60);
+      var open = force === undefined ? !r.classList.contains('logopen') : force;
+      r.classList.toggle('logopen', open);
+      $('j-toggle').classList.toggle('on', open);
+      if (open) setTimeout(function () { var l = $('j-log'); if (l) l.scrollTop = l.scrollHeight; }, 60);
     }
     $('j-toggle').addEventListener('click', function () { ensureAudio(); togglePanel(); });
-    $('j-stage').addEventListener('click', function () { ensureAudio(); togglePanel(true); });
+
+    /* 닫기 → 캐릭터만 남기고, 캐릭터를 누르면 다시 열린다 */
+    $('j-hide').addEventListener('click', function () {
+      document.getElementById('jerry-root').classList.add('closed');
+    });
+    $('j-stage').addEventListener('click', function () {
+      ensureAudio();
+      document.getElementById('jerry-root').classList.remove('closed');
+    });
 
     /* 마이크 (Chrome/Edge) */
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1510,8 +1561,9 @@
     mode = next;
     var r = document.getElementById('jerry-root');
     if (!r) return;
-    r.className = mode + (mode === 'mini' && r.classList.contains('open') ? ' open' : '');
-    if (mode === 'stage') r.classList.remove('open');
+    var keep = [];
+    if (mode === 'mini' && r.classList.contains('logopen')) keep.push('logopen');
+    r.className = mode + (keep.length ? ' ' + keep.join(' ') : '');
     /* 레이아웃이 바뀐 뒤 카메라 구도를 다시 잡는다 */
     setTimeout(function () { if (S && S.resize) S.resize(); }, 60);
   }
@@ -1527,6 +1579,14 @@
 
   var routeTimer = null;
   function onRoute() {
+    /* 페이지를 넘어가면 대화 로그는 남기지 않는다 */
+    if (S && S.history) {
+      S.history.length = 0;
+      var le = document.getElementById('j-log');
+      if (le) le.innerHTML = '';
+      var r0 = document.getElementById('jerry-root');
+      if (r0) r0.classList.remove('logopen');
+    }
     setMode(/^#\/jerry/.test(location.hash || '') ? 'stage' : 'mini');
     clearTimeout(routeTimer);
     /* 라우터가 본문을 그린 뒤에 읽어야 글 제목·개수를 알 수 있다 */
