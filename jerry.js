@@ -92,17 +92,19 @@
     'background:linear-gradient(to top,var(--bg) 0%,transparent 88%)}' +
   '#jerry-root.mini.closed::before{height:210px}' +
   '#jerry-root.mini #j-dock{display:flex;gap:12px;align-items:flex-end}' +
-  '#jerry-root.mini #j-tools{flex-direction:column;gap:9px;flex:0 0 auto;padding-bottom:4px}' +
+  '#jerry-root.mini #j-tools{flex-direction:column;gap:9px;flex:0 0 auto;' +
+    'align-self:flex-start;position:relative;z-index:5}' +
   '#jerry-root.mini #j-tools .j-btn{width:40px;height:40px;padding:0;border-radius:50%;' +
     'font-size:.9rem;line-height:1;display:grid;place-items:center}' +
   '#jerry-root.mini #j-hide{font-size:.68rem;font-weight:700}' +
   /* 꺼져 있는 기능은 회색 톤으로 */
   '#jerry-root.mini .j-btn.off{background:rgba(255,255,255,.07);color:#8b8085;opacity:.75}' +
-  '#jerry-root.mini #j-body{flex:1;min-width:0;position:relative;padding-top:46px}' +
-  '#jerry-root.mini #j-stage{position:absolute;left:8px;bottom:0;width:146px;height:186px;' +
+  '#jerry-root.mini #j-body{flex:1;min-width:0;position:relative;padding-top:62px}' +
+  '#jerry-root.mini #j-stage{position:absolute;left:6px;bottom:0;width:180px;height:216px;' +
     'border:none;background:none;filter:drop-shadow(0 10px 20px rgba(0,0,0,.45));z-index:2}' +
-  '#jerry-root.mini #j-panel{display:block;background:var(--card);' +
-    'border:1px solid var(--border);border-radius:44px;padding:16px 24px 14px 166px}' +
+  '#jerry-root.mini #j-panel{display:block;background:var(--header-glass);' +
+    '-webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);' +
+    'border:1px solid rgba(255,255,255,.08);border-radius:44px;padding:16px 24px 14px 196px}' +
   '#jerry-root.mini #j-name{display:block}' +
   '#jerry-root.mini #j-cap{position:static;transform:none;max-width:none;text-align:left;' +
     'background:none;backdrop-filter:none;padding:0;border-radius:0;color:#fff;font-weight:600;' +
@@ -118,25 +120,24 @@
   '#jerry-root.mini.closed #j-tools,#jerry-root.mini.closed #j-panel,' +
     '#jerry-root.mini.closed #j-copy{display:none}' +
   '#jerry-root.mini.closed #j-dock{justify-content:flex-start}' +
-  '#jerry-root.mini.closed #j-body{padding-top:0;flex:0 0 auto;width:146px;height:186px;' +
-    'margin-left:8px}' +
-  '#jerry-root.mini.closed #j-stage{position:static;width:146px;height:186px}' +
+  '#jerry-root.mini.closed #j-body{padding-top:0;flex:0 0 auto;width:180px;height:216px;' +
+    'margin-left:6px}' +
+  '#jerry-root.mini.closed #j-stage{position:static;width:180px;height:216px}' +
   /* 대화 로그·입력 (원본 톤) */
   '#jerry-root.mini .j-msg{border:none;font-weight:600}' +
   '#jerry-root.mini .j-msg.u{background:var(--accent-light);color:var(--btn-text,var(--accent))}' +
   '#jerry-root.mini .j-msg.a{background:rgba(255,255,255,.10);color:#fff}' +
   '#jerry-root.mini .j-msg.sys{color:#9a9095}' +
   '#jerry-root.mini #j-form{margin-top:12px;align-items:center;gap:8px}' +
-  '#jerry-root.mini #j-input{min-height:36px;height:36px;border:none;border-radius:999px;' +
-    'background:var(--accent-light);color:var(--btn-text,var(--accent));font-weight:600;' +
+  '#jerry-root.mini #j-input{min-height:36px;height:36px;border:1px solid rgba(255,255,255,.10);' +
+    'border-radius:999px;background:rgba(255,255,255,.06);color:var(--text);font-weight:500;' +
     'text-align:center;padding:7px 16px;font-size:.9rem}' +
-  '#jerry-root.mini #j-input::placeholder{color:var(--btn-text,var(--accent));' +
-    'opacity:.8;font-weight:600}' +
-  '#jerry-root.mini #j-mic{width:36px;height:36px;background:var(--accent-light);border:none;' +
-    'color:var(--btn-text,var(--accent))}' +
+  '#jerry-root.mini #j-input::placeholder{color:var(--muted);font-weight:500}' +
+  '#jerry-root.mini #j-input:focus{border-color:var(--logo-accent,var(--accent))}' +
+  '#jerry-root.mini #j-mic{width:36px;height:36px;background:rgba(255,255,255,.06);' +
+    'border:1px solid rgba(255,255,255,.10);color:var(--text)}' +
   '#jerry-root.mini #j-send{width:52px;height:36px;border-radius:999px;border:none;' +
-    'background:var(--accent-light);color:var(--btn-text,var(--accent));' +
-    'font-weight:700;font-size:.86rem}' +
+    'background:var(--logo-accent,var(--accent));color:#fff;font-weight:700;font-size:.86rem}' +
   '#j-name{display:none;margin:0 0 10px;color:#fff;font-size:1.18rem;font-weight:700}' +
   '#j-copy{display:none;color:var(--muted);font-size:.68rem;line-height:1.5;text-align:right;' +
     'margin:9px 6px 0}' +
@@ -490,16 +491,17 @@
     /* 턱이 화면 세로 몇 % 지점에 오게 할지 (아래 남는 공간이 자막 자리).
        세로로 긴 화면(모바일)은 자막이 3줄까지 늘어나므로 더 위로 올린다. */
     var a = camera.aspect || 1.6;
-    var chinF = a >= 1.5 ? 0.70 : (a <= 0.9 ? 0.55 : 0.55 + (a - 0.9) * (0.15 / 0.6));
-    var TOP_M = 0.03;                       /* 정수리 위 여백 */
-    var span = headH / (chinF - TOP_M);     /* 화면에 담을 세로 길이 */
     var t = Math.tan(camera.fov * Math.PI / 360);
+    var TOP_M = 0.05;                       /* 정수리 위 여백 (프레임 대비 비율) */
+    /* 상반신 구도: 화면에 담을 세로 = 머리 높이 × BUST (머리 + 가슴까지) */
+    var BUST = (S && S.bust) || 2.15;
+    var span = headH * BUST;
     var distV = span / (2 * t);
-    var distH = (headH * 1.35) / (2 * t * Math.max(0.5, a));   /* 가로로 잘리지 않게 */
+    var distH = (headH * 1.9) / (2 * t * Math.max(0.5, a));   /* 어깨가 잘리지 않게 */
     var dist = Math.max(distV, distH);
-    /* 실제 거리에 맞춰 정수리가 위 3% 에 오도록 타깃 높이 재계산 */
-    var half = dist * t;
-    camTarget.set(headPos.x, (headPos.y + headH) + 2 * half * TOP_M - half, headPos.z);
+    var half = dist * t;                    /* 실제 화면 절반 높이 */
+    /* 정수리가 위에서 TOP_M 지점에 오도록 */
+    camTarget.set(headPos.x, (headPos.y + headH) - half + 2 * half * TOP_M, headPos.z);
     camera.position.set(camTarget.x, camTarget.y, headPos.z + dist);
   }
 
