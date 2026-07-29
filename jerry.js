@@ -86,8 +86,11 @@
     'padding:0 14px 12px;align-items:stretch}' +
   '#jerry-root.mini #j-dock{display:flex;gap:12px;align-items:flex-end}' +
   '#jerry-root.mini #j-tools{flex-direction:column;gap:9px;flex:0 0 auto;padding-bottom:4px}' +
-  '#jerry-root.mini #j-tools .j-btn{width:50px;height:50px;padding:0;border-radius:50%;' +
-    'font-size:.72rem;line-height:1.15;display:grid;place-items:center}' +
+  '#jerry-root.mini #j-tools .j-btn{width:40px;height:40px;padding:0;border-radius:50%;' +
+    'font-size:.9rem;line-height:1;display:grid;place-items:center}' +
+  '#jerry-root.mini #j-hide{font-size:.68rem;font-weight:700}' +
+  /* 꺼져 있는 기능은 회색 톤으로 */
+  '#jerry-root.mini .j-btn.off{background:rgba(255,255,255,.07);color:#8b8085;opacity:.75}' +
   '#jerry-root.mini #j-body{flex:1;min-width:0;position:relative;padding-top:34px}' +
   '#jerry-root.mini #j-stage{position:absolute;left:10px;bottom:0;width:118px;height:150px;' +
     'border:none;background:none;filter:drop-shadow(0 10px 20px rgba(0,0,0,.45));z-index:2}' +
@@ -96,7 +99,9 @@
   '#jerry-root.mini #j-name{display:block}' +
   '#jerry-root.mini #j-cap{position:static;transform:none;max-width:none;text-align:left;' +
     'background:none;backdrop-filter:none;padding:0;border-radius:0;color:#fff;font-weight:600;' +
-    'font-size:.95rem;text-shadow:none}' +
+    'font-size:.95rem;text-shadow:none;min-height:3.9em;display:block;' +
+    'overflow-y:auto;max-height:3.9em}' +
+  '#jerry-root.mini #j-cap:empty{display:block}' +
   '#jerry-root.mini #j-log{display:none;max-height:30vh;margin-top:12px}' +
   '#jerry-root.mini.logopen #j-log{display:flex}' +
   '#jerry-root.mini #j-hint{display:none}' +
@@ -654,9 +659,9 @@
     root.innerHTML =
       '<div id="j-dock">' +
         '<div id="j-tools">' +
-          '<button class="j-btn" id="j-voice" title="음성 켜기/끄기">음소거</button>' +
-          '<button class="j-btn" id="j-toggle" title="대화 로그">로그</button>' +
-          '<button class="j-btn" id="j-setting" title="설정">설정</button>' +
+          '<button class="j-btn" id="j-voice" title="음성 켜기/끄기">🔈</button>' +
+          '<button class="j-btn" id="j-toggle" title="대화 로그">📜</button>' +
+          '<button class="j-btn" id="j-setting" title="설정">⚙️</button>' +
           '<button class="j-btn" id="j-hide" title="닫기">닫기</button>' +
         '</div>' +
         '<div id="j-body">' +
@@ -948,7 +953,7 @@
     }
     function stopMouth() {
       S.speaking = false; S.tl = null;
-      setTimeout(function () { if (S && !S.speaking && !S.queue.length) capEl.textContent = ''; }, 1200);
+      /* 대사는 다음 말이 나올 때까지 그대로 둔다 (사라지지 않음) */
     }
     /* 문장에 섞인 [끄덕] 같은 태그를 뽑아내고, 읽을 텍스트에서는 지운다 */
     function enqueue(text) {
@@ -1127,9 +1132,10 @@
     });
     var btnVoice = $('j-voice');
     function syncVoiceBtn() {
-      btnVoice.textContent = cfg.voiceOn ? '소리켬' : '음소거';
-      btnVoice.title = cfg.voiceOn ? '음성 끄기' : '음성 켜기';
-      btnVoice.classList.toggle('on', !cfg.voiceOn);
+      btnVoice.textContent = '🔈';
+      btnVoice.title = cfg.voiceOn ? '음성 끄기' : '음성 켜기 (지금 음소거)';
+      btnVoice.classList.toggle('off', !cfg.voiceOn);   /* 꺼짐 = 회색 */
+      btnVoice.classList.remove('on');
     }
     btnVoice.addEventListener('click', function () {
       cfg.voiceOn = !cfg.voiceOn; saveCfg(); syncVoiceBtn(); stopAll();
