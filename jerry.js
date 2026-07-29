@@ -205,12 +205,36 @@
   '#j-cfg .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:22px}' +
   '#j-cfg .warn{background:var(--accent-light);border:1px solid var(--border);border-radius:12px;' +
     'padding:10px 12px;font-size:.79rem;color:var(--sub-text,var(--text));margin-top:14px}' +
-  '@media(max-width:700px){#j-log{max-height:24vh}' +
-    '#j-cap{font-size:.82rem;padding:6px 12px;max-width:96%;border-radius:12px}' +
-    '#jerry-root.mini{right:10px;bottom:10px;width:132px}' +
-    '#jerry-root.mini #j-stage{width:132px;height:158px}' +
-    '#jerry-root.mini #j-cap{max-width:min(240px,calc(100vw - 28px))}' +
-    '#jerry-root.mini #j-panel{width:min(320px,calc(100vw - 20px));position:fixed;right:10px;bottom:180px}}';
+  /* ── 세로 모드 / 좁은 화면 ── */
+  '@media(max-width:700px){' +
+    '#j-log{max-height:24vh}' +
+    '#jerry-root.mini{padding:0 8px 8px}' +
+    '#jerry-root.mini::before{height:250px}' +
+    '#jerry-root.mini.closed::before{height:170px}' +
+    '#jerry-root.mini #j-dock{gap:6px}' +
+    '#jerry-root.mini #j-tools{gap:6px}' +
+    '#jerry-root.mini #j-tools .j-btn{width:32px;height:32px;font-size:.78rem}' +
+    '#jerry-root.mini #j-hide{font-size:.58rem}' +
+    '#jerry-root.mini #j-body{padding-top:34px}' +
+    '#jerry-root.mini #j-stage{left:2px;width:104px;height:126px}' +
+    '#jerry-root.mini #j-panel{border-radius:26px;padding:12px 14px 12px 112px}' +
+    '#jerry-root.mini #j-name{font-size:1rem;margin-bottom:6px}' +
+    '#jerry-root.mini #j-cap{font-size:.82rem;min-height:3.6em;max-height:3.6em}' +
+    '#jerry-root.mini #j-form{margin-top:10px;gap:6px}' +
+    '#jerry-root.mini #j-input{height:32px;min-height:32px;font-size:.8rem;padding:6px 10px}' +
+    '#jerry-root.mini #j-mic{display:none}' +
+    '#jerry-root.mini #j-send{width:42px;height:32px;font-size:.78rem}' +
+    '#jerry-root.mini.closed #j-body{width:104px;height:126px;margin-left:2px}' +
+    '#jerry-root.mini.closed #j-stage{width:104px;height:126px}' +
+    '#j-copy{font-size:.6rem;text-align:center;margin:6px 2px 0}' +
+  '}' +
+  /* 아주 좁은 화면 */
+  '@media(max-width:400px){' +
+    '#jerry-root.mini #j-stage{width:84px;height:104px}' +
+    '#jerry-root.mini #j-panel{padding-left:90px}' +
+    '#jerry-root.mini.closed #j-body,#jerry-root.mini.closed #j-stage{width:84px;height:104px}' +
+    '#jerry-root.mini #j-cap{font-size:.78rem}' +
+  '}';
 
   function injectCSS() {
     if (document.getElementById('jerry-style')) return;
