@@ -691,7 +691,9 @@
       root.id = 'jerry-root';
       document.body.appendChild(root);
     }
-    root.className = mode;
+    /* 처음에는 자리를 적게 쓰도록 캐릭터만 보이는 닫힘 상태로 시작.
+       캐릭터를 누르면 대화 패널이 펼쳐집니다. */
+    root.className = mode + (mode === 'mini' ? ' closed' : '');
     root.innerHTML =
       '<div id="j-dock">' +
         '<div id="j-tools">' +
