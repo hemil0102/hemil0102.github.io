@@ -224,7 +224,7 @@
       var parent = segs.slice(0, -1).join('/');
       head = '<div class="list-head">' +
         '<button class="crumb-back" type="button" data-to="' + escapeHtml(parent) + '">&lsaquo;</button> ' +
-        'Insights &rsaquo; ' +
+        '<button class="crumb-link" type="button" data-all="1">Insights</button> &rsaquo; ' +
         '<button class="crumb-link" type="button" data-to="">' + escapeHtml(activeCategory) + '</button>';
       var acc = '';
       segs.forEach(function (s, i) {
@@ -235,8 +235,9 @@
       });
       head += ' (' + deepCount + ')</div>';
     } else if (activeCategory !== 'All') {
-      head = '<div class="list-head">Insights &rsaquo; ' + escapeHtml(activeCategory) +
-        ' (' + scoped.length + ')</div>';
+      head = '<div class="list-head">' +
+        '<button class="crumb-link" type="button" data-all="1">Insights</button> &rsaquo; ' +
+        escapeHtml(activeCategory) + ' (' + scoped.length + ')</div>';
     }
 
     if (!items.length) {
@@ -283,8 +284,14 @@
     function bindCrumbs($root) {
       Array.prototype.forEach.call($root.querySelectorAll('.crumb-back,.crumb-link'), function (b) {
         b.addEventListener('click', function () {
-          activeGroup = b.getAttribute('data-to') || null;
+          if (b.getAttribute('data-all')) {          // Insights → 모두 보기
+            activeCategory = 'All';
+            activeGroup = null;
+          } else {
+            activeGroup = b.getAttribute('data-to') || null;
+          }
           renderList($root);
+          if (typeof window.updateNav === 'function') window.updateNav();
           window.scrollTo(0, 0);
         });
       });
