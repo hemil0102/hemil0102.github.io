@@ -33,9 +33,9 @@
   /* ---------------------------------------------------------------- 스타일 */
   var CSS = ''
   + '.list-head{color:var(--muted);font-size:.9rem;margin-bottom:14px}'
-  + '.crumb-back{background:none;border:none;padding:0;cursor:pointer;font:inherit;'
+  + '.crumb-back,.crumb-link{background:none;border:none;padding:0;cursor:pointer;font:inherit;'
     + 'color:var(--logo-accent,var(--accent));font-weight:600}'
-  + '.crumb-back:hover{text-decoration:underline}'
+  + '.crumb-back:hover,.crumb-link:hover{text-decoration:underline}'
   + '.post-card{background:var(--card);border:1px solid var(--border);border-radius:12px;'
     + 'padding:20px 24px;margin-bottom:14px;cursor:pointer;transition:box-shadow .15s,transform .15s}'
   + '.post-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);transform:translateY(-1px)}'
@@ -183,49 +183,32 @@
       return activeCategory === 'All' || p.category === activeCategory;
     });
 
-    /* 폴더(그룹) 안을 보고 있는 경우 */
-    if (activeGroup) {
-      var inGroup = scoped.filter(function (p) { return p.group === activeGroup; });
-      var gHead = '<div class="list-head">' +
-        '<button class="crumb-back" type="button">&lsaquo; ' + escapeHtml(activeCategory) + '</button>' +
-        ' &rsaquo; ' + escapeHtml(activeGroup.split('/').pop()) + ' (' + inGroup.length + ')</div>';
-      var gHtml = gHead;
-      inGroup.forEach(function (p, i) {
-        gHtml += '<div class="post-card" data-i="' + i + '">' +
-          '<h3>' + escapeHtml(p.title) + '</h3>' +
-          '<div class="meta"><span class="badge">' + escapeHtml(p.category) + '</span>' +
-          dateHtml(p.date) + '</div></div>';
-      });
-      $main.innerHTML = inGroup.length ? gHtml : gHead + '<div class="status">해당하는 글이 없습니다.</div>';
-      var backBtn = $main.querySelector('.crumb-back');
-      if (backBtn) backBtn.addEventListener('click', function () {
-        activeGroup = null; renderList($main);
-      });
-      Array.prototype.forEach.call($main.querySelectorAll('.post-card'), function (card) {
-        card.addEventListener('click', function () {
-          location.hash = '#/post/' + encodeURIComponent(inGroup[parseInt(card.getAttribute('data-i'), 10)].path);
-        });
-      });
-      window.scrollTo(0, 0);
-      return;
-    }
+    /* 현재 보고 있는 폴더 경로. '' 이면 카테고리 최상위.
+       폴더는 몇 단계든 중첩할 수 있고, 한 번에 한 단계씩 들어갑니다.
+       예) WWDC → WWDC/2026 → WWDC/2026/Swift ...                       */
+    var prefix = activeGroup || '';
 
-    /* 폴더는 카드 하나로 묶고, 폴더 없는 글은 그대로 나열 */
-    var folders = [], folderIdx = {}, singles = [];
+    /* 이번 단계에 보여줄 하위 폴더와 글을 모읍니다 */
+    var folders = [], folderIdx = {}, singles = [], deepCount = 0;
     scoped.forEach(function (p) {
-      if (p.group) {
-        var key = p.category + '/' + p.group;
-        if (!(key in folderIdx)) {
-          folderIdx[key] = folders.length;
-          folders.push({ key: key, name: p.group.split('/').pop(), group: p.group,
-            category: p.category, count: 0, date: p.date || '' });
-        }
-        var f = folders[folderIdx[key]];
-        f.count++;
-        if ((p.date || '') > f.date) f.date = p.date || ''; // 폴더는 가장 최근 글 기준
-      } else {
-        singles.push(p);
+      var g = p.group || '', rel;
+      if (!prefix) rel = g;
+      else if (g === prefix) rel = '';
+      else if (g.indexOf(prefix + '/') === 0) rel = g.slice(prefix.length + 1);
+      else return;                                  // 다른 가지의 글
+      deepCount++;
+      if (!rel) { singles.push(p); return; }        // 이 폴더에 바로 있는 글
+      var name = rel.split('/')[0];                 // 바로 아래 폴더 이름만
+      var full = prefix ? prefix + '/' + name : name;
+      var key = p.category + '/' + full;
+      if (!(key in folderIdx)) {
+        folderIdx[key] = folders.length;
+        folders.push({ name: name, group: full, category: p.category,
+          count: 0, date: p.date || '' });
       }
+      var f = folders[folderIdx[key]];
+      f.count++;                                    // 하위 폴더 글까지 모두 합산
+      if ((p.date || '') > f.date) f.date = p.date || ''; // 폴더는 가장 최근 글 기준
     });
 
     /* 폴더와 개별 글을 하나의 목록으로 합쳐 등록 시각 최신순 정렬 */
@@ -239,15 +222,33 @@
       return a.name.localeCompare(b.name, 'ko');
     });
 
+    /* 빵부스러기: Insights › 카테고리 › 폴더 › 폴더 … (각 단계 클릭 가능) */
     var head = '';
-    if (activeCategory !== 'All') {
+    if (prefix) {
+      var segs = prefix.split('/');
+      var parent = segs.slice(0, -1).join('/');
+      head = '<div class="list-head">' +
+        '<button class="crumb-back" type="button" data-to="' + escapeHtml(parent) + '">&lsaquo; ' +
+        escapeHtml(segs.length > 1 ? segs[segs.length - 2] : activeCategory) + '</button>';
+      var acc = '';
+      segs.forEach(function (s, i) {
+        acc = acc ? acc + '/' + s : s;
+        head += ' &rsaquo; ' + (i === segs.length - 1
+          ? escapeHtml(s)
+          : '<button class="crumb-link" type="button" data-to="' + escapeHtml(acc) + '">' + escapeHtml(s) + '</button>');
+      });
+      head += ' (' + deepCount + ')</div>';
+    } else if (activeCategory !== 'All') {
       head = '<div class="list-head">Insights &rsaquo; ' + escapeHtml(activeCategory) +
         ' (' + scoped.length + ')</div>';
     }
-    if (!scoped.length) {
+
+    if (!items.length) {
       $main.innerHTML = head + '<div class="status">해당하는 글이 없습니다.</div>';
+      bindCrumbs($main);
       return;
     }
+
     var html = head;
     items.forEach(function (it) {
       if (it.kind === 'folder') {
@@ -266,6 +267,7 @@
     });
     $main.innerHTML = html;
 
+    bindCrumbs($main);
     Array.prototype.forEach.call($main.querySelectorAll('.folder-card'), function (card) {
       card.addEventListener('click', function () {
         var f = folders[parseInt(card.getAttribute('data-f'), 10)];
@@ -273,6 +275,7 @@
         activeGroup = f.group;
         renderList($main);
         if (typeof window.updateNav === 'function') window.updateNav();
+        window.scrollTo(0, 0);
       });
     });
     Array.prototype.forEach.call($main.querySelectorAll('.post-card:not(.folder-card)'), function (card) {
@@ -280,6 +283,16 @@
         location.hash = '#/post/' + encodeURIComponent(singles[parseInt(card.getAttribute('data-i'), 10)].path);
       });
     });
+
+    function bindCrumbs($root) {
+      Array.prototype.forEach.call($root.querySelectorAll('.crumb-back,.crumb-link'), function (b) {
+        b.addEventListener('click', function () {
+          activeGroup = b.getAttribute('data-to') || null;
+          renderList($root);
+          window.scrollTo(0, 0);
+        });
+      });
+    }
   }
 
   /* ----------------------------------------------------------------- 글 */
