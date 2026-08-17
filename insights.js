@@ -121,18 +121,13 @@
 
   /* --------------------------------------------------------------- 데이터 */
   function fetchTree() {
-    var cached = sessionStorage.getItem('tree-cache');
-    if (cached) {
-      try { return Promise.resolve(JSON.parse(cached)); } catch (e) { /* fall through */ }
-    }
-    return fetch(API_TREE)
+    /* 예전에는 sessionStorage 에 트리를 저장해 재사용했는데,
+       그 캐시가 남아 있으면 새 폴더가 영영 안 보이는 문제가 있어 제거했습니다. */
+    try { sessionStorage.removeItem('tree-cache'); } catch (e) {}
+    return fetch(API_TREE + '&t=' + Date.now(), { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('GitHub API 오류 (' + r.status + ')');
         return r.json();
-      })
-      .then(function (data) {
-        try { sessionStorage.setItem('tree-cache', JSON.stringify(data)); } catch (e) {}
-        return data;
       });
   }
 
