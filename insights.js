@@ -223,8 +223,9 @@
       var segs = prefix.split('/');
       var parent = segs.slice(0, -1).join('/');
       head = '<div class="list-head">' +
-        '<button class="crumb-back" type="button" data-to="' + escapeHtml(parent) + '">&lsaquo; ' +
-        escapeHtml(segs.length > 1 ? segs[segs.length - 2] : activeCategory) + '</button>';
+        '<button class="crumb-back" type="button" data-to="' + escapeHtml(parent) + '">&lsaquo;</button> ' +
+        'Insights &rsaquo; ' +
+        '<button class="crumb-link" type="button" data-to="">' + escapeHtml(activeCategory) + '</button>';
       var acc = '';
       segs.forEach(function (s, i) {
         acc = acc ? acc + '/' + s : s;
