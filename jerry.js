@@ -90,7 +90,8 @@
     '-webkit-mask-image:linear-gradient(to top,#000 0,#000 58%,transparent 100%);' +
     'mask-image:linear-gradient(to top,#000 0,#000 58%,transparent 100%);' +
     'background:linear-gradient(to top,var(--bg) 0%,transparent 88%)}' +
-  '#jerry-root.mini.closed::before{height:210px}' +
+  /* 닫혀 있을 때는 캐릭터만 보이면 되므로 뒤 블러를 걷어낸다 */
+  '#jerry-root.mini.closed::before{display:none}' +
   '#jerry-root.mini #j-dock{display:flex;gap:12px;align-items:flex-end}' +
   '#jerry-root.mini #j-tools{flex-direction:column;gap:9px;flex:0 0 auto;' +
     'align-self:flex-start;position:relative;z-index:5}' +
@@ -116,12 +117,13 @@
   '#jerry-root.mini #j-hint{display:none}' +
   '#jerry-root.mini #j-copy{display:block}' +
   /* 닫힘: 캐릭터만 남는다 */
-  '#jerry-root.mini.closed{max-width:900px;padding:0 14px 12px;align-items:flex-start}' +
+  /* 닫힘: 가운데 정렬을 풀고 화면 왼쪽 끝에 붙인다 */
+  '#jerry-root.mini.closed{max-width:none;margin:0;padding:0 0 12px;align-items:flex-start}' +
   '#jerry-root.mini.closed #j-tools,#jerry-root.mini.closed #j-panel,' +
     '#jerry-root.mini.closed #j-copy{display:none}' +
   '#jerry-root.mini.closed #j-dock{justify-content:flex-start}' +
   '#jerry-root.mini.closed #j-body{padding-top:0;flex:0 0 auto;width:180px;height:216px;' +
-    'margin-left:6px}' +
+    'margin-left:0}' +
   '#jerry-root.mini.closed #j-stage{position:static;width:180px;height:216px}' +
   /* 대화 로그·입력 (원본 톤) */
   '#jerry-root.mini .j-msg{border:none;font-weight:600}' +
@@ -224,7 +226,7 @@
     '#jerry-root.mini #j-input{height:32px;min-height:32px;font-size:.8rem;padding:6px 10px}' +
     '#jerry-root.mini #j-mic{display:none}' +
     '#jerry-root.mini #j-send{width:42px;height:32px;font-size:.78rem}' +
-    '#jerry-root.mini.closed #j-body{width:104px;height:126px;margin-left:2px}' +
+    '#jerry-root.mini.closed #j-body{width:104px;height:126px;margin-left:0}' +
     '#jerry-root.mini.closed #j-stage{width:104px;height:126px}' +
     '#j-copy{font-size:.6rem;text-align:center;margin:6px 2px 0}' +
   '}' +
