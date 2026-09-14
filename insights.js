@@ -303,7 +303,10 @@
     injectCss();
     var post = posts.filter(function (p) { return p.path === path; })[0];
     $main.innerHTML = '<div class="status">글을 불러오는 중...</div>';
-    fetch(RAW_BASE + path.split('/').map(encodeURIComponent).join('/'))
+    /* 글 본문도 CDN·브라우저 캐시를 우회한다.
+       그러지 않으면 md 를 수정해도 예전 내용이 한동안 그대로 보인다. */
+    fetch(RAW_BASE + path.split('/').map(encodeURIComponent).join('/') + '?v=' + Date.now(),
+          { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('파일을 불러올 수 없습니다 (' + r.status + ')');
         return r.text();
