@@ -1,0 +1,54 @@
+name: Stamp asset versions
+
+# ---------------------------------------------------------------------------
+# index.html 등이 불러오는 로컬 js 파일의 ?v= 값을 커밋 해시로 자동 교체한다.
+#
+# 왜 필요한가
+#   GitHub Pages 는 js/html 을 브라우저에 캐시시키기 때문에, 스크립트를 고쳐도
+#   방문자는 예전 파일을 계속 쓰는 일이 생긴다. 지금까지는 손으로 ?v= 숫자를
+#   올렸는데, 한 번이라도 깜빡하면 그대로 옛 화면이 나온다.
+#   이 워크플로가 푸시할 때마다 값을 바꿔주므로 더 이상 신경 쓰지 않아도 된다.
+#
+# 주의
+#   GITHUB_TOKEN 으로 만든 커밋은 워크플로를 다시 트리거하지 않으므로
+#   무한 루프가 생기지 않는다.
+# ---------------------------------------------------------------------------
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stamp-assets
+  cancel-in-progress: false
+
+jobs:
+  stamp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Rewrite ?v= with commit sha
+        run: |
+          SHA=$(git rev-parse --short=8 HEAD)
+          # src="이름.js" 또는 src="이름.js?v=..." → src="이름.js?v=<sha>"
+          # 문자 클래스에 : / 가 없으므로 CDN(https://…) 스크립트는 건드리지 않는다.
+          for f in *.html; do
+            [ -f "$f" ] || continue
+            sed -i -E "s#(src=\"[A-Za-z0-9_.-]+\.js)(\?v=[^\"]*)?\"#\1?v=${SHA}\"#g" "$f"
+          done
+          git diff --stat
+
+      - name: Commit if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "변경 없음 — 커밋 생략"
+          else
+            git commit -am "chore: stamp asset versions"
+            git push
+          fi
